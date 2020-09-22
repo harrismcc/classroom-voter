@@ -5,6 +5,7 @@ from _thread import *
 
 
 
+
 def threaded_client(connection):
     connection.send(str.encode('Welcome to the Poll\n'))
 
@@ -18,7 +19,7 @@ def threaded_client(connection):
 
         connection.sendall(str.encode(reply))
 
-    #connection.close()
+    connection.close()
 
 def main():
     if len(sys.argv) != 2:

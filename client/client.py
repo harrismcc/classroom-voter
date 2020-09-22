@@ -22,11 +22,11 @@ def main():
         print(str(e))
 
     while True:
-        #msg = input('Say Something: ')
-        #clientSocket.send(str.encode(msg))
+        msg = input('Say Something: ')
+        clientSocket.send(str.encode(msg))
         time.sleep(1)
         response = clientSocket.recv(1024)
-        print("Server:", response.decode('utf-8'))
+        print(response.decode('utf-8'))
 
     clientSocket.close()
 
