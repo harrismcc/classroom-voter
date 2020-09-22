@@ -1,6 +1,7 @@
 import socket
 import os
 import sys
+import time
 
 
 def main():
@@ -14,17 +15,18 @@ def main():
 
     clientSocket = socket.socket()
 
-    print('Waiting for connection')
+    print('Waiting for Connection To Server')
     try:
         clientSocket.connect((host, int(port)))
     except socket.error as e:
         print(str(e))
 
     while True:
-        msg = input('Say Something: ')
-        clientSocket.send(str.encode(msg))
+        #msg = input('Say Something: ')
+        #clientSocket.send(str.encode(msg))
+        time.sleep(1)
         response = clientSocket.recv(1024)
-        print(response.decode('utf-8'))
+        print("Server:", response.decode('utf-8'))
 
     clientSocket.close()
 

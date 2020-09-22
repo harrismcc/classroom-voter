@@ -27,7 +27,7 @@ def main():
     port = sys.argv[1]
 
     serverSocket = socket.socket()
-    host = '127.0.0.1'
+    host = '192.168.86.23'
     port = int(port)
     threadCount = 0
 
@@ -36,7 +36,7 @@ def main():
     except socket.error as e:
         print(str(e))
 
-    print('Waiting for a Connection..')
+    print('Waiting for a Connection To Client..')
     serverSocket.listen(5)
 
     #continuiously accept new connections
@@ -48,7 +48,7 @@ def main():
         start_new_thread(threaded_client, (client, ))
         threadCount += 1
         print('Thread Number: ' + str(threadCount))
-        serverSocket.close()
+    serverSocket.close()
 
 
 if __name__ == "__main__":
