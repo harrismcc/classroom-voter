@@ -11,21 +11,25 @@ class PollResponse:
     
     """ The parent class for a Poll Response """
     def __init__(self, question, anon_level):
-        """ Description
-        :type question: PollQuestion
-        :param question: The poll question contained in the poll response
+        """
+        Creates a new PollResponse object 
 
-        :type anon_level: tbd
-        :param anon_level: The anonymity level to encode this question with
+        Args:
+            self (undefined):
+            question (PollQuestion): The poll question contained in the poll response
+            anon_level (tbd): The anonymity level to encode this question with
+
         """
         self.question = question
 
 
     def verifyQuestionAnswer(self):
-        """ Detirmines if question is properly answered (node: this is
+        """
+        Detirmines if question is properly answered (node: this is
         not the same as correctly answered. This function just makes sure
         the answer is present and of the correct data type)
-        :rtype: bool
+        Returns:
+            bool: true if answer is not null and of correct type
         """
         pass
 
@@ -40,20 +44,26 @@ class PollQuestion:
 
 
     def getPrompt(self):
-        """ returns the question prompt as a string
-        :rtype: string
+        """
+        returns the question prompt as a string
+
+        Returns:
+            string: the question prompt    
         """
         return self.prompt
 
     def setAnswer(self, answer):
-        """ takes in an answer and sets it
+        """
+        takes in an answer and sets it
 
-        :type answer: answer type
-        :param answer: an answer of the correct type
-    
-        :return: true/false if this answer replaced an existing one
-        :rtype: bool
-        """    
+        Args:
+            self (answer type): could be string, int, bool
+            answer (undefined): an answer of the correct type
+
+        Returns:
+            bool: true/false if this answer replaced an existing one
+
+        """
         self.answer = answer
 
 
@@ -62,23 +72,34 @@ class PollQuestion:
 
 
 class FreeResponse(PollQuestion):
-    
-    """ Poll Question object for a free-response answer type. Empty since FreeResponse is the same as the template. """
+    """
+    Poll Question object for a free-response answer type. Empty since FreeResponse is the same as the template.
+
+    Inheritance:
+        PollQuestion:
+
+    """
     pass 
 
 
 
 class MultipleChoice(PollQuestion):
-    """ Poll Question object for a multiple choice answer type	"""
-    def __init__(self, prompt, options):
-        """ Construct a new MultipleChoice object
+    """
+    Poll Question object for a multiple choice answer type
 
-        :type prompt: string
-        :param prompt: the question prompt
-    
-        :type options: list
-        :param options: a list (>2 items) of answer choices
-        """    
+    Inheritance:
+        PollQuestion:
+
+    """
+    def __init__(self, prompt, options):
+        """
+        Construct a new MultipleChoice object
+
+        Args:
+            prompt (string): the question prompt
+            options (undefined): a list (>2 items) of answer choices
+
+        """
         self.prompt = prompt
         self.answer = None
         self.options = options
@@ -87,6 +108,13 @@ class MultipleChoice(PollQuestion):
    
 
     def getPrompt(self):
+        """gets the prompt
+                Args:
+                    self (self): the object
+
+                Returns:
+                    string: value to print out to represent the prompt
+        """
         ret = self.prompt + "\n"
 
 

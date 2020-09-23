@@ -3,7 +3,6 @@ import os
 import sys
 #from _thread import *
 import _thread
-from shared import encryption_tools
 
 
 
