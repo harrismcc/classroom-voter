@@ -1,3 +1,7 @@
+"""
+The `client` module is what runs on each individual students machine. It handles the socket
+networking that allows students to connect to server polls.
+"""
 import socket
 import os
 import sys

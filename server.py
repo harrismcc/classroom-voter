@@ -1,3 +1,7 @@
+"""
+The `server` module handles the socket networking with the clients, placing them each into
+their own threaded connection.
+"""
 import socket
 import os
 import sys

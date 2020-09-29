@@ -1,7 +1,18 @@
 
 class Poll:
     """ The poll object, represents an entire poll and it's responses """
-    def __init__(self, bytes):
+    def __init__(self, pollBytes, question):
+
+        self.question = question
+        """PollQuestion: The question the poll is asking"""
+        self.response = None
+        """PollResponse: The response recorded by the student"""
+
+        if pollBytes != None:
+            self.fromBytes()
+        elif question != None:
+
+            pass #Regular init
         print(type(self))
 
     
@@ -59,7 +70,7 @@ class PollResponse:
 
 
 class PollQuestion:
-    """ Parent class for a poll question - Informal Interface"""
+    """ Parent class for a poll question - Informal Interface, should not be called directly"""
     def __init__(self, prompt):
         self.prompt = prompt
         self.answer = None
