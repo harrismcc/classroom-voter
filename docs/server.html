@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
 <title>classroom-voter.server API documentation</title>
-<meta name="description" content="" />
+<meta name="description" content="The `server` module handles the socket networking with the clients, placing them each into
+their own threaded connection." />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -22,19 +23,32 @@
 <h1 class="title">Module <code>classroom-voter.server</code></h1>
 </header>
 <section id="section-intro">
+<p>The <code>server</code> module handles the socket networking with the clients, placing them each into
+their own threaded connection.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">import socket
+<pre><code class="python">&#34;&#34;&#34;
+The `server` module handles the socket networking with the clients, placing them each into
+their own threaded connection.
+&#34;&#34;&#34;
+import socket
 import os
 import sys
-#from _thread import *
-import _thread
+from _thread import *
+
 
 
 
 def threaded_client(connection):
+    &#34;&#34;&#34;
+    Creates a new threaded client connection loop
+
+    Args:
+        connection (socket): socket connection to client
+
+    &#34;&#34;&#34;
     connection.send(str.encode(&#39;Welcome to the Poll\n&#39;))
 
     while True:
@@ -50,6 +64,8 @@ def threaded_client(connection):
     connection.close()
 
 def main():
+    &#34;&#34;&#34; Accepts incoming connections from clients and puts each client connection in a new thread &#34;&#34;&#34;
+    #TODO: Change this out for argparse
     if len(sys.argv) != 2:
         print(&#34;usage: python3 %s &lt;port&gt;&#34; % sys.argv[0])
         quit(1)
@@ -95,12 +111,14 @@ if __name__ == &#34;__main__&#34;:
 <span>def <span class="ident">main</span></span>(<span>)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Accepts incoming connections from clients and puts each client connection in a new thread</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def main():
+    &#34;&#34;&#34; Accepts incoming connections from clients and puts each client connection in a new thread &#34;&#34;&#34;
+    #TODO: Change this out for argparse
     if len(sys.argv) != 2:
         print(&#34;usage: python3 %s &lt;port&gt;&#34; % sys.argv[0])
         quit(1)
@@ -135,12 +153,24 @@ if __name__ == &#34;__main__&#34;:
 <span>def <span class="ident">threaded_client</span></span>(<span>connection)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Creates a new threaded client connection loop</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>connection</code></strong> :&ensp;<code>socket</code></dt>
+<dd>socket connection to client</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def threaded_client(connection):
+    &#34;&#34;&#34;
+    Creates a new threaded client connection loop
+
+    Args:
+        connection (socket): socket connection to client
+
+    &#34;&#34;&#34;
     connection.send(str.encode(&#39;Welcome to the Poll\n&#39;))
 
     while True:

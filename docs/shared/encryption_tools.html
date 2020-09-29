@@ -35,30 +35,60 @@ from Crypto.Hash import HMAC, SHA256
 from os import _exit as quit
 import json
 
-#creates a new keypair
-def create_key():
-    key = RSA.generate(2048)
-    return key
 
 
-#Encrypts message using RSA key
+
 def encrypt_message(msg, key):
+    &#34;&#34;&#34;
+    Encrypts message using RSA key
+
+    Args:
+        msg (string): message to be encrypted
+        key (RSA key): RSA keypair object
+
+    Returns:
+        bytes: the byte encoded RSA encrypted message
+
+    &#34;&#34;&#34;
     msg = msg.encode()
     cipher = PKCS1_OAEP.new(key.publickey())
     return cipher.encrypt(msg)
     
-#Uses RSA private key to create MAC from Message
+
 def create_mac(msg, key):
+    &#34;&#34;&#34;
+    Uses RSA private key to create SHA-256 MAC from Message
+    
+
+    Args:
+        msg (string): message to verify
+        key (RSA key): RSA keypair object
+
+    Returns:
+        string: hex representation of message MAC
+
+    &#34;&#34;&#34;
     secret = key.exportKey(&#39;PEM&#39;)
     h = HMAC.new(secret, digestmod=SHA256)
     h.update(msg.encode())
     mac = h.hexdigest()
-
     return mac
 
-#verify a hex MAC and a byte-array message
-def verify_MAC(message, mac, key):
 
+def verify_MAC(message, mac, key):
+    &#34;&#34;&#34;
+    verify a hex MAC and a byte-array message
+
+    Args:
+        message (string): message to be verified
+        mac (string): hex representation of message MAC
+        key (RSA key): RSA keypair object
+    
+    Returns:
+        bool: true if message and MAC match
+
+    &#34;&#34;&#34;
+    
     secret = key.exportKey(&#39;PEM&#39;)
     h = HMAC.new(secret, digestmod=SHA256)
     h.update(message.encode())
@@ -79,35 +109,44 @@ def verify_MAC(message, mac, key):
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="classroom-voter.shared.encryption_tools.create_key"><code class="name flex">
-<span>def <span class="ident">create_key</span></span>(<span>)</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def create_key():
-    key = RSA.generate(2048)
-    return key</code></pre>
-</details>
-</dd>
 <dt id="classroom-voter.shared.encryption_tools.create_mac"><code class="name flex">
 <span>def <span class="ident">create_mac</span></span>(<span>msg, key)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Uses RSA private key to create SHA-256 MAC from Message</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>msg</code></strong> :&ensp;<code>string</code></dt>
+<dd>message to verify</dd>
+<dt><strong><code>key</code></strong> :&ensp;<code>RSA key</code></dt>
+<dd>RSA keypair object</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>string</code></dt>
+<dd>hex representation of message MAC</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def create_mac(msg, key):
+    &#34;&#34;&#34;
+    Uses RSA private key to create SHA-256 MAC from Message
+    
+
+    Args:
+        msg (string): message to verify
+        key (RSA key): RSA keypair object
+
+    Returns:
+        string: hex representation of message MAC
+
+    &#34;&#34;&#34;
     secret = key.exportKey(&#39;PEM&#39;)
     h = HMAC.new(secret, digestmod=SHA256)
     h.update(msg.encode())
     mac = h.hexdigest()
-
     return mac</code></pre>
 </details>
 </dd>
@@ -115,12 +154,35 @@ def verify_MAC(message, mac, key):
 <span>def <span class="ident">encrypt_message</span></span>(<span>msg, key)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Encrypts message using RSA key</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>msg</code></strong> :&ensp;<code>string</code></dt>
+<dd>message to be encrypted</dd>
+<dt><strong><code>key</code></strong> :&ensp;<code>RSA key</code></dt>
+<dd>RSA keypair object</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>bytes</code></dt>
+<dd>the byte encoded RSA encrypted message</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def encrypt_message(msg, key):
+    &#34;&#34;&#34;
+    Encrypts message using RSA key
+
+    Args:
+        msg (string): message to be encrypted
+        key (RSA key): RSA keypair object
+
+    Returns:
+        bytes: the byte encoded RSA encrypted message
+
+    &#34;&#34;&#34;
     msg = msg.encode()
     cipher = PKCS1_OAEP.new(key.publickey())
     return cipher.encrypt(msg)</code></pre>
@@ -130,13 +192,39 @@ def verify_MAC(message, mac, key):
 <span>def <span class="ident">verify_MAC</span></span>(<span>message, mac, key)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>verify a hex MAC and a byte-array message</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>message</code></strong> :&ensp;<code>string</code></dt>
+<dd>message to be verified</dd>
+<dt><strong><code>mac</code></strong> :&ensp;<code>string</code></dt>
+<dd>hex representation of message MAC</dd>
+<dt><strong><code>key</code></strong> :&ensp;<code>RSA key</code></dt>
+<dd>RSA keypair object</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>bool</code></dt>
+<dd>true if message and MAC match</dd>
+</dl></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def verify_MAC(message, mac, key):
+    &#34;&#34;&#34;
+    verify a hex MAC and a byte-array message
 
+    Args:
+        message (string): message to be verified
+        mac (string): hex representation of message MAC
+        key (RSA key): RSA keypair object
+    
+    Returns:
+        bool: true if message and MAC match
+
+    &#34;&#34;&#34;
+    
     secret = key.exportKey(&#39;PEM&#39;)
     h = HMAC.new(secret, digestmod=SHA256)
     h.update(message.encode())
@@ -168,7 +256,6 @@ def verify_MAC(message, mac, key):
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="classroom-voter.shared.encryption_tools.create_key" href="#classroom-voter.shared.encryption_tools.create_key">create_key</a></code></li>
 <li><code><a title="classroom-voter.shared.encryption_tools.create_mac" href="#classroom-voter.shared.encryption_tools.create_mac">create_mac</a></code></li>
 <li><code><a title="classroom-voter.shared.encryption_tools.encrypt_message" href="#classroom-voter.shared.encryption_tools.encrypt_message">encrypt_message</a></code></li>
 <li><code><a title="classroom-voter.shared.encryption_tools.verify_MAC" href="#classroom-voter.shared.encryption_tools.verify_MAC">verify_MAC</a></code></li>
