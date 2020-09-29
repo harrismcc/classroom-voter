@@ -1,8 +1,30 @@
 
 class Poll:
     """ The poll object, represents an entire poll and it's responses """
-    def __init__(self):
+    def __init__(self, bytes):
         print(type(self))
+
+    
+    def toBytes(self):
+        """
+        converts the Poll object into a json bytearray that can be sent
+        over the network
+
+        Returns:
+            bytes: The Poll object as a byte array
+
+        """
+        pass
+
+    def fromBytes(self):
+        """
+        Converts a byte array (presumably from the network) into a Poll object
+
+        Args:
+            self (undefined):
+
+        """
+        pass
 
 
 
