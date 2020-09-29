@@ -1,12 +1,23 @@
+"""
+The `server` module handles the socket networking with the clients, placing them each into
+their own threaded connection.
+"""
 import socket
 import os
 import sys
 from _thread import *
-from shared import encryption_tools
+
 
 
 
 def threaded_client(connection):
+    """
+    Creates a new threaded client connection loop
+
+    Args:
+        connection (socket): socket connection to client
+
+    """
     connection.send(str.encode('Welcome to the Poll\n'))
 
     while True:
@@ -22,6 +33,8 @@ def threaded_client(connection):
     connection.close()
 
 def main():
+    """ Accepts incoming connections from clients and puts each client connection in a new thread """
+    #TODO: Change this out for argparse
     if len(sys.argv) != 2:
         print("usage: python3 %s <port>" % sys.argv[0])
         quit(1)
