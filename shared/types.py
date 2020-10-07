@@ -1,20 +1,18 @@
+import json
 
 class Poll:
     """ The poll object, represents an entire poll and it's responses """
     def __init__(self, pollBytes, question):
-
-        self.question = question
-        """PollQuestion: The question the poll is asking"""
         self.response = None
         """PollResponse: The response recorded by the student"""
 
         if pollBytes != None:
             self.fromBytes()
         elif question != None:
-
-            pass #Regular init
-        print(type(self))
-
+            self.question = question
+            """PollQuestion: The question the poll is asking"""
+        else:
+            raise Exception("Must have question or bytes when initializing Poll object")
     
     def toBytes(self):
         """
@@ -25,7 +23,12 @@ class Poll:
             bytes: The Poll object as a byte array
 
         """
-        pass
+        obj = {}
+        if self.response:
+            obj['response'] = self.response
+        if self.question:
+            obj['question'] = self.question
+        return json.dumps(obj)
 
     def fromBytes(self):
         """
