@@ -1,41 +1,60 @@
 
 class Poll:
-    """ The poll object, represents an entire poll and it's responses """
-    def __init__(self, pollBytes, question):
+    """
+    The poll object, represents an entire poll and it's responses
+    TODO: read in from file, export to json, import from json
+    """
+    def __init__(self, question):
 
         self.question = question
         """PollQuestion: The question the poll is asking"""
-        self.response = None
-        """PollResponse: The response recorded by the student"""
-
-        if pollBytes != None:
-            self.fromBytes()
-        elif question != None:
-
-            pass #Regular init
-        print(type(self))
+        self.responses = []
+        """PollResponse[]: An array of the responses recorded by the student"""
 
     
-    def toBytes(self):
+    @classmethod
+    def fromDict(self, inDict):
         """
-        converts the Poll object into a json bytearray that can be sent
-        over the network
+        Instantiates a new Poll object using a python dictionary containing Poll object data
+        Args:
+            inDict (dict): The dictionary containting the poll object information
+
+        """
+
+        #Here we make sure to create the correct PollQuestion type
+        if inDict["type"] == "MultipleChoice":
+            self.question = MultipleChoice.fromDict(inDict["question"])
+        else:
+            self.question = FreeResponse.fromDict(inDict["question"])
+
+        #Here we populate the responses list, creating new response objects for each dict respresentation of a response
+        for response in inDict["responses"]:
+            self.responses.appned(PollResponse.fromDict(response))
+
+    def toDict(self):
+        """
+        converts the Poll object into a dictionary that represents the object
+        Note that this does not include the poll responses
+
+        {
+            question : string
+        }
 
         Returns:
-            bytes: The Poll object as a byte array
+            dict: The Poll object as a python dict
 
         """
-        pass
+        out = {}
 
-    def fromBytes(self):
-        """
-        Converts a byte array (presumably from the network) into a Poll object
+        out["question"] = self.question.toDict()
+        out["responses"] = []
 
-        Args:
-            self (undefined):
+        for response in self.responses:
+            out["responses"].append(response.toDict())
 
-        """
-        pass
+        return out
+
+
 
 
 
@@ -49,12 +68,21 @@ class PollResponse:
 
         Args:
             self (undefined):
-            question (PollQuestion): The poll question contained in the poll response
             anon_level (tbd): The anonymity level to encode this question with
 
         """
         self.question = question
 
+    @classmethod
+    def fromDict(self, inDict):
+        """
+        Instantiates a new PollResponse object using a python dictionary containing 
+        PollResponse object data
+        Args:
+            inDict (dict): The dictionary containting the poll object information
+
+        """
+        pass
 
     def verifyQuestionAnswer(self):
         """
@@ -74,6 +102,7 @@ class PollQuestion:
     def __init__(self, prompt):
         self.prompt = prompt
         self.answer = None
+        self.options = []
 
 
     def getPrompt(self):
@@ -87,18 +116,37 @@ class PollQuestion:
 
     def setAnswer(self, answer):
         """
-        takes in an answer and sets it
+        takes in an answer and sets it. If the PollQuestion has options set, then this answer must be
+        int options
 
         Args:
             self (answer type): could be string, int, bool
             answer (undefined): an answer of the correct type
-
+        
         Returns:
-            bool: true/false if this answer replaced an existing one
+            bool: true if answer was successfully set, false otherwise
 
         """
-        self.answer = answer
+        if (answer in self.options or self.options == []):
+            self.answer = answer
+            return True
+        return False
 
+    def toDict(self):
+        """
+        Converts the PollQuestion object into a python dictionary
+
+        Returns:
+            dict: dictionary representaion of PollQuestion
+        """
+        out = {}
+
+        out["prompt"] = self.prompt
+        out["answer"] = self.answer
+        out["options"] = self.options
+        out["type"] = type(self).__name__
+        
+        return out
 
     def __repr__(self):
         return self.getPrompt() + "\n" + str(self.answer)
@@ -156,13 +204,6 @@ class MultipleChoice(PollQuestion):
         
         return ret
 
-    #takes in an answer and sets it
-    #   Args:
-    #       answer - int - the index of the correct answer
-    #   Returns:
-    #       bool - true/false if this answer replaced an existing one
-    def setAnswer(self, answer):
-        self.answer = answer
 
     #helper function to get the index of an option by looking up the string
     def getIndexOfOption(self, str):
