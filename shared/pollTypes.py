@@ -1,3 +1,5 @@
+import json
+
 
 class Poll:
     """
@@ -13,23 +15,34 @@ class Poll:
 
     
     @classmethod
-    def fromDict(self, inDict):
+    def fromDict(cls, inDict):
         """
         Instantiates a new Poll object using a python dictionary containing Poll object data
         Args:
             inDict (dict): The dictionary containting the poll object information
 
         """
-
         #Here we make sure to create the correct PollQuestion type
-        if inDict["type"] == "MultipleChoice":
-            self.question = MultipleChoice.fromDict(inDict["question"])
+        if inDict["question"]["type"] == "MultipleChoice":
+            out = cls(MultipleChoice.fromDict(inDict["question"]))
         else:
-            self.question = FreeResponse.fromDict(inDict["question"])
+            out = cls(FreeResponse.fromDict(inDict["question"]))
 
         #Here we populate the responses list, creating new response objects for each dict respresentation of a response
         for response in inDict["responses"]:
-            self.responses.appned(PollResponse.fromDict(response))
+            out.responses.appned(PollResponse.fromDict(response))
+
+        return out
+
+    @classmethod
+    def fromJson(cls, inJson):
+        """
+        Instantiates a new Poll object using a json string containing Poll object data
+        Args:
+            inJson (string): The dictionary containting the poll object information
+        """
+
+        return cls.fromDict(json.loads(inJson))
 
     def toDict(self):
         """
@@ -67,14 +80,14 @@ class PollResponse:
         Creates a new PollResponse object 
 
         Args:
-            self (undefined):
+            responseBody(string): The body of the poll response
             anon_level (tbd): The anonymity level to encode this question with
 
         """
         self.question = question
 
     @classmethod
-    def fromDict(self, inDict):
+    def fromDict(cls, inDict):
         """
         Instantiates a new PollResponse object using a python dictionary containing 
         PollResponse object data
@@ -82,7 +95,7 @@ class PollResponse:
             inDict (dict): The dictionary containting the poll object information
 
         """
-        pass
+        return cls(question=inDict["question"], anon_level=inDict["anonLevel"])
 
     def verifyQuestionAnswer(self):
         """
@@ -99,11 +112,17 @@ class PollResponse:
 
 class PollQuestion:
     """ Parent class for a poll question - Informal Interface, should not be called directly"""
-    def __init__(self, prompt):
+    def __init__(self, prompt, answer=None, options=[]):
         self.prompt = prompt
         self.answer = None
         self.options = []
+    
+    @classmethod
+    def fromDict(cls, inDict):
+        """ Constructs the PollQuestion object using a dictionary """
 
+        return cls(inDict["prompt"], answer=inDict["answer"], options=inDict["options"])
+        
 
     def getPrompt(self):
         """
@@ -147,6 +166,8 @@ class PollQuestion:
         out["type"] = type(self).__name__
         
         return out
+    
+
 
     def __repr__(self):
         return self.getPrompt() + "\n" + str(self.answer)
@@ -182,7 +203,6 @@ class MultipleChoice(PollQuestion):
 
         """
         self.prompt = prompt
-        self.answer = None
         self.options = options
 
 
