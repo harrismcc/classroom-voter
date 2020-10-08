@@ -41,7 +41,6 @@ class Poll:
         self.responses = []
         &#34;&#34;&#34;PollResponse[]: An array of the responses recorded by the student&#34;&#34;&#34;
 
-    
     @classmethod
     def fromDict(cls, inDict):
         &#34;&#34;&#34;
@@ -51,10 +50,10 @@ class Poll:
 
         &#34;&#34;&#34;
         #Here we make sure to create the correct PollQuestion type
-        if inDict[&#34;question&#34;][&#34;type&#34;] == &#34;MultipleChoice&#34;:
-            out = cls(MultipleChoice.fromDict(inDict[&#34;question&#34;]))
+        if inDict[&#34;question&#34;][&#34;type&#34;] == &#34;MultipleChoiceQuestion&#34;:
+            out = cls(MultipleChoiceQuestion.fromDict(inDict[&#34;question&#34;]))
         else:
-            out = cls(FreeResponse.fromDict(inDict[&#34;question&#34;]))
+            out = cls(FreeResponseQuestion.fromDict(inDict[&#34;question&#34;]))
 
         #Here we populate the responses list, creating new response objects for each dict respresentation of a response
         for response in inDict[&#34;responses&#34;]:
@@ -111,7 +110,7 @@ class Poll:
         Returns:
             string: Json representaiton of object
         &#34;&#34;&#34;
-        pass
+        return json.dumps(self.toDict())
 
     def toBytes(self):
         &#34;&#34;&#34;
@@ -120,17 +119,19 @@ class Poll:
         Returns:
             bytes: bytearray representation of object
         &#34;&#34;&#34;
-        pass
+        return json.dumps(self.toDict()).encode()
 
-
-
-
-
+    def addResponse(self, response):
+        &#34;&#34;&#34; Adds a new poll response object to this Poll&#39;s responses list &#34;&#34;&#34;
+        if isinstance(response, PollResponse):
+            self.responses.append(response)
+        else:
+            raise TypeError(&#34;addResponse requires a PollResponse object&#34;)
 
 class PollResponse:
     
     &#34;&#34;&#34; The parent class for a Poll Response &#34;&#34;&#34;
-    def __init__(self, question, anon_level):
+    def __init__(self, question, anon_level=0):
         &#34;&#34;&#34;
         Creates a new PollResponse object 
 
@@ -140,6 +141,7 @@ class PollResponse:
 
         &#34;&#34;&#34;
         self.question = question
+        self.anon_level = anon_level
 
     @classmethod
     def fromDict(cls, inDict):
@@ -178,8 +180,8 @@ class PollResponse:
         Returns:
             dict: dictionary representation of object
         &#34;&#34;&#34;
-        pass
-    
+        return vars(self)
+
     def toJson(self):
         &#34;&#34;&#34;
         Converts the object into a json string
@@ -208,15 +210,12 @@ class PollResponse:
         &#34;&#34;&#34;
         pass
 
-
-
-
 class PollQuestion:
     &#34;&#34;&#34; Parent class for a poll question - Informal Interface, should not be called directly&#34;&#34;&#34;
-    def __init__(self, prompt, answer=None, options=[]):
+    def __init__(self, prompt, answer=None, options=None):
         self.prompt = prompt
-        self.answer = None
-        self.options = []
+        self.answer = answer
+        self.options = options
     
     @classmethod
     def fromDict(cls, inDict):
@@ -245,12 +244,19 @@ class PollQuestion:
 
     def toDict(self):
         &#34;&#34;&#34;
-        Converts the object into a python dictionary
+        Converts the PollQuestion object into a python dictionary
 
         Returns:
-            dict: dictionary representation of object
+            dict: dictionary representaion of PollQuestion
         &#34;&#34;&#34;
-        pass
+        out = {}
+
+        out[&#34;prompt&#34;] = self.prompt
+        out[&#34;answer&#34;] = self.answer
+        out[&#34;options&#34;] = self.options
+        out[&#34;type&#34;] = type(self).__name__
+        
+        return out
     
     def toJson(self):
         &#34;&#34;&#34;
@@ -297,41 +303,21 @@ class PollQuestion:
             return True
         return False
 
-    def toDict(self):
-        &#34;&#34;&#34;
-        Converts the PollQuestion object into a python dictionary
-
-        Returns:
-            dict: dictionary representaion of PollQuestion
-        &#34;&#34;&#34;
-        out = {}
-
-        out[&#34;prompt&#34;] = self.prompt
-        out[&#34;answer&#34;] = self.answer
-        out[&#34;options&#34;] = self.options
-        out[&#34;type&#34;] = type(self).__name__
-        
-        return out
-    
-
 
     def __repr__(self):
         return self.getPrompt() + &#34;\n&#34; + str(self.answer)
 
-
-class FreeResponse(PollQuestion):
+&#34;&#34;&#34; Begin Poll Question Child Types &#34;&#34;&#34;
+class FreeResponseQuestion(PollQuestion):
     &#34;&#34;&#34;
-    Poll Question object for a free-response answer type. Empty since FreeResponse is the same as the template.
+    Poll Question object for a free-response answer type. Empty since FreeResponseQuestion is the same as the template.
 
     Inheritance:
         PollQuestion:
 
     &#34;&#34;&#34;
     pass 
-
-
-
-class MultipleChoice(PollQuestion):
+class MultipleChoiceQuestion(PollQuestion):
     &#34;&#34;&#34;
     Poll Question object for a multiple choice answer type
 
@@ -341,7 +327,7 @@ class MultipleChoice(PollQuestion):
     &#34;&#34;&#34;
     def __init__(self, prompt, options):
         &#34;&#34;&#34;
-        Construct a new MultipleChoice object
+        Construct a new MultipleChoiceQuestion object
 
         Args:
             prompt (string): the question prompt
@@ -385,21 +371,21 @@ class MultipleChoice(PollQuestion):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="classroom-voter.shared.pollTypes.FreeResponse"><code class="flex name class">
-<span>class <span class="ident">FreeResponse</span></span>
-<span>(</span><span>prompt, answer=None, options=[])</span>
+<dt id="classroom-voter.shared.pollTypes.FreeResponseQuestion"><code class="flex name class">
+<span>class <span class="ident">FreeResponseQuestion</span></span>
+<span>(</span><span>prompt, answer=None, options=None)</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Poll Question object for a free-response answer type. Empty since FreeResponse is the same as the template.</p>
+<div class="desc"><p>Poll Question object for a free-response answer type. Empty since FreeResponseQuestion is the same as the template.</p>
 <h2 id="inheritance">Inheritance</h2>
 <p>PollQuestion:</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class FreeResponse(PollQuestion):
+<pre><code class="python">class FreeResponseQuestion(PollQuestion):
     &#34;&#34;&#34;
-    Poll Question object for a free-response answer type. Empty since FreeResponse is the same as the template.
+    Poll Question object for a free-response answer type. Empty since FreeResponseQuestion is the same as the template.
 
     Inheritance:
         PollQuestion:
@@ -427,15 +413,15 @@ class MultipleChoice(PollQuestion):
 </li>
 </ul>
 </dd>
-<dt id="classroom-voter.shared.pollTypes.MultipleChoice"><code class="flex name class">
-<span>class <span class="ident">MultipleChoice</span></span>
+<dt id="classroom-voter.shared.pollTypes.MultipleChoiceQuestion"><code class="flex name class">
+<span>class <span class="ident">MultipleChoiceQuestion</span></span>
 <span>(</span><span>prompt, options)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Poll Question object for a multiple choice answer type</p>
 <h2 id="inheritance">Inheritance</h2>
 <p>PollQuestion:</p>
-<p>Construct a new MultipleChoice object</p>
+<p>Construct a new MultipleChoiceQuestion object</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt><strong><code>prompt</code></strong> :&ensp;<code>string</code></dt>
@@ -447,7 +433,7 @@ class MultipleChoice(PollQuestion):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class MultipleChoice(PollQuestion):
+<pre><code class="python">class MultipleChoiceQuestion(PollQuestion):
     &#34;&#34;&#34;
     Poll Question object for a multiple choice answer type
 
@@ -457,7 +443,7 @@ class MultipleChoice(PollQuestion):
     &#34;&#34;&#34;
     def __init__(self, prompt, options):
         &#34;&#34;&#34;
-        Construct a new MultipleChoice object
+        Construct a new MultipleChoiceQuestion object
 
         Args:
             prompt (string): the question prompt
@@ -497,7 +483,7 @@ class MultipleChoice(PollQuestion):
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="classroom-voter.shared.pollTypes.MultipleChoice.getIndexOfOption"><code class="name flex">
+<dt id="classroom-voter.shared.pollTypes.MultipleChoiceQuestion.getIndexOfOption"><code class="name flex">
 <span>def <span class="ident">getIndexOfOption</span></span>(<span>self, str)</span>
 </code></dt>
 <dd>
@@ -510,7 +496,7 @@ class MultipleChoice(PollQuestion):
     pass</code></pre>
 </details>
 </dd>
-<dt id="classroom-voter.shared.pollTypes.MultipleChoice.getPrompt"><code class="name flex">
+<dt id="classroom-voter.shared.pollTypes.MultipleChoiceQuestion.getPrompt"><code class="name flex">
 <span>def <span class="ident">getPrompt</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -585,7 +571,6 @@ TODO: read in from file, export to json, import from json</p></div>
         self.responses = []
         &#34;&#34;&#34;PollResponse[]: An array of the responses recorded by the student&#34;&#34;&#34;
 
-    
     @classmethod
     def fromDict(cls, inDict):
         &#34;&#34;&#34;
@@ -595,10 +580,10 @@ TODO: read in from file, export to json, import from json</p></div>
 
         &#34;&#34;&#34;
         #Here we make sure to create the correct PollQuestion type
-        if inDict[&#34;question&#34;][&#34;type&#34;] == &#34;MultipleChoice&#34;:
-            out = cls(MultipleChoice.fromDict(inDict[&#34;question&#34;]))
+        if inDict[&#34;question&#34;][&#34;type&#34;] == &#34;MultipleChoiceQuestion&#34;:
+            out = cls(MultipleChoiceQuestion.fromDict(inDict[&#34;question&#34;]))
         else:
-            out = cls(FreeResponse.fromDict(inDict[&#34;question&#34;]))
+            out = cls(FreeResponseQuestion.fromDict(inDict[&#34;question&#34;]))
 
         #Here we populate the responses list, creating new response objects for each dict respresentation of a response
         for response in inDict[&#34;responses&#34;]:
@@ -655,7 +640,7 @@ TODO: read in from file, export to json, import from json</p></div>
         Returns:
             string: Json representaiton of object
         &#34;&#34;&#34;
-        pass
+        return json.dumps(self.toDict())
 
     def toBytes(self):
         &#34;&#34;&#34;
@@ -664,7 +649,14 @@ TODO: read in from file, export to json, import from json</p></div>
         Returns:
             bytes: bytearray representation of object
         &#34;&#34;&#34;
-        pass</code></pre>
+        return json.dumps(self.toDict()).encode()
+
+    def addResponse(self, response):
+        &#34;&#34;&#34; Adds a new poll response object to this Poll&#39;s responses list &#34;&#34;&#34;
+        if isinstance(response, PollResponse):
+            self.responses.append(response)
+        else:
+            raise TypeError(&#34;addResponse requires a PollResponse object&#34;)</code></pre>
 </details>
 <h3>Static methods</h3>
 <dl>
@@ -715,10 +707,10 @@ def fromDict(cls, inDict):
 
     &#34;&#34;&#34;
     #Here we make sure to create the correct PollQuestion type
-    if inDict[&#34;question&#34;][&#34;type&#34;] == &#34;MultipleChoice&#34;:
-        out = cls(MultipleChoice.fromDict(inDict[&#34;question&#34;]))
+    if inDict[&#34;question&#34;][&#34;type&#34;] == &#34;MultipleChoiceQuestion&#34;:
+        out = cls(MultipleChoiceQuestion.fromDict(inDict[&#34;question&#34;]))
     else:
-        out = cls(FreeResponse.fromDict(inDict[&#34;question&#34;]))
+        out = cls(FreeResponseQuestion.fromDict(inDict[&#34;question&#34;]))
 
     #Here we populate the responses list, creating new response objects for each dict respresentation of a response
     for response in inDict[&#34;responses&#34;]:
@@ -766,6 +758,23 @@ def fromJson(cls, inJson):
 </dl>
 <h3>Methods</h3>
 <dl>
+<dt id="classroom-voter.shared.pollTypes.Poll.addResponse"><code class="name flex">
+<span>def <span class="ident">addResponse</span></span>(<span>self, response)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Adds a new poll response object to this Poll's responses list</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def addResponse(self, response):
+    &#34;&#34;&#34; Adds a new poll response object to this Poll&#39;s responses list &#34;&#34;&#34;
+    if isinstance(response, PollResponse):
+        self.responses.append(response)
+    else:
+        raise TypeError(&#34;addResponse requires a PollResponse object&#34;)</code></pre>
+</details>
+</dd>
 <dt id="classroom-voter.shared.pollTypes.Poll.toBytes"><code class="name flex">
 <span>def <span class="ident">toBytes</span></span>(<span>self)</span>
 </code></dt>
@@ -787,7 +796,7 @@ def fromJson(cls, inJson):
     Returns:
         bytes: bytearray representation of object
     &#34;&#34;&#34;
-    pass</code></pre>
+    return json.dumps(self.toDict()).encode()</code></pre>
 </details>
 </dd>
 <dt id="classroom-voter.shared.pollTypes.Poll.toDict"><code class="name flex">
@@ -853,14 +862,14 @@ question : string
     Returns:
         string: Json representaiton of object
     &#34;&#34;&#34;
-    pass</code></pre>
+    return json.dumps(self.toDict())</code></pre>
 </details>
 </dd>
 </dl>
 </dd>
 <dt id="classroom-voter.shared.pollTypes.PollQuestion"><code class="flex name class">
 <span>class <span class="ident">PollQuestion</span></span>
-<span>(</span><span>prompt, answer=None, options=[])</span>
+<span>(</span><span>prompt, answer=None, options=None)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Parent class for a poll question - Informal Interface, should not be called directly</p></div>
@@ -870,10 +879,10 @@ question : string
 </summary>
 <pre><code class="python">class PollQuestion:
     &#34;&#34;&#34; Parent class for a poll question - Informal Interface, should not be called directly&#34;&#34;&#34;
-    def __init__(self, prompt, answer=None, options=[]):
+    def __init__(self, prompt, answer=None, options=None):
         self.prompt = prompt
-        self.answer = None
-        self.options = []
+        self.answer = answer
+        self.options = options
     
     @classmethod
     def fromDict(cls, inDict):
@@ -902,12 +911,19 @@ question : string
 
     def toDict(self):
         &#34;&#34;&#34;
-        Converts the object into a python dictionary
+        Converts the PollQuestion object into a python dictionary
 
         Returns:
-            dict: dictionary representation of object
+            dict: dictionary representaion of PollQuestion
         &#34;&#34;&#34;
-        pass
+        out = {}
+
+        out[&#34;prompt&#34;] = self.prompt
+        out[&#34;answer&#34;] = self.answer
+        out[&#34;options&#34;] = self.options
+        out[&#34;type&#34;] = type(self).__name__
+        
+        return out
     
     def toJson(self):
         &#34;&#34;&#34;
@@ -954,31 +970,14 @@ question : string
             return True
         return False
 
-    def toDict(self):
-        &#34;&#34;&#34;
-        Converts the PollQuestion object into a python dictionary
-
-        Returns:
-            dict: dictionary representaion of PollQuestion
-        &#34;&#34;&#34;
-        out = {}
-
-        out[&#34;prompt&#34;] = self.prompt
-        out[&#34;answer&#34;] = self.answer
-        out[&#34;options&#34;] = self.options
-        out[&#34;type&#34;] = type(self).__name__
-        
-        return out
-    
-
 
     def __repr__(self):
         return self.getPrompt() + &#34;\n&#34; + str(self.answer)</code></pre>
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
-<li><a title="classroom-voter.shared.pollTypes.FreeResponse" href="#classroom-voter.shared.pollTypes.FreeResponse">FreeResponse</a></li>
-<li><a title="classroom-voter.shared.pollTypes.MultipleChoice" href="#classroom-voter.shared.pollTypes.MultipleChoice">MultipleChoice</a></li>
+<li><a title="classroom-voter.shared.pollTypes.FreeResponseQuestion" href="#classroom-voter.shared.pollTypes.FreeResponseQuestion">FreeResponseQuestion</a></li>
+<li><a title="classroom-voter.shared.pollTypes.MultipleChoiceQuestion" href="#classroom-voter.shared.pollTypes.MultipleChoiceQuestion">MultipleChoiceQuestion</a></li>
 </ul>
 <h3>Static methods</h3>
 <dl>
@@ -1198,7 +1197,7 @@ int options</p>
 </dd>
 <dt id="classroom-voter.shared.pollTypes.PollResponse"><code class="flex name class">
 <span>class <span class="ident">PollResponse</span></span>
-<span>(</span><span>question, anon_level)</span>
+<span>(</span><span>question, anon_level=0)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>The parent class for a Poll Response </p>
@@ -1216,7 +1215,7 @@ int options</p>
 <pre><code class="python">class PollResponse:
     
     &#34;&#34;&#34; The parent class for a Poll Response &#34;&#34;&#34;
-    def __init__(self, question, anon_level):
+    def __init__(self, question, anon_level=0):
         &#34;&#34;&#34;
         Creates a new PollResponse object 
 
@@ -1226,6 +1225,7 @@ int options</p>
 
         &#34;&#34;&#34;
         self.question = question
+        self.anon_level = anon_level
 
     @classmethod
     def fromDict(cls, inDict):
@@ -1264,8 +1264,8 @@ int options</p>
         Returns:
             dict: dictionary representation of object
         &#34;&#34;&#34;
-        pass
-    
+        return vars(self)
+
     def toJson(self):
         &#34;&#34;&#34;
         Converts the object into a json string
@@ -1420,7 +1420,7 @@ def fromJson(cls, inJson):
     Returns:
         dict: dictionary representation of object
     &#34;&#34;&#34;
-    pass</code></pre>
+    return vars(self)</code></pre>
 </details>
 </dd>
 <dt id="classroom-voter.shared.pollTypes.PollResponse.toJson"><code class="name flex">
@@ -1493,18 +1493,19 @@ the answer is present and of the correct data type)</p>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="classroom-voter.shared.pollTypes.FreeResponse" href="#classroom-voter.shared.pollTypes.FreeResponse">FreeResponse</a></code></h4>
+<h4><code><a title="classroom-voter.shared.pollTypes.FreeResponseQuestion" href="#classroom-voter.shared.pollTypes.FreeResponseQuestion">FreeResponseQuestion</a></code></h4>
 </li>
 <li>
-<h4><code><a title="classroom-voter.shared.pollTypes.MultipleChoice" href="#classroom-voter.shared.pollTypes.MultipleChoice">MultipleChoice</a></code></h4>
+<h4><code><a title="classroom-voter.shared.pollTypes.MultipleChoiceQuestion" href="#classroom-voter.shared.pollTypes.MultipleChoiceQuestion">MultipleChoiceQuestion</a></code></h4>
 <ul class="">
-<li><code><a title="classroom-voter.shared.pollTypes.MultipleChoice.getIndexOfOption" href="#classroom-voter.shared.pollTypes.MultipleChoice.getIndexOfOption">getIndexOfOption</a></code></li>
-<li><code><a title="classroom-voter.shared.pollTypes.MultipleChoice.getPrompt" href="#classroom-voter.shared.pollTypes.MultipleChoice.getPrompt">getPrompt</a></code></li>
+<li><code><a title="classroom-voter.shared.pollTypes.MultipleChoiceQuestion.getIndexOfOption" href="#classroom-voter.shared.pollTypes.MultipleChoiceQuestion.getIndexOfOption">getIndexOfOption</a></code></li>
+<li><code><a title="classroom-voter.shared.pollTypes.MultipleChoiceQuestion.getPrompt" href="#classroom-voter.shared.pollTypes.MultipleChoiceQuestion.getPrompt">getPrompt</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="classroom-voter.shared.pollTypes.Poll" href="#classroom-voter.shared.pollTypes.Poll">Poll</a></code></h4>
 <ul class="two-column">
+<li><code><a title="classroom-voter.shared.pollTypes.Poll.addResponse" href="#classroom-voter.shared.pollTypes.Poll.addResponse">addResponse</a></code></li>
 <li><code><a title="classroom-voter.shared.pollTypes.Poll.fromBytes" href="#classroom-voter.shared.pollTypes.Poll.fromBytes">fromBytes</a></code></li>
 <li><code><a title="classroom-voter.shared.pollTypes.Poll.fromDict" href="#classroom-voter.shared.pollTypes.Poll.fromDict">fromDict</a></code></li>
 <li><code><a title="classroom-voter.shared.pollTypes.Poll.fromJson" href="#classroom-voter.shared.pollTypes.Poll.fromJson">fromJson</a></code></li>
