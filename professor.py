@@ -33,7 +33,9 @@ def main():
     ip, port = prompt_for_ip()
     msg = {
         "endpoint": "Announce_poll",
-        "poll": poll.toBytes()
+        "Arguments": {
+            "poll": poll.toBytes()
+        }
     }
     send_msg_to_ip(ip, port, msg)
 
