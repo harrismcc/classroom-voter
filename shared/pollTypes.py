@@ -13,7 +13,6 @@ class Poll:
         self.responses = []
         """PollResponse[]: An array of the responses recorded by the student"""
 
-    
     @classmethod
     def fromDict(cls, inDict):
         """
@@ -23,10 +22,10 @@ class Poll:
 
         """
         #Here we make sure to create the correct PollQuestion type
-        if inDict["question"]["type"] == "MultipleChoice":
-            out = cls(MultipleChoice.fromDict(inDict["question"]))
+        if inDict["question"]["type"] == "MultipleChoiceQuestion":
+            out = cls(MultipleChoiceQuestion.fromDict(inDict["question"]))
         else:
-            out = cls(FreeResponse.fromDict(inDict["question"]))
+            out = cls(FreeResponseQuestion.fromDict(inDict["question"]))
 
         #Here we populate the responses list, creating new response objects for each dict respresentation of a response
         for response in inDict["responses"]:
@@ -83,7 +82,7 @@ class Poll:
         Returns:
             string: Json representaiton of object
         """
-        pass
+        return json.dumps(self.toDict())
 
     def toBytes(self):
         """
@@ -92,17 +91,20 @@ class Poll:
         Returns:
             bytes: bytearray representation of object
         """
-        pass
+        return json.dumps(self.toDict()).encode()
 
-
-
-
+    def addResponse(self, response):
+        """ Adds a new poll response object to this Poll's responses list """
+        if isinstance(response, PollResponse):
+            self.responses.append(response)
+        else:
+            raise TypeError("addResponse requires a PollResponse object")
 
 
 class PollResponse:
     
     """ The parent class for a Poll Response """
-    def __init__(self, question, anon_level):
+    def __init__(self, question, anon_level=0):
         """
         Creates a new PollResponse object 
 
@@ -112,6 +114,7 @@ class PollResponse:
 
         """
         self.question = question
+        self.anon_level = anon_level
 
     @classmethod
     def fromDict(cls, inDict):
@@ -150,8 +153,8 @@ class PollResponse:
         Returns:
             dict: dictionary representation of object
         """
-        pass
-    
+        return vars(self)
+
     def toJson(self):
         """
         Converts the object into a json string
@@ -180,15 +183,12 @@ class PollResponse:
         """
         pass
 
-
-
-
 class PollQuestion:
     """ Parent class for a poll question - Informal Interface, should not be called directly"""
-    def __init__(self, prompt, answer=None, options=[]):
+    def __init__(self, prompt, answer=None, options=None):
         self.prompt = prompt
         self.answer = None
-        self.options = []
+        self.options = options
     
     @classmethod
     def fromDict(cls, inDict):
@@ -290,20 +290,17 @@ class PollQuestion:
     def __repr__(self):
         return self.getPrompt() + "\n" + str(self.answer)
 
-
-class FreeResponse(PollQuestion):
+""" Begin Poll Question Child Types """
+class FreeResponseQuestion(PollQuestion):
     """
-    Poll Question object for a free-response answer type. Empty since FreeResponse is the same as the template.
+    Poll Question object for a free-response answer type. Empty since FreeResponseQuestion is the same as the template.
 
     Inheritance:
         PollQuestion:
 
     """
     pass 
-
-
-
-class MultipleChoice(PollQuestion):
+class MultipleChoiceQuestion(PollQuestion):
     """
     Poll Question object for a multiple choice answer type
 
@@ -313,7 +310,7 @@ class MultipleChoice(PollQuestion):
     """
     def __init__(self, prompt, options):
         """
-        Construct a new MultipleChoice object
+        Construct a new MultipleChoiceQuestion object
 
         Args:
             prompt (string): the question prompt
