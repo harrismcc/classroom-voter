@@ -8,6 +8,7 @@ import sys
 import time
 
 
+
 class VoterClient:
     """
     VoterClient is a client object that handles the socket connection to the teacher server
