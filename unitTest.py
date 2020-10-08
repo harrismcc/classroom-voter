@@ -1,6 +1,10 @@
 """ This file runs a series of unit test on the Classes defined in `pollTypes` """
 import json
 import unittest
+import os
+import sys
+sys.path.append(os.path.dirname(__file__)) #gets pdoc working
+
 from shared.pollTypes import *
 
 

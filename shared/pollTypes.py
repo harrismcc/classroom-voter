@@ -1,5 +1,6 @@
 import json
 
+
 class Poll:
     """
     The poll object, represents an entire poll and it's responses
