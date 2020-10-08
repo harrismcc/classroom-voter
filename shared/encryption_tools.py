@@ -9,6 +9,10 @@ import json
 
 
 
+def _test():
+    """This is a test function blah"""
+    pass
+
 
 def encrypt_message(msg, key):
     """

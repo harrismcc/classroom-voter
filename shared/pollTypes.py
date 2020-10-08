@@ -39,10 +39,19 @@ class Poll:
         """
         Instantiates a new Poll object using a json string containing Poll object data
         Args:
-            inJson (string): The dictionary containting the poll object information
+            inJson (string): The json containting the poll object information
         """
 
         return cls.fromDict(json.loads(inJson))
+
+    @classmethod
+    def fromBytes(cls, inBytes):
+        """
+        Instantiates a new Poll object using a json string containing Poll object data
+        Args:
+            inBytes (bytes): The bytes containting the json poll object information
+        """
+        return cls.fromJson(inBytes.decode())
 
     def toDict(self):
         """
@@ -66,6 +75,24 @@ class Poll:
             out["responses"].append(response.toDict())
 
         return out
+
+    def toJson(self):
+        """
+        Converts the object into a json string
+
+        Returns:
+            string: Json representaiton of object
+        """
+        pass
+
+    def toBytes(self):
+        """
+        Converts the object into a byte array
+
+        Returns:
+            bytes: bytearray representation of object
+        """
+        pass
 
 
 
@@ -96,6 +123,52 @@ class PollResponse:
 
         """
         return cls(question=inDict["question"], anon_level=inDict["anonLevel"])
+    
+    @classmethod
+    def fromJson(cls, inJson):
+        """
+        Instantiates a new Poll object using a json string containing Poll object data
+        Args:
+            inJson (string): The json containting the poll object information
+        """
+
+        return cls.fromDict(json.loads(inJson))
+
+    @classmethod
+    def fromBytes(cls, inBytes):
+        """
+        Instantiates a new Poll object using a json string containing Poll object data
+        Args:
+            inBytes (bytes): The bytes containting the json poll object information
+        """
+        return cls.fromJson(inBytes.decode())
+    
+    def toDict(self):
+        """
+        Converts the object into a python dictionary
+
+        Returns:
+            dict: dictionary representation of object
+        """
+        pass
+    
+    def toJson(self):
+        """
+        Converts the object into a json string
+
+        Returns:
+            string: Json representaiton of object
+        """
+        pass
+
+    def toBytes(self):
+        """
+        Converts the object into a byte array
+
+        Returns:
+            bytes: bytearray representation of object
+        """
+        pass
 
     def verifyQuestionAnswer(self):
         """
@@ -122,7 +195,52 @@ class PollQuestion:
         """ Constructs the PollQuestion object using a dictionary """
 
         return cls(inDict["prompt"], answer=inDict["answer"], options=inDict["options"])
-        
+
+    @classmethod
+    def fromJson(cls, inJson):
+        """
+        Instantiates a new Poll object using a json string containing Poll object data
+        Args:
+            inJson (string): The json containting the poll object information
+        """
+
+        return cls.fromDict(json.loads(inJson))
+
+    @classmethod
+    def fromBytes(cls, inBytes):
+        """
+        Instantiates a new Poll object using a json string containing Poll object data
+        Args:
+            inBytes (bytes): The bytes containting the json poll object information
+        """
+        return cls.fromJson(inBytes.decode())
+
+    def toDict(self):
+        """
+        Converts the object into a python dictionary
+
+        Returns:
+            dict: dictionary representation of object
+        """
+        pass
+    
+    def toJson(self):
+        """
+        Converts the object into a json string
+
+        Returns:
+            string: Json representaiton of object
+        """
+        pass
+
+    def toBytes(self):
+        """
+        Converts the object into a byte array
+
+        Returns:
+            bytes: bytearray representation of object
+        """
+        pass  
 
     def getPrompt(self):
         """

@@ -1,3 +1,8 @@
+
+''' Needed to get docs to work, for some reason '''
+import sys
+sys.path.append("/home/siim/Desktop/cs181s/classroom-voter/shared")
+
 from pollTypes import *
 import unittest
 
