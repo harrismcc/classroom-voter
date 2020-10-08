@@ -1,7 +1,8 @@
 """ This file runs a series of unit test on the Classes defined in `pollTypes` """
 import json
-from shared.pollTypes import *
 import unittest
+from shared.pollTypes import *
+
 
 
 class PollCreationTests(unittest.TestCase):

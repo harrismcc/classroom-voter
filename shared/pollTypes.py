@@ -1,6 +1,5 @@
 import json
 
-
 class Poll:
     """
     The poll object, represents an entire poll and it's responses
@@ -100,7 +99,6 @@ class Poll:
         else:
             raise TypeError("addResponse requires a PollResponse object")
 
-
 class PollResponse:
     
     """ The parent class for a Poll Response """
@@ -187,7 +185,7 @@ class PollQuestion:
     """ Parent class for a poll question - Informal Interface, should not be called directly"""
     def __init__(self, prompt, answer=None, options=None):
         self.prompt = prompt
-        self.answer = None
+        self.answer = answer
         self.options = options
     
     @classmethod
@@ -217,12 +215,19 @@ class PollQuestion:
 
     def toDict(self):
         """
-        Converts the object into a python dictionary
+        Converts the PollQuestion object into a python dictionary
 
         Returns:
-            dict: dictionary representation of object
+            dict: dictionary representaion of PollQuestion
         """
-        pass
+        out = {}
+
+        out["prompt"] = self.prompt
+        out["answer"] = self.answer
+        out["options"] = self.options
+        out["type"] = type(self).__name__
+        
+        return out
     
     def toJson(self):
         """
@@ -268,23 +273,6 @@ class PollQuestion:
             self.answer = answer
             return True
         return False
-
-    def toDict(self):
-        """
-        Converts the PollQuestion object into a python dictionary
-
-        Returns:
-            dict: dictionary representaion of PollQuestion
-        """
-        out = {}
-
-        out["prompt"] = self.prompt
-        out["answer"] = self.answer
-        out["options"] = self.options
-        out["type"] = type(self).__name__
-        
-        return out
-    
 
 
     def __repr__(self):
