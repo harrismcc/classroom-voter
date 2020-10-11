@@ -67,11 +67,11 @@ class Poll:
         """
         out = {}
 
-        out["question"] = self.question
+        out["question"] = self.question.toDict()
         out["responses"] = []
 
         for response in self.responses:
-            out["responses"].append(response)
+            out["responses"].append(response.toDict())
 
         return out
 
