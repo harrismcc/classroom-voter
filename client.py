@@ -6,8 +6,8 @@ import socket
 import os
 import sys
 import time
-
-
+from shared.pollTypes import PollResponse
+import json
 
 class VoterClient:
     """
@@ -33,8 +33,10 @@ class VoterClient:
         """
         self.host = host
         self.port = int(port)
+        
+        print(self.toString())
 
-        self.startConnection
+        self.startConnection()
 
     def startConnection(self):
         """ starts up a connection loop to the server, specified by the host ip and host port """
@@ -47,13 +49,26 @@ class VoterClient:
             print(str(e))
 
         while True:
-            msg = input('Say Something: ')
-            clientSocket.send(str.encode(msg))
-            time.sleep(1)
             response = clientSocket.recv(1024)
-            print(response.decode('utf-8'))
+            print(response.decode())
+            
+            msg = input('Answer: ')
+            
+            poll_response = PollResponse(msg)
+            msg = {
+                "endpoint": "Poll_response",
+                "Arguments": {
+                    "poll": poll_response.toDict()
+                }
+            }
+            
+            clientSocket.send(json.dumps(msg).encode())
+            time.sleep(1)
 
         clientSocket.close()
+        
+    def toString(self):
+        return "Client with host: <" + str(self.host) + "> and port: <" + str(self.port) +">"
 
 def main():
     """ Parses command line arguments and creates a new VoterClient Object
