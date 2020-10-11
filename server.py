@@ -41,7 +41,7 @@ def main():
     port = sys.argv[1]
 
     serverSocket = socket.socket()
-    host = '192.168.86.23'
+    host = 'localhost'
     port = int(port)
     threadCount = 0
 
