@@ -1,11 +1,14 @@
 #! python3
 import socket
-from shared.types import Poll
+import json
+from shared.pollTypes import Poll, FreeResponseQuestion
 
 
 def prompt_for_poll():
-    question = input("Enter your poll question: ")
-    poll = Poll(None, question)
+    question_str = input("[Required] Enter your poll question: ")
+    answer_str = input("[Optional] Enter your poll answer: ")
+    question = FreeResponseQuestion(question_str, answer_str)
+    poll = Poll(question)
     return poll
 
 
@@ -19,6 +22,7 @@ def send_msg_to_ip(ip, port, msg):
     clientSocket = socket.socket()
     try:
         clientSocket.connect((ip, port))
+        clientSocket.send(str.encode(json.dumps(msg)))
         print('Successfully sent poll')
     except socket.error as e:
         print('Failed to send poll: ' + str(e))
@@ -34,7 +38,7 @@ def main():
     msg = {
         "endpoint": "Announce_poll",
         "Arguments": {
-            "poll": poll.toBytes()
+            "poll": poll.toDict()
         }
     }
     send_msg_to_ip(ip, port, msg)
