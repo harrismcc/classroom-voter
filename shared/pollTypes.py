@@ -161,7 +161,7 @@ class PollResponse:
         Returns:
             string: Json representaiton of object
         """
-        pass
+        return json.dumps(self.toDict())
 
     def toBytes(self):
         """
@@ -170,7 +170,7 @@ class PollResponse:
         Returns:
             bytes: bytearray representation of object
         """
-        pass
+        return self.toJson().encode()
 
     def verifyQuestionAnswer(self):
         """
@@ -237,7 +237,7 @@ class PollQuestion:
         Returns:
             string: Json representaiton of object
         """
-        pass
+        return json.dumps(self.toDict())
 
     def toBytes(self):
         """
@@ -246,7 +246,7 @@ class PollQuestion:
         Returns:
             bytes: bytearray representation of object
         """
-        pass  
+        return self.toJson().encode()  
 
     def getPrompt(self):
         """
@@ -331,7 +331,7 @@ class MultipleChoiceQuestion(PollQuestion):
 
     #helper function to get the index of an option by looking up the string
     def getIndexOfOption(self, str):
-        pass
+        return self.options.index(str)
 
 
 
