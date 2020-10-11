@@ -100,6 +100,15 @@ class Poll:
         else:
             raise TypeError("addResponse requires a PollResponse object")
 
+    def getPrompt(self):
+        """" 
+        Returns the prompt for the question 
+        
+        Returns:
+            prompt: string question prompt
+        """
+        return self.question.getPrompt()
+
 class PollResponse:
     
     """ The parent class for a Poll Response """
