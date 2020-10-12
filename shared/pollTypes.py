@@ -102,7 +102,7 @@ class Poll:
 
     def getPrompt(self):
         """" 
-        Returns the prompt for the question 
+        Returns the prompt for the question
         
         Returns:
             prompt: string question prompt
@@ -112,31 +112,31 @@ class Poll:
 class PollResponse:
     
     """ The parent class for a Poll Response """
-    def __init__(self, question, anon_level=0):
+    def __init__(self, responseBody, anonLevel=0):
         """
-        Creates a new PollResponse object 
+        Creates a new PollResponse object
 
         Args:
             responseBody(string): The body of the poll response
-            anon_level (tbd): The anonymity level to encode this question with
+            anonLevel (tbd): The anonymity level to encode this question with
 
         """
-        self.question = question
-        self.anon_level = anon_level
+        self.responseBody = responseBody
+        self.anonLevel = anonLevel
 
     @classmethod
     def fromDict(cls, inDict):
         """
-        Instantiates a new PollResponse object using a python dictionary containing 
+        Instantiates a new PollResponse object using a python dictionary containing
         PollResponse object data
         Args:
             inDict (dict): The dictionary containting the poll object information
 
         """
         if "anonLevel" in inDict.keys():
-            return cls(question=inDict["question"], anon_level=inDict["anonLevel"])
+            return cls(responseBody=inDict["responseBody"], anonLevel=inDict["anonLevel"])
         else:
-            return cls(question=inDict["question"])
+            return cls(responseBody=inDict["responseBody"])
     
     @classmethod
     def fromJson(cls, inJson):

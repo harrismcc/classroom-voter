@@ -67,7 +67,34 @@ class QuestionCreationTests(unittest.TestCase):
 
 
 class PollResponseCreationTests(unittest.TestCase):
-    pass
+    def setUp(self):
+        pass
+
+    def test_createRegular(self):
+        body = "This is my answer"
+        resp = PollResponse(body)
+        self.assertIsInstance(resp, PollResponse)
+        self.assertEqual(resp.responseBody, body)
+
+    def test_createWithFromDict(self):
+        d1 = {"responseBody" : "no anon level"}
+        d2 = {"responseBody" : "anon level 5", "anonLevel": 5}
+        respNoAnon = PollResponse.fromDict(d1)
+        self.assertIsInstance(respNoAnon, PollResponse)
+        self.assertEqual(respNoAnon.anonLevel, 0)
+
+        respAnon = PollResponse.fromDict(d2)
+        self.assertIsInstance(respAnon, PollResponse)
+        self.assertEqual(respAnon.anonLevel, 5)
+    
+    def test_addAnswer(self):
+        resp = PollResponse("body")
+        self.assertEqual(resp.responseBody, "body")
+
+    def test_fromBytes(self):
+        pass
+
+        
 
 class PollMethodsTesting(unittest.TestCase):
 
