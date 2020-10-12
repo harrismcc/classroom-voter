@@ -11,7 +11,7 @@ from shared.pollTypes import *
 
 class PollCreationTests(unittest.TestCase):
     def setUp(self):
-        self.d = {'question': {'prompt': 'What is your favorite color?', 'answer': None, 'options': [], 'type': 'FreeResponseQuestion'}, 'responses': []}
+        self.d = {'question': {'prompt': 'What is your favorite color?',"answer" : None, 'options': [], 'type': 'FreeResponseQuestion'}, 'responses': []}
         self.myPoll = Poll.fromDict(self.d)
 
     def test_SimplePollCreation(self):
@@ -30,7 +30,7 @@ class PollCreationTests(unittest.TestCase):
 class QuestionCreationTests(unittest.TestCase):
 
     def setUp(self):
-        self.testDict = {'prompt': 'What is your favorite color?', 'answer': None, 'options': [], 'type': 'PollQuestion'}
+        self.testDict = {'answer' : "Answer Item", 'options': [], 'prompt': 'What is your favorite color?', 'type': 'PollQuestion'}
         self.myGenericQuestion = PollQuestion.fromDict(self.testDict)
     
     def test_PollQuestion(self):
@@ -47,7 +47,7 @@ class QuestionCreationTests(unittest.TestCase):
         """ Tests fromDict and toDict methods of PollQuestion """
         self.assertIsInstance(self.myGenericQuestion, PollQuestion)
         self.assertEqual(self.myGenericQuestion.prompt, self.testDict["prompt"])
-        self.assertEqual(self.testDict, self.myGenericQuestion.toDict())
+        self.assertEqual(self.testDict, self.myGenericQuestion.toDict(answerIncluded=True))
 
     def test_CreationWithOptions(self):
         newDict = self.testDict
@@ -68,13 +68,12 @@ class QuestionCreationTests(unittest.TestCase):
 
 class PollResponseCreationTests(unittest.TestCase):
     def setUp(self):
-        pass
+        self.body = "This is my answer"
+        self.resp = PollResponse(self.body)
 
     def test_createRegular(self):
-        body = "This is my answer"
-        resp = PollResponse(body)
-        self.assertIsInstance(resp, PollResponse)
-        self.assertEqual(resp.responseBody, body)
+        self.assertIsInstance(self.resp, PollResponse)
+        self.assertEqual(self.resp.responseBody, self.body)
 
     def test_createWithFromDict(self):
         d1 = {"responseBody" : "no anon level"}
@@ -92,14 +91,15 @@ class PollResponseCreationTests(unittest.TestCase):
         self.assertEqual(resp.responseBody, "body")
 
     def test_fromBytes(self):
-        pass
+        b = self.resp.toBytes()
+        #self.assertIsInstance(b, )
 
         
 
 class PollMethodsTesting(unittest.TestCase):
 
     def getDummyPoll(self):
-        d = {'question': {'prompt': 'What is your favorite color?', 'answer': None, 'options': ["Red", "Blue"], 'type': 'FreeResponseQuestion'}, 'responses': []}
+        d = {'question': {'prompt': 'What is your favorite color?', 'options': ["Red", "Blue"], 'type': 'FreeResponseQuestion'}, 'responses': []}
         myPoll = Poll.fromDict(d)
         return myPoll
 
@@ -117,18 +117,18 @@ class PollMethodsTesting(unittest.TestCase):
         self.assertRaises(TypeError, myPoll.addResponse, "Not a response object")
 
     def test_toDict(self):
-        d = {'question': {'prompt': 'What is your favorite color?', 'answer': None, 'options': ["Red", "Blue"], 'type': 'FreeResponseQuestion'}, 'responses': []}
+        d = {'question': {'prompt': 'What is your favorite color?', "answer" : None, 'options': ["Red", "Blue"], 'type': 'FreeResponseQuestion'}, 'responses': []}
         myPoll = self.getDummyPoll()
         self.assertEqual(myPoll.toDict(), d)
 
     def test_toJson(self):
-        d = {'question': {'prompt': 'What is your favorite color?', 'answer': None, 'options': ["Red", "Blue"], 'type': 'FreeResponseQuestion'}, 'responses': []}
+        d = {'question': {'prompt': 'What is your favorite color?', "answer" : None, 'options': ["Red", "Blue"], 'type': 'FreeResponseQuestion'}, 'responses': []}
         j = json.dumps(d)
         myPoll = self.getDummyPoll()
         self.assertEqual(myPoll.toJson(), j)
 
     def test_toBytes(self):
-        d = {'question': {'prompt': 'What is your favorite color?', 'answer': None, 'options': ["Red", "Blue"], 'type': 'FreeResponseQuestion'}, 'responses': []}
+        d = {'question': {'prompt': 'What is your favorite color?',"answer" : None, 'options': ["Red", "Blue"], 'type': 'FreeResponseQuestion'}, 'responses': []}
         j = json.dumps(d)
         b = j.encode()
         myPoll = self.getDummyPoll()

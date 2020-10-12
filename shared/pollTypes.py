@@ -112,7 +112,7 @@ class Poll:
 class PollResponse:
     
     """ The parent class for a Poll Response """
-    def __init__(self, responseBody, anonLevel=0):
+    def __init__(self, responseBody="", anonLevel=0):
         """
         Creates a new PollResponse object
 
@@ -200,12 +200,16 @@ class PollQuestion:
         self.prompt = prompt
         self.answer = answer
         self.options = options
+        self.type = type(self).__name__
     
     @classmethod
     def fromDict(cls, inDict):
         """ Constructs the PollQuestion object using a dictionary """
-
-        return cls(inDict["prompt"], answer=inDict["answer"], options=inDict["options"])
+        merged = {**{'answer' : None, 'options': [], 'prompt': None, 'type': None}, **inDict}
+        #^ add empty default values to dict if not present
+ 
+        return cls(merged["prompt"], answer=merged["answer"], options=merged["options"])
+       
 
     @classmethod
     def fromJson(cls, inJson):
@@ -226,19 +230,18 @@ class PollQuestion:
         """
         return cls.fromJson(inBytes.decode())
 
-    def toDict(self, answerIncluded = ):
+    def toDict(self, answerIncluded=False):
         """
         Converts the PollQuestion object into a python dictionary
 
         Returns:
             dict: dictionary representaion of PollQuestion
         """
-        out = {}
+        out = vars(self)
 
-        out["prompt"] = self.prompt
-        out["answer"] = self.answer
-        out["options"] = self.options
-        out["type"] = type(self).__name__
+  
+        if not answerIncluded:
+            out["answer"] = None
         
         return out
     
