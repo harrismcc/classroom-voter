@@ -37,6 +37,8 @@ def threaded_client(connection):
     try:
         while True:
             data = json.loads(connection.recv(2048).decode())
+            
+            print(data)
 
             if not data:
                 break
@@ -45,13 +47,22 @@ def threaded_client(connection):
             print(data)
             
             if endpoint == "Announce_poll":
-                outgoing_msg = data["Arguments"]["poll"]["question"]
-                broadcast(outgoing_msg)
-            elif endpoint == "Poll_response":
-                answers.append(data["Arguments"]["poll"]["question"])
-            elif endpoint == "Aggregate_poll":
-                outgoing_msg = aggregate_poll()
+                outgoing_msg = {
+                    "type": data["Arguments"]["poll"]["question"]["type"],
+                    "question": data["Arguments"]["poll"]["question"]["prompt"]
+                }
                 broadcast(json.dumps(outgoing_msg))
+                continue
+            
+            if endpoint == "Poll_response":
+                answers.append(data["Arguments"]["poll"]["question"])
+                continue
+            
+            if endpoint == "Aggregate_poll":
+                outgoing_msg = aggregate_poll()
+                print("Aggregating poll")
+                broadcast(json.dumps(outgoing_msg))
+                continue
                 
     finally:
         with clients_lock:

@@ -18,8 +18,7 @@ def prompt_for_ip():
 
 def send_msg(clientSocket, msg):
     try:
-        clientSocket.connect((ip, port))
-        clientSocket.send(str.encode(json.dumps(msg)))
+        clientSocket.send(json.dumps(msg).encode())
         print('Successfully sent poll')
     except socket.error as e:
         print('Failed to send poll: ' + str(e))
@@ -46,6 +45,7 @@ def main():
         }
     }
     
+    print(msg)
     send_msg(clientSocket, msg)
     
     while True:
