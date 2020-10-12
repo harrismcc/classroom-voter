@@ -1,5 +1,6 @@
 #! python3
 import socket
+import sys
 import json
 from shared.pollTypes import Poll, FreeResponseQuestion
 
@@ -25,11 +26,22 @@ def send_msg(clientSocket, msg):
 
 
 def main():
+    if len(sys.argv)!=1 and len(sys.argv)!= 3: # either need no args or both ip and port
+        print("usage: python3 %s or python3 %s <server-ip> <server-port>" % sys.argv[0])
+        quit(1)
+    ip = None
+    port = None
+
     print("#"*80)
     print('\t\t\tWelcome to classroom voter')
     print("#"*80)
     
-    ip, port = prompt_for_ip()
+    if len(sys.argv) == 3:
+        ip = sys.argv[1]
+        port = int(sys.argv[2])
+    else:
+        ip, port = prompt_for_ip()
+
     clientSocket = socket.socket()
     try:
         clientSocket.connect((ip, port))

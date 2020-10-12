@@ -6,7 +6,7 @@ import socket
 import os
 import sys
 import time
-from shared.pollTypes import PollResponse
+from shared.pollTypes import PollResponse, PollQuestion
 import json
 
 class VoterClient:
@@ -47,27 +47,22 @@ class VoterClient:
             clientSocket.connect((self.host, self.port))
         except socket.error as e:
             print(str(e))
-            #quit(1)
+            quit(1)
 
         # while True:  
         # newPoll = self.getPoll(clientSocket)
         # ans = self.answer(newPoll)
         # self.sendResponse(ans, clientSocket)
         while True:
-            response = clientSocket.recv(1024)
-            print(response.decode())
-            
-            msg = input('Answer: ')
-            
-            poll_response = PollResponse(msg)
-            msg = {
-                "endpoint": "Poll_response",
-                "Arguments": {
-                    "poll": poll_response.toDict()
-                }
-            }
-            
-            clientSocket.send(json.dumps(msg).encode())
+            # may want to prompt for user input here,
+            # let them look at old responses before 
+            # asking for a new poll
+
+            print("Waiting for a poll\n")
+            question = self.getPoll(clientSocket)
+            if question != None: #question = None if bad response
+                response = self.answerPoll(question)
+                self.sendResponse(response, clientSocket)    
             time.sleep(1)
 
         clientSocket.close()
@@ -76,48 +71,58 @@ class VoterClient:
         return "Client with host: <" + str(self.host) + "> and port: <" + str(self.port) +">"
 
     def getPoll(self, clientSocket):
-        """requests a new poll from the server and returns the object representing it
+        """
+        requests a new poll from the server and returns the object representing it
         
         Args:
             clientSocket: a socket connected to the server
             
         Returns:
-            newPoll: a Poll object consisting of the new Poll"""     
-        #todo: implement    
-        # message = [endpoint to get poll] 
-        # clientSocket.send(str.encode(msg))
-        # time.sleep(1)
-        # response = clientSocket.recv(1024)
-        # newPoll = None
-        # poll.fromBytes(newPoll, response)
-        d = {'question': {'prompt': 'What is your favorite color?', 'answer': None, 'options': [], 'type': 'FreeResponseQuestion'}, 'responses': []}
-        poll = Poll.fromDict(d)
-        
-        return poll
+            newPoll: a PollQuestion object consisting of the new question
+        """     
+        #todo: error handling
+        try:
+            response = clientSocket.recv(1024) #recieve a poll (bytestr) from the server
+            question = PollQuestion.fromJson(response.decode())
 
-    def answer(self, poll):
-        """Prompts the user to answer a poll
+        except:
+            print("malformed response: " + response.decode())
+            return None    
+        else:
+            print("you have recieved a new poll")
+            return question
+
+
+    def answerPoll(self, question):
+        """
+        Prompts the user to answer a poll
 
         Args:
-            poll: a Poll object
+            poll: a PollQuestion object
 
         Returns:
-            ans: a Response object (the user's response to the poll)"""
-        print(poll.getPrompt())
-        # can also get from poll.question.getPrompt()
-        resp = input("")
-        return None
-        #todo: turn input into response object
+            ans: a PollResponse object (the user's response to the poll)
+        """
+        print(question.getPrompt())
+        resp = input("Answer: ")
+        return PollResponse(resp)
         
 
-    def sendResponse(self, ans, clientSocket):
+    def sendResponse(self, response, clientSocket):
         """Sends the user's response to a poll to the server
 
         Args:
             ans: a Response object, the answer to be sent
             clientSocket: the socket with the destination server"""
         #clientSocket.send(ans.toBytes())
-        print("pass")
+        msg = {
+            "endpoint": "Poll_response",
+            "Arguments": {
+                "poll": response.toDict()
+            }
+        }
+        
+        clientSocket.send(json.dumps(msg).encode())
     
 
 
@@ -127,13 +132,24 @@ def main():
     """
     
     #TODO: change this out for argparse
-    if len(sys.argv) != 3:
-        print("usage: python3 %s <host> <host-port>" % sys.argv[0])
-        #quit(1)
-        sys.argv.append('127.0.0.1')
-        sys.argv.append('8180')
-    host = sys.argv[1]
-    port = sys.argv[2]
+    if len(sys.argv)!=1 and len(sys.argv)!= 3: # either need no args or both ip and port
+        print("usage: python3 %s or python3 %s <server-ip> <server-port>" % sys.argv[0])
+        quit(1)
+
+    host = None
+    port = None
+
+    print("#"*80)
+    print('\t\t\tWelcome to classroom voter')
+    print("#"*80)
+
+    if len(sys.argv) == 3:
+        host = sys.argv[1]
+        port = sys.argv[2]
+    else:
+        host = input("Enter the IP address of the server (eg 192.168.61.1): ")
+        port = int(input("Enter the port of the server (eg 1500): "))
+
 
 
     client = VoterClient(host, port)
