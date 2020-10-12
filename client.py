@@ -6,10 +6,8 @@ import socket
 import os
 import sys
 import time
-sys.path.append("./shared")
-from pollTypes import Poll
-
-
+from shared.pollTypes import PollResponse
+import json
 
 class VoterClient:
     """
@@ -35,6 +33,9 @@ class VoterClient:
         """
         self.host = host
         self.port = int(port)
+        
+        print(self.toString())
+
         self.startConnection()
 
     def startConnection(self):
@@ -48,12 +49,31 @@ class VoterClient:
             print(str(e))
             #quit(1)
 
-        #while True:  
-        newPoll = self.getPoll(clientSocket)
-        ans = self.answer(newPoll)
-        self.sendResponse(ans, clientSocket)
+        # while True:  
+        # newPoll = self.getPoll(clientSocket)
+        # ans = self.answer(newPoll)
+        # self.sendResponse(ans, clientSocket)
+        while True:
+            response = clientSocket.recv(1024)
+            print(response.decode())
+            
+            msg = input('Answer: ')
+            
+            poll_response = PollResponse(msg)
+            msg = {
+                "endpoint": "Poll_response",
+                "Arguments": {
+                    "poll": poll_response.toDict()
+                }
+            }
+            
+            clientSocket.send(json.dumps(msg).encode())
+            time.sleep(1)
 
         clientSocket.close()
+        
+    def toString(self):
+        return "Client with host: <" + str(self.host) + "> and port: <" + str(self.port) +">"
 
     def getPoll(self, clientSocket):
         """requests a new poll from the server and returns the object representing it
