@@ -133,7 +133,10 @@ class PollResponse:
             inDict (dict): The dictionary containting the poll object information
 
         """
-        return cls(question=inDict["question"], anon_level=inDict["anonLevel"])
+        if "anonLevel" in inDict.keys():
+            return cls(question=inDict["question"], anon_level=inDict["anonLevel"])
+        else:
+            return cls(question=inDict["question"])
     
     @classmethod
     def fromJson(cls, inJson):
