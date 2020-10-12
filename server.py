@@ -26,7 +26,7 @@ def aggregate_poll():
     # Future there needs to be some sort of poll id
     responses = []
     for response in polls[0].responses:
-        responses.append(response.question)
+        responses.append(response.responseBody)
     
     return responses
     
@@ -68,7 +68,6 @@ def threaded_client(connection):
             if endpoint == "Aggregate_poll":
                 outgoing_msg = aggregate_poll()
                 broadcast(json.dumps(outgoing_msg))
-                print(outgoing_msg)
                 continue
                 
     finally:
