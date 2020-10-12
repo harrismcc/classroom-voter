@@ -18,7 +18,7 @@ answers = []
 def broadcast(msg):
     with clients_lock:
         for c in CONNECTION_LIST:
-            c.sendall(msg.encode())
+            c.sendall(str.encode(json.dumps(msg)))
             
 def aggregate_poll():
     msg = {

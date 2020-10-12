@@ -18,7 +18,6 @@ def prompt_for_ip():
 
 def send_msg(clientSocket, msg):
     try:
-        clientSocket.connect((ip, port))
         clientSocket.send(str.encode(json.dumps(msg)))
         print('Successfully sent poll')
     except socket.error as e:
