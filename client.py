@@ -59,9 +59,11 @@ class VoterClient:
             # asking for a new poll
 
             print("Waiting for a poll\n")
-            question = self.getPoll(clientSocket)
-            if question != None: #question = None if bad response
-                response = self.answerPoll(question)
+            data = json.loads(clientSocket.recv(1024).decode()) #recieve a poll (bytestr) from the server
+
+            poll_question = self.getPollQuestion(data)
+            if poll_question != None: #question = None if bad response
+                response = self.answerPoll(poll_question)
                 self.sendResponse(response, clientSocket)    
             time.sleep(1)
 
@@ -70,7 +72,7 @@ class VoterClient:
     def toString(self):
         return "Client with host: <" + str(self.host) + "> and port: <" + str(self.port) +">"
 
-    def getPoll(self, clientSocket):
+    def getPollQuestion(self, data):
         """
         requests a new poll from the server and returns the object representing it
         
@@ -82,15 +84,13 @@ class VoterClient:
         """     
         #todo: error handling
         try:
-            response = clientSocket.recv(1024) #recieve a poll (bytestr) from the server
-            question = PollQuestion.fromJson(json.loads(response.decode()))
-
+            poll_question = PollQuestion.fromJson(data)
         except:
-            print("malformed response: " + response.decode())
+            print("malformed response: " + data)
             return None    
         else:
             print("you have recieved a new poll")
-            return question
+            return poll_question
 
 
     def answerPoll(self, question):
