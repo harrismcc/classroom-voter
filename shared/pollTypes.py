@@ -226,7 +226,7 @@ class PollQuestion:
         """
         return cls.fromJson(inBytes.decode())
 
-    def toDict(self):
+    def toDict(self, answerIncluded = ):
         """
         Converts the PollQuestion object into a python dictionary
 
