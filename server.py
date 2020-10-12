@@ -19,7 +19,7 @@ polls = []
 def broadcast(msg):
     with clients_lock:
         for c in CONNECTION_LIST:
-            c.sendall(json.dumps(msg).encode())
+            c.send(json.dumps(msg).encode())
             
 def aggregate_poll():
     # Since there is only one poll right now it will be the first
@@ -56,14 +56,7 @@ def threaded_client(connection):
             if endpoint == "Announce_poll":
                 poll = Poll.fromDict(data["Arguments"]["poll"])
                 polls.append(poll)
-                
-                """outgoing_msg = {
-                    "type": type(poll.question).__name__,
-                    "question": poll.question.prompt
-                }"""
-                
                 outgoing_msg = poll.question.toDict()
-                
                 broadcast(json.dumps(outgoing_msg))
                 continue
             
