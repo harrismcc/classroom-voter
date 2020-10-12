@@ -9,11 +9,12 @@ import json
 from _thread import *
 from threading import Thread
 import threading
+from shared.pollTypes import *
 
 CONNECTION_LIST = []
 clients_lock = threading.Lock()
 
-answers = []
+polls = []
 
 def broadcast(msg):
     with clients_lock:
@@ -21,10 +22,17 @@ def broadcast(msg):
             c.sendall(msg.encode())
             
 def aggregate_poll():
-    msg = {
-        "responses": answers
-    }
-    return msg
+    # Since there is only one poll right now it will be the first
+    # Future there needs to be some sort of poll id
+    responses = []
+    for response in polls[0].responses:
+        responses.append(response.question)
+    
+    return responses
+    
+def add_response_to_poll(response):
+    poll = polls[0]
+    poll.addResponse(response)
 
 def threaded_client(connection):
     """
@@ -44,23 +52,26 @@ def threaded_client(connection):
                 break
             
             endpoint = data["endpoint"]
-            print(data)
             
             if endpoint == "Announce_poll":
+                poll = Poll.fromDict(data["Arguments"]["poll"])
+                polls.append(poll)
+                
                 outgoing_msg = {
-                    "type": data["Arguments"]["poll"]["question"]["type"],
-                    "question": data["Arguments"]["poll"]["question"]["prompt"]
+                    "type": type(poll.question).__name__,
+                    "question": poll.question.prompt
                 }
+                
                 broadcast(json.dumps(outgoing_msg))
                 continue
             
             if endpoint == "Poll_response":
-                answers.append(data["Arguments"]["poll"]["question"])
+                poll_response = PollResponse.fromDict(data["Arguments"]["poll"])
+                add_response_to_poll(poll_response)
                 continue
             
             if endpoint == "Aggregate_poll":
                 outgoing_msg = aggregate_poll()
-                print("Aggregating poll")
                 broadcast(json.dumps(outgoing_msg))
                 continue
                 
