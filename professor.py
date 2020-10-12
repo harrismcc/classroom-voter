@@ -57,6 +57,7 @@ def main():
         }
     }
     
+    print(msg)
     send_msg(clientSocket, msg)
     
     while True:
@@ -67,7 +68,7 @@ def main():
                 "Arguments": {}
             }
             send_msg(clientSocket, msg)
-            data = clientSocket.recv(2048).decode()
+            data = json.loads(clientSocket.recv(2048).decode())
             print("Results: ", data)
 
 

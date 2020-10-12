@@ -9,22 +9,30 @@ import json
 from _thread import *
 from threading import Thread
 import threading
+from shared.pollTypes import *
 
 CONNECTION_LIST = []
 clients_lock = threading.Lock()
 
-answers = []
+polls = []
 
 def broadcast(msg):
     with clients_lock:
         for c in CONNECTION_LIST:
-            c.sendall(str.encode(json.dumps(msg)))
+            c.sendall(json.dumps(msg).encode())
             
 def aggregate_poll():
-    msg = {
-        "responses": answers
-    }
-    return msg
+    # Since there is only one poll right now it will be the first
+    # Future there needs to be some sort of poll id
+    responses = []
+    for response in polls[0].responses:
+        responses.append(response.question)
+    
+    return responses
+    
+def add_response_to_poll(response):
+    poll = polls[0]
+    poll.addResponse(response)
 
 def threaded_client(connection):
     """
@@ -37,21 +45,38 @@ def threaded_client(connection):
     try:
         while True:
             data = json.loads(connection.recv(2048).decode())
+            
+            print(data)
 
             if not data:
                 break
             
             endpoint = data["endpoint"]
-            print(data)
             
             if endpoint == "Announce_poll":
-                outgoing_msg = data["Arguments"]["poll"]["question"]
-                broadcast(outgoing_msg)
-            elif endpoint == "Poll_response":
-                answers.append(data["Arguments"]["poll"]["question"])
-            elif endpoint == "Aggregate_poll":
+                poll = Poll.fromDict(data["Arguments"]["poll"])
+                polls.append(poll)
+                
+                """outgoing_msg = {
+                    "type": type(poll.question).__name__,
+                    "question": poll.question.prompt
+                }"""
+                
+                outgoing_msg = poll.question.toDict()
+                
+                broadcast(json.dumps(outgoing_msg))
+                continue
+            
+            if endpoint == "Poll_response":
+                poll_response = PollResponse.fromDict(data["Arguments"]["poll"])
+                add_response_to_poll(poll_response)
+                continue
+            
+            if endpoint == "Aggregate_poll":
                 outgoing_msg = aggregate_poll()
                 broadcast(json.dumps(outgoing_msg))
+                print(outgoing_msg)
+                continue
                 
     finally:
         with clients_lock:

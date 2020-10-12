@@ -83,7 +83,7 @@ class VoterClient:
         #todo: error handling
         try:
             response = clientSocket.recv(1024) #recieve a poll (bytestr) from the server
-            question = PollQuestion.fromJson(response.decode())
+            question = PollQuestion.fromJson(json.loads(response.decode()))
 
         except:
             print("malformed response: " + response.decode())
