@@ -128,31 +128,43 @@ class Poll:
         else:
             raise TypeError(&#34;addResponse requires a PollResponse object&#34;)
 
+    def getPrompt(self):
+        &#34;&#34;&#34;&#34; 
+        Returns the prompt for the question
+        
+        Returns:
+            prompt: string question prompt
+        &#34;&#34;&#34;
+        return self.question.getPrompt()
+
 class PollResponse:
     
     &#34;&#34;&#34; The parent class for a Poll Response &#34;&#34;&#34;
-    def __init__(self, question, anon_level=0):
+    def __init__(self, responseBody=&#34;&#34;, anonLevel=0):
         &#34;&#34;&#34;
-        Creates a new PollResponse object 
+        Creates a new PollResponse object
 
         Args:
             responseBody(string): The body of the poll response
-            anon_level (tbd): The anonymity level to encode this question with
+            anonLevel (tbd): The anonymity level to encode this question with
 
         &#34;&#34;&#34;
-        self.question = question
-        self.anon_level = anon_level
+        self.responseBody = responseBody
+        self.anonLevel = anonLevel
 
     @classmethod
     def fromDict(cls, inDict):
         &#34;&#34;&#34;
-        Instantiates a new PollResponse object using a python dictionary containing 
+        Instantiates a new PollResponse object using a python dictionary containing
         PollResponse object data
         Args:
             inDict (dict): The dictionary containting the poll object information
 
         &#34;&#34;&#34;
-        return cls(question=inDict[&#34;question&#34;], anon_level=inDict[&#34;anonLevel&#34;])
+        if &#34;anonLevel&#34; in inDict.keys():
+            return cls(responseBody=inDict[&#34;responseBody&#34;], anonLevel=inDict[&#34;anonLevel&#34;])
+        else:
+            return cls(responseBody=inDict[&#34;responseBody&#34;])
     
     @classmethod
     def fromJson(cls, inJson):
@@ -189,7 +201,7 @@ class PollResponse:
         Returns:
             string: Json representaiton of object
         &#34;&#34;&#34;
-        pass
+        return json.dumps(self.toDict())
 
     def toBytes(self):
         &#34;&#34;&#34;
@@ -198,7 +210,7 @@ class PollResponse:
         Returns:
             bytes: bytearray representation of object
         &#34;&#34;&#34;
-        pass
+        return self.toJson().encode()
 
     def verifyQuestionAnswer(self):
         &#34;&#34;&#34;
@@ -216,12 +228,16 @@ class PollQuestion:
         self.prompt = prompt
         self.answer = answer
         self.options = options
+        self.type = type(self).__name__
     
     @classmethod
     def fromDict(cls, inDict):
         &#34;&#34;&#34; Constructs the PollQuestion object using a dictionary &#34;&#34;&#34;
-
-        return cls(inDict[&#34;prompt&#34;], answer=inDict[&#34;answer&#34;], options=inDict[&#34;options&#34;])
+        merged = {**{&#39;answer&#39; : None, &#39;options&#39;: [], &#39;prompt&#39;: None, &#39;type&#39;: None}, **inDict}
+        #^ add empty default values to dict if not present
+ 
+        return cls(merged[&#34;prompt&#34;], answer=merged[&#34;answer&#34;], options=merged[&#34;options&#34;])
+       
 
     @classmethod
     def fromJson(cls, inJson):
@@ -242,19 +258,18 @@ class PollQuestion:
         &#34;&#34;&#34;
         return cls.fromJson(inBytes.decode())
 
-    def toDict(self):
+    def toDict(self, answerIncluded=False):
         &#34;&#34;&#34;
         Converts the PollQuestion object into a python dictionary
 
         Returns:
             dict: dictionary representaion of PollQuestion
         &#34;&#34;&#34;
-        out = {}
+        out = vars(self)
 
-        out[&#34;prompt&#34;] = self.prompt
-        out[&#34;answer&#34;] = self.answer
-        out[&#34;options&#34;] = self.options
-        out[&#34;type&#34;] = type(self).__name__
+  
+        if not answerIncluded:
+            out[&#34;answer&#34;] = None
         
         return out
     
@@ -265,7 +280,7 @@ class PollQuestion:
         Returns:
             string: Json representaiton of object
         &#34;&#34;&#34;
-        pass
+        return json.dumps(self.toDict())
 
     def toBytes(self):
         &#34;&#34;&#34;
@@ -274,7 +289,7 @@ class PollQuestion:
         Returns:
             bytes: bytearray representation of object
         &#34;&#34;&#34;
-        pass  
+        return self.toJson().encode()  
 
     def getPrompt(self):
         &#34;&#34;&#34;
@@ -359,7 +374,7 @@ class MultipleChoiceQuestion(PollQuestion):
 
     #helper function to get the index of an option by looking up the string
     def getIndexOfOption(self, str):
-        pass</code></pre>
+        return self.options.index(str)</code></pre>
 </details>
 </section>
 <section>
@@ -475,7 +490,7 @@ class MultipleChoiceQuestion(PollQuestion):
 
     #helper function to get the index of an option by looking up the string
     def getIndexOfOption(self, str):
-        pass</code></pre>
+        return self.options.index(str)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -493,7 +508,7 @@ class MultipleChoiceQuestion(PollQuestion):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def getIndexOfOption(self, str):
-    pass</code></pre>
+    return self.options.index(str)</code></pre>
 </details>
 </dd>
 <dt id="classroom-voter.shared.pollTypes.MultipleChoiceQuestion.getPrompt"><code class="name flex">
@@ -656,7 +671,16 @@ TODO: read in from file, export to json, import from json</p></div>
         if isinstance(response, PollResponse):
             self.responses.append(response)
         else:
-            raise TypeError(&#34;addResponse requires a PollResponse object&#34;)</code></pre>
+            raise TypeError(&#34;addResponse requires a PollResponse object&#34;)
+
+    def getPrompt(self):
+        &#34;&#34;&#34;&#34; 
+        Returns the prompt for the question
+        
+        Returns:
+            prompt: string question prompt
+        &#34;&#34;&#34;
+        return self.question.getPrompt()</code></pre>
 </details>
 <h3>Static methods</h3>
 <dl>
@@ -775,6 +799,31 @@ def fromJson(cls, inJson):
         raise TypeError(&#34;addResponse requires a PollResponse object&#34;)</code></pre>
 </details>
 </dd>
+<dt id="classroom-voter.shared.pollTypes.Poll.getPrompt"><code class="name flex">
+<span>def <span class="ident">getPrompt</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>"
+Returns the prompt for the question</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>prompt</code></dt>
+<dd>string question prompt</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getPrompt(self):
+    &#34;&#34;&#34;&#34; 
+    Returns the prompt for the question
+    
+    Returns:
+        prompt: string question prompt
+    &#34;&#34;&#34;
+    return self.question.getPrompt()</code></pre>
+</details>
+</dd>
 <dt id="classroom-voter.shared.pollTypes.Poll.toBytes"><code class="name flex">
 <span>def <span class="ident">toBytes</span></span>(<span>self)</span>
 </code></dt>
@@ -883,12 +932,16 @@ question : string
         self.prompt = prompt
         self.answer = answer
         self.options = options
+        self.type = type(self).__name__
     
     @classmethod
     def fromDict(cls, inDict):
         &#34;&#34;&#34; Constructs the PollQuestion object using a dictionary &#34;&#34;&#34;
-
-        return cls(inDict[&#34;prompt&#34;], answer=inDict[&#34;answer&#34;], options=inDict[&#34;options&#34;])
+        merged = {**{&#39;answer&#39; : None, &#39;options&#39;: [], &#39;prompt&#39;: None, &#39;type&#39;: None}, **inDict}
+        #^ add empty default values to dict if not present
+ 
+        return cls(merged[&#34;prompt&#34;], answer=merged[&#34;answer&#34;], options=merged[&#34;options&#34;])
+       
 
     @classmethod
     def fromJson(cls, inJson):
@@ -909,19 +962,18 @@ question : string
         &#34;&#34;&#34;
         return cls.fromJson(inBytes.decode())
 
-    def toDict(self):
+    def toDict(self, answerIncluded=False):
         &#34;&#34;&#34;
         Converts the PollQuestion object into a python dictionary
 
         Returns:
             dict: dictionary representaion of PollQuestion
         &#34;&#34;&#34;
-        out = {}
+        out = vars(self)
 
-        out[&#34;prompt&#34;] = self.prompt
-        out[&#34;answer&#34;] = self.answer
-        out[&#34;options&#34;] = self.options
-        out[&#34;type&#34;] = type(self).__name__
+  
+        if not answerIncluded:
+            out[&#34;answer&#34;] = None
         
         return out
     
@@ -932,7 +984,7 @@ question : string
         Returns:
             string: Json representaiton of object
         &#34;&#34;&#34;
-        pass
+        return json.dumps(self.toDict())
 
     def toBytes(self):
         &#34;&#34;&#34;
@@ -941,7 +993,7 @@ question : string
         Returns:
             bytes: bytearray representation of object
         &#34;&#34;&#34;
-        pass  
+        return self.toJson().encode()  
 
     def getPrompt(self):
         &#34;&#34;&#34;
@@ -1017,8 +1069,10 @@ def fromBytes(cls, inBytes):
 <pre><code class="python">@classmethod
 def fromDict(cls, inDict):
     &#34;&#34;&#34; Constructs the PollQuestion object using a dictionary &#34;&#34;&#34;
+    merged = {**{&#39;answer&#39; : None, &#39;options&#39;: [], &#39;prompt&#39;: None, &#39;type&#39;: None}, **inDict}
+    #^ add empty default values to dict if not present
 
-    return cls(inDict[&#34;prompt&#34;], answer=inDict[&#34;answer&#34;], options=inDict[&#34;options&#34;])</code></pre>
+    return cls(merged[&#34;prompt&#34;], answer=merged[&#34;answer&#34;], options=merged[&#34;options&#34;])</code></pre>
 </details>
 </dd>
 <dt id="classroom-voter.shared.pollTypes.PollQuestion.fromJson"><code class="name flex">
@@ -1135,11 +1189,11 @@ int options</p>
     Returns:
         bytes: bytearray representation of object
     &#34;&#34;&#34;
-    pass  </code></pre>
+    return self.toJson().encode()  </code></pre>
 </details>
 </dd>
 <dt id="classroom-voter.shared.pollTypes.PollQuestion.toDict"><code class="name flex">
-<span>def <span class="ident">toDict</span></span>(<span>self)</span>
+<span>def <span class="ident">toDict</span></span>(<span>self, answerIncluded=False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Converts the PollQuestion object into a python dictionary</p>
@@ -1152,19 +1206,18 @@ int options</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def toDict(self):
+<pre><code class="python">def toDict(self, answerIncluded=False):
     &#34;&#34;&#34;
     Converts the PollQuestion object into a python dictionary
 
     Returns:
         dict: dictionary representaion of PollQuestion
     &#34;&#34;&#34;
-    out = {}
+    out = vars(self)
 
-    out[&#34;prompt&#34;] = self.prompt
-    out[&#34;answer&#34;] = self.answer
-    out[&#34;options&#34;] = self.options
-    out[&#34;type&#34;] = type(self).__name__
+
+    if not answerIncluded:
+        out[&#34;answer&#34;] = None
     
     return out</code></pre>
 </details>
@@ -1190,22 +1243,22 @@ int options</p>
     Returns:
         string: Json representaiton of object
     &#34;&#34;&#34;
-    pass</code></pre>
+    return json.dumps(self.toDict())</code></pre>
 </details>
 </dd>
 </dl>
 </dd>
 <dt id="classroom-voter.shared.pollTypes.PollResponse"><code class="flex name class">
 <span>class <span class="ident">PollResponse</span></span>
-<span>(</span><span>question, anon_level=0)</span>
+<span>(</span><span>responseBody='', anonLevel=0)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>The parent class for a Poll Response </p>
-<p>Creates a new PollResponse object </p>
+<p>Creates a new PollResponse object</p>
 <h2 id="args">Args</h2>
 <dl>
 <dt>responseBody(string): The body of the poll response</dt>
-<dt><strong><code>anon_level</code></strong> :&ensp;<code>tbd</code></dt>
+<dt><strong><code>anonLevel</code></strong> :&ensp;<code>tbd</code></dt>
 <dd>The anonymity level to encode this question with</dd>
 </dl></div>
 <details class="source">
@@ -1215,28 +1268,31 @@ int options</p>
 <pre><code class="python">class PollResponse:
     
     &#34;&#34;&#34; The parent class for a Poll Response &#34;&#34;&#34;
-    def __init__(self, question, anon_level=0):
+    def __init__(self, responseBody=&#34;&#34;, anonLevel=0):
         &#34;&#34;&#34;
-        Creates a new PollResponse object 
+        Creates a new PollResponse object
 
         Args:
             responseBody(string): The body of the poll response
-            anon_level (tbd): The anonymity level to encode this question with
+            anonLevel (tbd): The anonymity level to encode this question with
 
         &#34;&#34;&#34;
-        self.question = question
-        self.anon_level = anon_level
+        self.responseBody = responseBody
+        self.anonLevel = anonLevel
 
     @classmethod
     def fromDict(cls, inDict):
         &#34;&#34;&#34;
-        Instantiates a new PollResponse object using a python dictionary containing 
+        Instantiates a new PollResponse object using a python dictionary containing
         PollResponse object data
         Args:
             inDict (dict): The dictionary containting the poll object information
 
         &#34;&#34;&#34;
-        return cls(question=inDict[&#34;question&#34;], anon_level=inDict[&#34;anonLevel&#34;])
+        if &#34;anonLevel&#34; in inDict.keys():
+            return cls(responseBody=inDict[&#34;responseBody&#34;], anonLevel=inDict[&#34;anonLevel&#34;])
+        else:
+            return cls(responseBody=inDict[&#34;responseBody&#34;])
     
     @classmethod
     def fromJson(cls, inJson):
@@ -1273,7 +1329,7 @@ int options</p>
         Returns:
             string: Json representaiton of object
         &#34;&#34;&#34;
-        pass
+        return json.dumps(self.toDict())
 
     def toBytes(self):
         &#34;&#34;&#34;
@@ -1282,7 +1338,7 @@ int options</p>
         Returns:
             bytes: bytearray representation of object
         &#34;&#34;&#34;
-        pass
+        return self.toJson().encode()
 
     def verifyQuestionAnswer(self):
         &#34;&#34;&#34;
@@ -1338,13 +1394,16 @@ PollResponse object data</p>
 <pre><code class="python">@classmethod
 def fromDict(cls, inDict):
     &#34;&#34;&#34;
-    Instantiates a new PollResponse object using a python dictionary containing 
+    Instantiates a new PollResponse object using a python dictionary containing
     PollResponse object data
     Args:
         inDict (dict): The dictionary containting the poll object information
 
     &#34;&#34;&#34;
-    return cls(question=inDict[&#34;question&#34;], anon_level=inDict[&#34;anonLevel&#34;])</code></pre>
+    if &#34;anonLevel&#34; in inDict.keys():
+        return cls(responseBody=inDict[&#34;responseBody&#34;], anonLevel=inDict[&#34;anonLevel&#34;])
+    else:
+        return cls(responseBody=inDict[&#34;responseBody&#34;])</code></pre>
 </details>
 </dd>
 <dt id="classroom-voter.shared.pollTypes.PollResponse.fromJson"><code class="name flex">
@@ -1396,7 +1455,7 @@ def fromJson(cls, inJson):
     Returns:
         bytes: bytearray representation of object
     &#34;&#34;&#34;
-    pass</code></pre>
+    return self.toJson().encode()</code></pre>
 </details>
 </dd>
 <dt id="classroom-voter.shared.pollTypes.PollResponse.toDict"><code class="name flex">
@@ -1444,7 +1503,7 @@ def fromJson(cls, inJson):
     Returns:
         string: Json representaiton of object
     &#34;&#34;&#34;
-    pass</code></pre>
+    return json.dumps(self.toDict())</code></pre>
 </details>
 </dd>
 <dt id="classroom-voter.shared.pollTypes.PollResponse.verifyQuestionAnswer"><code class="name flex">
@@ -1509,6 +1568,7 @@ the answer is present and of the correct data type)</p>
 <li><code><a title="classroom-voter.shared.pollTypes.Poll.fromBytes" href="#classroom-voter.shared.pollTypes.Poll.fromBytes">fromBytes</a></code></li>
 <li><code><a title="classroom-voter.shared.pollTypes.Poll.fromDict" href="#classroom-voter.shared.pollTypes.Poll.fromDict">fromDict</a></code></li>
 <li><code><a title="classroom-voter.shared.pollTypes.Poll.fromJson" href="#classroom-voter.shared.pollTypes.Poll.fromJson">fromJson</a></code></li>
+<li><code><a title="classroom-voter.shared.pollTypes.Poll.getPrompt" href="#classroom-voter.shared.pollTypes.Poll.getPrompt">getPrompt</a></code></li>
 <li><code><a title="classroom-voter.shared.pollTypes.Poll.question" href="#classroom-voter.shared.pollTypes.Poll.question">question</a></code></li>
 <li><code><a title="classroom-voter.shared.pollTypes.Poll.responses" href="#classroom-voter.shared.pollTypes.Poll.responses">responses</a></code></li>
 <li><code><a title="classroom-voter.shared.pollTypes.Poll.toBytes" href="#classroom-voter.shared.pollTypes.Poll.toBytes">toBytes</a></code></li>

@@ -24,11 +24,17 @@
 <section id="section-intro">
 <p>This is the classroom-voter module</p>
 <h2 id="what-is-classroom-voter">What Is Classroom Voter</h2>
-<p>pass</p>
-<h2 id="running-classroom-voter-as-host">Running Classroom Voter As Host</h2>
-<p>pass</p>
-<h2 id="connecting-to-poll-as-client">Connecting To Poll As Client</h2>
-<p>pass</p>
+<p>Classroom Voter is a secure LAN based polling system, similar to iClicker,
+which allows teachers to administer live polls. To start a poll, the
+teacher simply has to run the host program on their local machine.
+To join, students run the client program and enter the teachers IP address.
+Students can respond to questions via clients on their machines. Traffic is
+sent over HTTP on the local network. The system provides instructors with
+the ability to take polls while providing controllable levels of anonymity
+for students. For example, a teacher might make one question anonymized
+so that their view of the poll results just shows the number of students
+who voted for each option. Another poll might be transparent, and the
+instructor can see which participant voted for which option.</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -38,15 +44,18 @@ This is the classroom-voter module
 
 What is Classroom Voter
 --------------------------------
-pass
+Classroom Voter is a secure LAN based polling system, similar to iClicker,
+which allows teachers to administer live polls. To start a poll, the
+teacher simply has to run the host program on their local machine.
+To join, students run the client program and enter the teachers IP address.
+Students can respond to questions via clients on their machines. Traffic is
+sent over HTTP on the local network. The system provides instructors with
+the ability to take polls while providing controllable levels of anonymity
+for students. For example, a teacher might make one question anonymized
+so that their view of the poll results just shows the number of students
+who voted for each option. Another poll might be transparent, and the
+instructor can see which participant voted for which option.
 
-Running Classroom Voter as host
---------------------------------
-pass
-
-Connecting to Poll as client
---------------------------------
-pass
 &#34;&#34;&#34;</code></pre>
 </details>
 </section>
@@ -57,6 +66,11 @@ pass
 <dd>
 <div class="desc"><p>The <code><a title="classroom-voter.client" href="client.html">classroom-voter.client</a></code> module is what runs on each individual students machine. It handles the socket
 networking that allows students to connect to server polls.</p></div>
+</dd>
+<dt><code class="name"><a title="classroom-voter.professor" href="professor.html">classroom-voter.professor</a></code></dt>
+<dd>
+<div class="desc"><p>The <code><a title="classroom-voter.professor" href="professor.html">classroom-voter.professor</a></code> module is what runs on the professor's. It handles the socket
+networking that allows professors to create new polls and to collect the …</p></div>
 </dd>
 <dt><code class="name"><a title="classroom-voter.server" href="server.html">classroom-voter.server</a></code></dt>
 <dd>
@@ -86,14 +100,13 @@ the <code><a title="classroom-voter.server" href="server.html">classroom-voter.s
 <div class="toc">
 <ul>
 <li><a href="#what-is-classroom-voter">What is Classroom Voter</a></li>
-<li><a href="#running-classroom-voter-as-host">Running Classroom Voter as host</a></li>
-<li><a href="#connecting-to-poll-as-client">Connecting to Poll as client</a></li>
 </ul>
 </div>
 <ul id="index">
 <li><h3><a href="#header-submodules">Sub-modules</a></h3>
 <ul>
 <li><code><a title="classroom-voter.client" href="client.html">classroom-voter.client</a></code></li>
+<li><code><a title="classroom-voter.professor" href="professor.html">classroom-voter.professor</a></code></li>
 <li><code><a title="classroom-voter.server" href="server.html">classroom-voter.server</a></code></li>
 <li><code><a title="classroom-voter.shared" href="shared/index.html">classroom-voter.shared</a></code></li>
 <li><code><a title="classroom-voter.unitTest" href="unitTest.html">classroom-voter.unitTest</a></code></li>

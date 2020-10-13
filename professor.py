@@ -1,3 +1,8 @@
+"""
+The `professor` module is what runs on the professor's. It handles the socket
+networking that allows professors to create new polls and to collect the student
+responses from existing ones.
+"""
 #! python3
 import socket
 import sys
