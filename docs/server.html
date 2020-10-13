@@ -36,10 +36,36 @@ their own threaded connection.
 import socket
 import os
 import sys
+import json
 from _thread import *
+from threading import Thread
+import threading
+import sys
+sys.path.append(os.path.dirname(__file__)) #gets pdoc working
+from shared.pollTypes import *
 
+CONNECTION_LIST = []
+clients_lock = threading.Lock()
 
+polls = []
 
+def broadcast(msg):
+    with clients_lock:
+        for c in CONNECTION_LIST:
+            c.send(json.dumps(msg).encode())
+            
+def aggregate_poll():
+    # Since there is only one poll right now it will be the first
+    # Future there needs to be some sort of poll id
+    responses = []
+    for response in polls[0].responses:
+        responses.append(response.responseBody)
+    
+    return responses
+    
+def add_response_to_poll(response):
+    poll = polls[0]
+    poll.addResponse(response)
 
 def threaded_client(connection):
     &#34;&#34;&#34;
@@ -49,19 +75,39 @@ def threaded_client(connection):
         connection (socket): socket connection to client
 
     &#34;&#34;&#34;
-    connection.send(str.encode(&#39;Welcome to the Poll\n&#39;))
+    try:
+        while True:
+            data = json.loads(connection.recv(2048).decode())
+            
+            print(data)
 
-    while True:
-        data = connection.recv(2048)
-
-
-        reply = &#39;Server Says: &#39; + data.decode(&#39;utf-8&#39;)
-        if not data:
-            break
-
-        connection.sendall(str.encode(reply))
-
-    connection.close()
+            if not data:
+                break
+            
+            endpoint = data[&#34;endpoint&#34;]
+            
+            if endpoint == &#34;Announce_poll&#34;:
+                poll = Poll.fromDict(data[&#34;Arguments&#34;][&#34;poll&#34;])
+                polls.append(poll)
+                outgoing_msg = poll.question.toDict()
+                broadcast(json.dumps(outgoing_msg))
+                continue
+            
+            if endpoint == &#34;Poll_response&#34;:
+                poll_response = PollResponse.fromDict(data[&#34;Arguments&#34;][&#34;poll&#34;])
+                add_response_to_poll(poll_response)
+                continue
+            
+            if endpoint == &#34;Aggregate_poll&#34;:
+                outgoing_msg = aggregate_poll()
+                broadcast(json.dumps(outgoing_msg))
+                continue
+                
+    finally:
+        with clients_lock:
+            CONNECTION_LIST.remove(connection)
+            connection.close()
+    
 
 def main():
     &#34;&#34;&#34; Accepts incoming connections from clients and puts each client connection in a new thread &#34;&#34;&#34;
@@ -72,7 +118,7 @@ def main():
     port = sys.argv[1]
 
     serverSocket = socket.socket()
-    host = &#39;192.168.86.23&#39;
+    host = &#39;localhost&#39;
     port = int(port)
     threadCount = 0
 
@@ -87,6 +133,10 @@ def main():
     #continuiously accept new connections
     while True:
         client, address = serverSocket.accept()
+        
+        with clients_lock:
+            CONNECTION_LIST.append(client)
+                
         print(&#39;Connected to: &#39; + address[0] + &#39;:&#39; + str(address[1]))
 
         #each individual connection is threaded
@@ -107,6 +157,54 @@ if __name__ == &#34;__main__&#34;:
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
+<dt id="classroom-voter.server.add_response_to_poll"><code class="name flex">
+<span>def <span class="ident">add_response_to_poll</span></span>(<span>response)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def add_response_to_poll(response):
+    poll = polls[0]
+    poll.addResponse(response)</code></pre>
+</details>
+</dd>
+<dt id="classroom-voter.server.aggregate_poll"><code class="name flex">
+<span>def <span class="ident">aggregate_poll</span></span>(<span>)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def aggregate_poll():
+    # Since there is only one poll right now it will be the first
+    # Future there needs to be some sort of poll id
+    responses = []
+    for response in polls[0].responses:
+        responses.append(response.responseBody)
+    
+    return responses</code></pre>
+</details>
+</dd>
+<dt id="classroom-voter.server.broadcast"><code class="name flex">
+<span>def <span class="ident">broadcast</span></span>(<span>msg)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def broadcast(msg):
+    with clients_lock:
+        for c in CONNECTION_LIST:
+            c.send(json.dumps(msg).encode())</code></pre>
+</details>
+</dd>
 <dt id="classroom-voter.server.main"><code class="name flex">
 <span>def <span class="ident">main</span></span>(<span>)</span>
 </code></dt>
@@ -125,7 +223,7 @@ if __name__ == &#34;__main__&#34;:
     port = sys.argv[1]
 
     serverSocket = socket.socket()
-    host = &#39;192.168.86.23&#39;
+    host = &#39;localhost&#39;
     port = int(port)
     threadCount = 0
 
@@ -140,6 +238,10 @@ if __name__ == &#34;__main__&#34;:
     #continuiously accept new connections
     while True:
         client, address = serverSocket.accept()
+        
+        with clients_lock:
+            CONNECTION_LIST.append(client)
+                
         print(&#39;Connected to: &#39; + address[0] + &#39;:&#39; + str(address[1]))
 
         #each individual connection is threaded
@@ -171,19 +273,38 @@ if __name__ == &#34;__main__&#34;:
         connection (socket): socket connection to client
 
     &#34;&#34;&#34;
-    connection.send(str.encode(&#39;Welcome to the Poll\n&#39;))
+    try:
+        while True:
+            data = json.loads(connection.recv(2048).decode())
+            
+            print(data)
 
-    while True:
-        data = connection.recv(2048)
-
-
-        reply = &#39;Server Says: &#39; + data.decode(&#39;utf-8&#39;)
-        if not data:
-            break
-
-        connection.sendall(str.encode(reply))
-
-    connection.close()</code></pre>
+            if not data:
+                break
+            
+            endpoint = data[&#34;endpoint&#34;]
+            
+            if endpoint == &#34;Announce_poll&#34;:
+                poll = Poll.fromDict(data[&#34;Arguments&#34;][&#34;poll&#34;])
+                polls.append(poll)
+                outgoing_msg = poll.question.toDict()
+                broadcast(json.dumps(outgoing_msg))
+                continue
+            
+            if endpoint == &#34;Poll_response&#34;:
+                poll_response = PollResponse.fromDict(data[&#34;Arguments&#34;][&#34;poll&#34;])
+                add_response_to_poll(poll_response)
+                continue
+            
+            if endpoint == &#34;Aggregate_poll&#34;:
+                outgoing_msg = aggregate_poll()
+                broadcast(json.dumps(outgoing_msg))
+                continue
+                
+    finally:
+        with clients_lock:
+            CONNECTION_LIST.remove(connection)
+            connection.close()</code></pre>
 </details>
 </dd>
 </dl>
@@ -204,6 +325,9 @@ if __name__ == &#34;__main__&#34;:
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
+<li><code><a title="classroom-voter.server.add_response_to_poll" href="#classroom-voter.server.add_response_to_poll">add_response_to_poll</a></code></li>
+<li><code><a title="classroom-voter.server.aggregate_poll" href="#classroom-voter.server.aggregate_poll">aggregate_poll</a></code></li>
+<li><code><a title="classroom-voter.server.broadcast" href="#classroom-voter.server.broadcast">broadcast</a></code></li>
 <li><code><a title="classroom-voter.server.main" href="#classroom-voter.server.main">main</a></code></li>
 <li><code><a title="classroom-voter.server.threaded_client" href="#classroom-voter.server.threaded_client">threaded_client</a></code></li>
 </ul>

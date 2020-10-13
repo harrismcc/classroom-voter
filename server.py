@@ -9,6 +9,8 @@ import json
 from _thread import *
 from threading import Thread
 import threading
+import sys
+sys.path.append(os.path.dirname(__file__)) #gets pdoc working
 from shared.pollTypes import *
 
 CONNECTION_LIST = []
