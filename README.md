@@ -94,6 +94,7 @@ The professor can request an aggregate of the responses for a given poll.  The P
 {
     "endpoint" : "Aggregate-poll", 
     "arguments" : {
+        "professor-id" : professor-id,
         "poll-id" : poll-id,
     }
     
@@ -107,6 +108,17 @@ If the message endpoint is AggregatePoll the server will do the following:
 (2) Retrieve the responses
 (3) Encrypt the message using the shared key between server and the student
 (4) Send encrypted results to the professor
+
+`Poll Results`
+```json
+{
+    "endpoint" : "Poll-results", 
+    "arguments" : {
+        "poll-results" : poll-results,
+    }
+    
+}
+```
 
 Lastly, the professor receives a message from the server.  The message is decrypted using the shared key between the server and professor.  Once decrypted the results are displayed to the professor.
 
