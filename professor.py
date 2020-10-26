@@ -1,9 +1,10 @@
+#! python3
 """
 The `professor` module is what runs on the professor's. It handles the socket
 networking that allows professors to create new polls and to collect the student
 responses from existing ones.
 """
-#! python3
+
 import socket
 import sys
 import json
@@ -25,10 +26,26 @@ def prompt_for_ip():
 def send_msg(clientSocket, msg):
     try:
         clientSocket.send(str.encode(json.dumps(msg)))
-        print('Successfully sent poll')
     except socket.error as e:
-        print('Failed to send poll: ' + str(e))
+        print('Failed to send message: ' + str(e))
 
+def send_poll(clientSocket, poll):
+    msg = {
+        "endpoint": "Announce_poll",
+        "Arguments": {
+            "poll": poll.toDict()
+        }
+    }
+    send_msg(clientSocket, msg)
+
+def collect_responses(clientSocket):
+    msg = {
+        "endpoint": "Aggregate_poll",
+        "Arguments": {}
+    }
+    send_msg(clientSocket, msg)
+    data = json.loads(clientSocket.recv(2048).decode())
+    return data
 
 def main():
     if len(sys.argv)!=1 and len(sys.argv)!= 3: # either need no args or both ip and port
@@ -53,29 +70,24 @@ def main():
         print('Successful Connection')
     except socket.error as e:
         print('Failed Connection: ' + str(e))
+        return
 
-    poll = prompt_for_poll()
-    msg = {
-        "endpoint": "Announce_poll",
-        "Arguments": {
-            "poll": poll.toDict()
-        }
-    }
-    
-    print(msg)
-    send_msg(clientSocket, msg)
-    
+
     while True:
-        prompt = input("Would you like to collect responses? (y/n)")
-        if prompt == "y":
-            msg = {
-                "endpoint": "Aggregate_poll",
-                "Arguments": {}
-            }
-            send_msg(clientSocket, msg)
-            data = json.loads(clientSocket.recv(2048).decode())
-            print("Results: ", data)
-
+        prompt = input("To create a new poll, enter  'np'. To collect responses, enter 'cr'. To quit, enter 'quit': ")
+        if prompt == 'cr':
+            responses = collect_responses(clientSocket)
+            print("Results: ", responses)
+        elif prompt == 'np':
+            poll = prompt_for_poll()
+            send_poll(clientSocket, poll)
+        elif prompt == 'quit':
+            print("#"*80)
+            print('\t\t\tClosing session')
+            print("#"*80)
+            return
+        else:
+            print('Unrecognized input ' + prmopt + ". Expected 'np', 'cr', or 'quit'")
 
 if __name__ == "__main__":
     main()
