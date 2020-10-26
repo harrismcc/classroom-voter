@@ -135,13 +135,25 @@ Lastly, the professor receives a message from the server.  The message is decryp
                 "firstName" : first-name,
                 "lastName" : last-name,
                 "password" : password-hash,
-                "classes" : [class-id, class-id, ..., class-id]
+                "classes" : {
+                                "class-id" : poll-id-of-last-response,
+                                "class-id" : poll-id-of-last-response,
+                                ... 
+                                "class-id" : poll-id-of-last-response,
+                            },
+                "reedemed" : false,
             },
             student-email : {
                 "firstName" : first-name,
                 "lastName" : last-name,
                 "password" : password-hash,
-                "classes" : [class-id, class-id, ..., class-id]
+                "classes" : {
+                                "class-id" : poll-id-of-last-response,
+                                "class-id" : poll-id-of-last-response,
+                                ... 
+                                "class-id" : poll-id-of-last-response,
+                            },
+                "reedemed" : false,
             },
         },
 
