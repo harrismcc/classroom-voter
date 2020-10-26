@@ -131,34 +131,33 @@ Lastly, the professor receives a message from the server.  The message is decryp
 {
     "users" : {
         "students" : {
-            student-id : {
-                "name" : name,
-                "username" : username-hash,
+            student-email : {
+                "firstName" : first-name,
+                "lastName" : last-name,
                 "password" : password-hash,
-                "public-key" : 12345,
                 "classes" : [class-id, class-id, ..., class-id]
             },
-            student-id : {
-                "name" : name,
-                "username" : username-hash,
+            student-email : {
+                "firstName" : first-name,
+                "lastName" : last-name,
                 "password" : password-hash,
-                "public-key" : 12345,
                 "classes" : [class-id, class-id, ..., class-id]
-            }
+            },
         },
 
         "professors" : {
-            professor-id : {
-                "name" : name,
-                "username" : username-hash,
+            professor-email : {
+                "firstName" : first-name,
+                "lastName" : last-name,
                 "password" : password-hash,
-                "public-key" : 12345,
                 "classes" : [class-id, class-id, ..., class-id]
             },
-            professor-id : {
-                "public-key" : 12345,
+            professor-email : {
+                "firstName" : first-name,
+                "lastName" : last-name,
+                "password" : password-hash,
                 "classes" : [class-id, class-id, ..., class-id]
-            }
+            },
         }
     },
 
@@ -166,32 +165,32 @@ Lastly, the professor receives a message from the server.  The message is decryp
         poll-id : {
             "start" : time-stamp,
             "end" : time-stamp,
-            "professor-id" : professor-id,
+            "professor-email" : professor-id,
             "class-id" : class-id,
             "poll" : PollObject
         },
         poll-id : {
             "start" : time-stamp,
             "end" : time-stamp,
-            "professor-id" : professor-id,
+            "professor-email" : professor-id,
             "class-id" : class-id,
             "poll" : PollObject
-        }
+        },
     },
 
     "classes" : {
         class-id : {
-            "name" : name,
-            "students" : [student-id, student-id, ..., student-id],
-            "professor" : [professor-id, professor-id, ..., professor-id],
+            "className" : class-name,
+            "students" : [student-email, student-email, ..., student-email],
+            "professor" : [professor-email, professor-email, ..., professor-email],
             "polls" : [poll-id, poll-id, ..., poll-id]
         }, 
         class-id : {
-            "name" : name,
-            "students" : [student-id, student-id, ..., student-id],
-            "professor" : [professor-id, professor-id, ..., professor-id],
+            "className" : class-name,
+            "students" : [student-email, student-email, ..., student-email],
+            "professor" : [professor-email, professor-email, ..., professor-email],
             "polls" : [poll-id, poll-id, ..., poll-id]
-        }
+        },
     }
 }
 
