@@ -3,15 +3,30 @@ import json
 import unittest
 import os
 import sys
+import random
+
 sys.path.append(os.path.dirname(__file__)) #gets pdoc working
 
 from shared.pollTypes import *
+from shared.database import *
+
 
 
 
 class PollCreationTests(unittest.TestCase):
     def setUp(self):
-        self.d = {'question': {'prompt': 'What is your favorite color?',"answer" : None, 'options': [], 'type': 'FreeResponseQuestion'}, 'responses': []}
+        self.d = {
+                    'question': {
+                        'prompt': 'What is your favorite color?',
+                        "answer" : None,
+                        'options': [],
+                        'type': 'FreeResponseQuestion'
+                        },
+                    'startTime' : "2020-10-27 13:04:05",
+                    'endTime' : "2025-10-27 13:04:05",
+                    'ownerId' : 'test@gmail.com',
+                    'classId' : 0,
+                    'responses': []}
         self.myPoll = Poll.fromDict(self.d)
 
     def test_SimplePollCreation(self):
@@ -98,41 +113,143 @@ class PollResponseCreationTests(unittest.TestCase):
 
 class PollMethodsTesting(unittest.TestCase):
 
-    def getDummyPoll(self):
-        d = {'question': {'prompt': 'What is your favorite color?', 'options': ["Red", "Blue"], 'type': 'FreeResponseQuestion'}, 'responses': []}
-        myPoll = Poll.fromDict(d)
-        return myPoll
+    def setUp(self):
+        self.d = {
+                    'question': {
+                        'prompt': 'What is your favorite color?',
+                        "answer" : None,
+                        'options': [],
+                        'type': 'FreeResponseQuestion'
+                        },
+                    'responses': [],
+                    'startTime' : "2020-10-27 13:04:05",
+                    'endTime' : "2025-10-27 13:04:05",
+                    'ownerId' : 'test@gmail.com',
+                    'classId' : 0,
+                    }
+        self.myPoll = Poll.fromDict(self.d)
 
     def test_PollResponseAddition(self):
-        myPoll = self.getDummyPoll()
         resp = PollResponse("Red")
 
-        self.assertIsInstance(myPoll, Poll)
+        self.assertIsInstance(self.myPoll, Poll)
         self.assertIsInstance(resp, PollResponse)
-        self.assertEqual(myPoll.responses, [])
+        self.assertEqual(self.myPoll.responses, [])
 
-        myPoll.addResponse(resp)
-        self.assertEqual(myPoll.responses, [resp])
+        self.myPoll.addResponse(resp)
+        self.assertEqual(self.myPoll.responses, [resp])
 
-        self.assertRaises(TypeError, myPoll.addResponse, "Not a response object")
+        self.assertRaises(TypeError, self.myPoll.addResponse, "Not a response object")
 
     def test_toDict(self):
-        d = {'question': {'prompt': 'What is your favorite color?', "answer" : None, 'options': ["Red", "Blue"], 'type': 'FreeResponseQuestion'}, 'responses': []}
-        myPoll = self.getDummyPoll()
-        self.assertEqual(myPoll.toDict(), d)
+        self.assertEqual(self.myPoll.toDict(), self.d)
 
     def test_toJson(self):
-        d = {'question': {'prompt': 'What is your favorite color?', "answer" : None, 'options': ["Red", "Blue"], 'type': 'FreeResponseQuestion'}, 'responses': []}
-        j = json.dumps(d)
-        myPoll = self.getDummyPoll()
-        self.assertEqual(myPoll.toJson(), j)
+        self.assertEqual(self.myPoll.toJson(), json.dumps(self.d))
 
     def test_toBytes(self):
-        d = {'question': {'prompt': 'What is your favorite color?',"answer" : None, 'options': ["Red", "Blue"], 'type': 'FreeResponseQuestion'}, 'responses': []}
-        j = json.dumps(d)
-        b = j.encode()
-        myPoll = self.getDummyPoll()
-        self.assertEqual(myPoll.toBytes(), b)
+        self.assertEqual(self.myPoll.toBytes(), json.dumps(self.d).encode())
+
+class DatabaseSQLTesting(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+
+        #remove test db
+        try:
+            os.remove("./shared/testingDB.db")
+        except FileNotFoundError:
+            pass
+        #load up db
+        cls.db = DatabaseSQL("./shared/testingDB.db")
+
+    @classmethod
+    def tearDownClass(cls):
+        pass
+
+    def test_addStudentToDB(self):
+        student = {
+        "test@gmail.com" : {
+                "firstName" : "John",
+                "lastName" : "Doe",
+                "password" : "ecd4d1aad41a446759d25de6c830d60cc3c8548be9760f0babe03094e6a59ee3",
+                "classes" : [12, 1442, 123],
+                "reedemed" : True,
+                "role" : "professor"
+            }
+        }
+
+        #test add user to db
+        self.assertTrue(self.db.addUser(student))
+
+        #test pull that user from the db
+        result = self.db.getUser("test@gmail.com")
+        self.assertEqual(student, result)
+
+        #test pull to nothing
+        result = self.db.getUser("notindb")
+        self.assertFalse(result)
+
+        #test change value
+        result = self.db.updateFieldViaId("users", "test@gmail.com", "firstName", "NewName")
+        self.assertTrue(result)
+        student["test@gmail.com"]["firstName"] = "NewName"
+
+        self.assertEqual(student, self.db.getUser("test@gmail.com"))
+    
+    def test_addClassToDB(self):
+        classD = {
+            "className": 'Into to Blah',
+            "courseCode": 'UNIQ99',
+            "students" : [],
+            "professors" : [],
+            "polls": []
+        }
+
+        #add class to db
+        self.assertTrue(self.db.addClass(classD))
+
+        #Pull class via id
+        result = self.db.getClassFromId(1)
+        self.assertEqual(classD, result)
+
+        #pull class via course id
+        result = self.db.getClassFromCourseCode("UNIQ99")
+        self.assertEqual(classD, result[1])
+
+        #test change value
+        result = self.db.updateFieldViaId("classes", 1, "courseCode", "YEE555")
+        self.assertTrue(result)
+        classD["courseCode"] = "YEE555"
+
+        self.assertEqual(classD, self.db.getClassFromId(1))
+
+    def test_addPollToDB(self):
+        d = {
+            'question': {
+                'prompt': 'What is your favorite color?',
+                "answer" : None, 
+                'options': [], 
+                'type': 'FreeResponseQuestion'
+                },
+            'startTime' : "2020-10-27 16:25:07",
+            'endTime' : "2025-10-27 16:25:07",
+            'ownerId' : 'bebop@yahoo.com',
+            'classId' : 0,
+            'responses': []}
+
+        poll = Poll.fromDict(d)
+        self.assertTrue(self.db.addPoll(poll))
+
+        self.assertEqual(d, self.db.getPollFromId(1))
+
+
+    def test_addResponseToDB(self):
+        pass
+
+    def test_searchDBByField(self):
+        pass
+
 
 if __name__ == '__main__':
 

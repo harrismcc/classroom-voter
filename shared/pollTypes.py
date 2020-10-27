@@ -1,4 +1,5 @@
 import json
+import datetime
 
 
 class Poll:
@@ -6,12 +7,16 @@ class Poll:
     The poll object, represents an entire poll and it's responses
     TODO: read in from file, export to json, import from json
     """
-    def __init__(self, question):
+    def __init__(self, question, **kwargs):
 
         self.question = question
         """PollQuestion: The question the poll is asking"""
         self.responses = []
         """PollResponse[]: An array of the responses recorded by the student"""
+        self.startTime = datetime.date.today() if "startTime" not in kwargs.keys() else kwargs["startTime"]
+        self.endTime = None if "endTime" not in kwargs.keys() else kwargs["endTime"]
+        self.ownerId = kwargs["ownerId"] if "ownerId" in kwargs.keys() else None
+        self.classId = kwargs["classId"]if "classId" in kwargs.keys() else None
 
     @classmethod
     def fromDict(cls, inDict):
@@ -27,9 +32,29 @@ class Poll:
         else:
             out = cls(FreeResponseQuestion.fromDict(inDict["question"]))
 
+        #populate datetimes
+        tFormat = '%Y-%m-%d %H:%M:%S'
+        
+        if inDict["startTime"] is not None and inDict["startTime"] != "":
+            if type(inDict["startTime"]) is str:
+                out.startTime = inDict["startTime"]
+            else:
+                out.startTime = datetime.datetime.strptime(inDict["startTime"], tFormat)
+        if inDict["endTime"] is not None and inDict["endTime"] != "":
+            if type(inDict["endTime"]) is str:
+                out.endTime = inDict["endTime"]
+            else:
+                out.endTime = datetime.datetime.strptime(inDict["endTime"], tFormat)
+        
         #Here we populate the responses list, creating new response objects for each dict respresentation of a response
         for response in inDict["responses"]:
             out.responses.appned(PollResponse.fromDict(response))
+            
+        #populate id's
+        out.ownerId = inDict["ownerId"] if "ownerId" in inDict.keys() else None
+        out.classId = inDict["classId"] if "classId" in inDict.keys() else None
+
+        
 
         return out
 
@@ -68,12 +93,18 @@ class Poll:
         out = {}
 
         out["question"] = self.question.toDict()
-        out["responses"] = []
+        out["responses"] = [resp.toDict() for resp in self.responses]
+        out["startTime"] = self.startTime.strftime('%Y-%m-%d %H:%M:%S') if type(self.startTime) is not str else self.startTime
+        out["endTime"] = self.endTime.strftime('%Y-%m-%d %H:%M:%S') if type(self.endTime) is not str else self.endTime
+        out["ownerId"] = self.ownerId
+        out["classId"] = self.classId
+        
 
         for response in self.responses:
             out["responses"].append(response.toDict())
 
         return out
+
 
     def toJson(self):
         """
@@ -82,7 +113,7 @@ class Poll:
         Returns:
             string: Json representaiton of object
         """
-        return json.dumps(self.toDict())
+        return json.dumps(self.toDict(), default=str)
 
     def toBytes(self):
         """
@@ -91,7 +122,7 @@ class Poll:
         Returns:
             bytes: bytearray representation of object
         """
-        return json.dumps(self.toDict()).encode()
+        return self.toJson().encode()
 
     def addResponse(self, response):
         """ Adds a new poll response object to this Poll's responses list """
@@ -205,10 +236,11 @@ class PollQuestion:
     @classmethod
     def fromDict(cls, inDict):
         """ Constructs the PollQuestion object using a dictionary """
-        merged = {**{'answer' : None, 'options': [], 'prompt': None, 'type': None}, **inDict}
-        #^ add empty default values to dict if not present
- 
-        return cls(merged["prompt"], answer=merged["answer"], options=merged["options"])
+        prompt = inDict["prompt"] if "prompt" in inDict.keys() else None
+        answer = inDict["answer"] if "answer" in inDict.keys() else None
+        options = inDict["options"] if "options" in inDict.keys() else None
+
+        return cls(prompt, answer=answer, options=options)
        
 
     @classmethod
