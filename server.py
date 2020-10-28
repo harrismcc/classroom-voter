@@ -2,39 +2,41 @@
 The `server` module handles the socket networking with the clients, placing them each into
 their own threaded connection.
 """
-import socket
 import os
 import sys
 import json
+import socket
+import threading
+
 from _thread import *
 from threading import Thread
-import threading
-import sys
-sys.path.append(os.path.dirname(__file__)) #gets pdoc working
+
+from hashlib import sha256
+
 from shared.pollTypes import *
+from shared.database import *
+from shared.locks import *
+from shared.authenticationTools import *
 
-CONNECTION_LIST = []
-clients_lock = threading.Lock()
+sys.path.append(os.path.dirname(__file__)) #gets pdoc working
 
-polls = []
+database = DatabaseSQL("./shared/example.db")
+database_lock = locks.RWLock()
 
-def broadcast(msg):
-    with clients_lock:
-        for c in CONNECTION_LIST:
-            c.send(json.dumps(msg).encode())
+def authenticate_user(username, password):
+    """
+        Authenticate a user by checking their existance in database and validating passwordHash
+        
+        Args:
+            username: the username (email) trying to be authenticated
+            password: the password used for authentication
             
-def aggregate_poll():
-    # Since there is only one poll right now it will be the first
-    # Future there needs to be some sort of poll id
-    responses = []
-    for response in polls[0].responses:
-        responses.append(response.responseBody)
+        Returns:
+            True if user is authenticated, False if user is not authenticated
+    """
     
-    return responses
     
-def add_response_to_poll(response):
-    poll = polls[0]
-    poll.addResponse(response)
+    
 
 def threaded_client(connection):
     """
@@ -44,7 +46,115 @@ def threaded_client(connection):
         connection (socket): socket connection to client
 
     """
-    try:
+    
+    try:    
+        authenticated = False
+        isReedemed = False
+        while not authenticated:
+            data = json.loads(connection.recv(2048).decode())
+        
+            print(data)
+        
+            if not data:
+                break
+            
+            endpoint = data["endpoint"]
+            
+            if endpoint == "Login":
+                arguments = data["Arguments"]
+                username = arguments["username"]
+                password = arguments["password"]
+                
+                authenticate_user(username, password)
+            
+                database_lock.acquire_read()
+                user_object = database.getUser(username)
+                database_lock.release()
+                
+                # User does not exist
+                if user_object is None:
+                    authentication_response = {
+                        "endpoint" : "Login_result",
+                        "Arguments" : {
+                            "result" : "failure"
+                        }
+                    }
+                    connection.send(json.dumps(authentication_response).encode())
+                    continue
+                    
+                user = user_object[username]
+                
+                # If user exists check password
+                password_hash = sha256(password.encode('utf-8')).hexdigest()
+                
+                authentication_result = ""
+                if password_hash == user["password"]:
+                                    
+                    isReedemed = user["reedemed"]
+                    if isReedemed:
+                        authentication_result = "success"
+                    else:
+                        authentication_result = "reset required"
+
+                        
+                else:
+                    authentication_result = "failure"
+                    
+                authentication_response = {
+                    "endpoint" : "Login_result",
+                    "Arguments" : {
+                        "result" : authentication_result
+                    }
+                }
+                
+                connection.send(json.dumps(authentication_response).encode())
+                
+            if endpoint == "Reset_password" and not isReedemed:
+                arguments = data["Arguments"]
+                username = arguments["username"]
+                old_password = arguments["old_password"]
+                new_password = arguments["new_password"]
+                
+                # User does not exist
+                if user_object is None:
+                    reset_response = {
+                        "endpoint" : "Reset_result",
+                        "Arguments" : {
+                            "result" : "failure"
+                        }
+                    }
+                    connection.send(json.dumps(reset_response).encode())
+                    continue
+                
+                user = user_object[username]
+                
+                # If user exists check password
+                old_password_hash = sha256(old_password.encode('utf-8')).hexdigest()
+
+                reset_result = ""
+                if password_hash == user["password"]:
+                    new_password_hash = sha256(new_password.encode('utf-8')).hexdigest()
+                    
+                    database_lock.acquire_write()
+                    database.updateFieldViaId("users", username, "hashedPassword", new_password_hash)
+                    database.updateFieldViaId("users", username, "reedemed", "1")
+                    database_lock.release()
+                    
+                    reset_result = "success"
+                else:
+                    reset_result = "failure"
+
+                reset_response = {
+                    "endpoint" : "Reset_result",
+                    "Arguments" : {
+                        "result" : reset_result
+                    }
+                }
+                
+                connection.send(json.dumps(reset_response).encode())
+    
+    
+    
         while True:
             data = json.loads(connection.recv(2048).decode())
             
@@ -73,9 +183,8 @@ def threaded_client(connection):
                 continue
                 
     finally:
-        with clients_lock:
-            CONNECTION_LIST.remove(connection)
-            connection.close()
+        print("Closing Connection!")
+        connection.close()
     
 
 def main():
@@ -98,13 +207,10 @@ def main():
 
     print('Waiting for a Connection To Client..')
     serverSocket.listen(5)
-
+    
     #continuiously accept new connections
     while True:
         client, address = serverSocket.accept()
-        
-        with clients_lock:
-            CONNECTION_LIST.append(client)
                 
         print('Connected to: ' + address[0] + ':' + str(address[1]))
 

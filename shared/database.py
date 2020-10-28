@@ -202,7 +202,7 @@ class Database:
 class DatabaseSQL:
     def __init__(self, fname='example.db'):
         self.fname = fname
-        self.conn = sqlite3.connect(fname)
+        self.conn = sqlite3.connect(fname, check_same_thread=False)
         self.cursor = self.conn.cursor()
         self.initTables()
 

@@ -48,6 +48,73 @@ class VoterClient:
         except socket.error as e:
             print(str(e))
             quit(1)
+            
+        authenticated = False
+        while not authenticated:
+            username = input("Enter username: ")
+            password = input("Enter password: ")
+            login = {
+                "endpoint" : "Login",
+                "Arguments" : {
+                    "username" : username,
+                    "password" : password
+                }
+            }
+            
+            print(login)
+        
+            # Send authentication data
+            clientSocket.send(json.dumps(login).encode())
+            
+            # Receieve authentication result
+            data = json.loads(clientSocket.recv(1024).decode())
+            print(data)
+            
+            endpoint = data["endpoint"]
+            
+            if endpoint == "Login_result":
+                result = data["Arguments"]["result"]
+                print("Authentication Result: ", result)
+                
+                if result == "success":
+                    authenticated = True
+                    continue
+                    
+                if result == "failure":
+                    continue
+                    
+                if result == "reset required":
+                    successful_reset = False
+                    while not successful_reset:
+                        new_password = input("Enter new password: ")
+                        reset_password = {
+                            "endpoint" : "Reset_password",
+                            "Arguments" : {
+                                "username" : username,
+                                "old_password" : password,
+                                "new_password" : new_password,
+                            }
+                        }
+                        clientSocket.send(json.dumps(reset_password).encode())
+                    
+                        data = json.loads(clientSocket.recv(1024).decode())
+                        print(data)
+                    
+                        endpoint = data["endpoint"]
+                    
+                        if endpoint == "Reset_result":
+                            result = data["Arguments"]["result"]
+                            
+                            if result == "success":
+                                successful_reset = True
+                                authenticated = True
+                                continue
+                                
+                            if result == "failure":
+                                continue
+                        
+                    
+        
 
         # while True:  
         # newPoll = self.getPoll(clientSocket)
