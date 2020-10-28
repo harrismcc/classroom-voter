@@ -16,12 +16,11 @@ from hashlib import sha256
 from shared.pollTypes import *
 from shared.database import *
 from shared.locks import *
-from shared.authenticationTools import *
 
 sys.path.append(os.path.dirname(__file__)) #gets pdoc working
 
 database = DatabaseSQL("./shared/example.db")
-database_lock = locks.RWLock()
+database_lock = RWLock()
 
 def authenticate_user(username, password):
     """
@@ -32,11 +31,34 @@ def authenticate_user(username, password):
             password: the password used for authentication
             
         Returns:
-            True if user is authenticated, False if user is not authenticated
+            True and user if authenticated
+            False and none of not authenticated
     """
+    isAuthenticated = False
+    user_object = None
     
+    database_lock.acquire_read()
+    user = database.getUser(username)
+    database_lock.release()
     
+    if user is not None:
+        stored_password_hash = user[username]["password"]
+        given_password_hash = sha256(password.encode('utf-8')).hexdigest()
+
+        if given_password_hash == stored_password_hash:
+            isAuthenticated = True
+            user_object = user
+        else:
+            isAuthenticated = False
+            user_object = None
+    else:
+        isAuthenticated = False
+        user_object = None
     
+    return {
+        "isAuthenticated" : isAuthenticated,
+        "user" : user
+    }
 
 def threaded_client(connection):
     """
@@ -65,49 +87,32 @@ def threaded_client(connection):
                 username = arguments["username"]
                 password = arguments["password"]
                 
-                authenticate_user(username, password)
-            
-                database_lock.acquire_read()
-                user_object = database.getUser(username)
-                database_lock.release()
+                authentication_result = authenticate_user(username, password)
+                isAuthenticated = authentication_result["isAuthenticated"]
+                user = authentication_result["user"]
                 
-                # User does not exist
-                if user_object is None:
-                    authentication_response = {
-                        "endpoint" : "Login_result",
-                        "Arguments" : {
-                            "result" : "failure"
-                        }
-                    }
-                    connection.send(json.dumps(authentication_response).encode())
-                    continue
-                    
-                user = user_object[username]
-                
-                # If user exists check password
-                password_hash = sha256(password.encode('utf-8')).hexdigest()
-                
-                authentication_result = ""
-                if password_hash == user["password"]:
+                authentication_msg = ""
+                if isAuthenticated and (user is not None):
                                     
-                    isReedemed = user["reedemed"]
+                    isReedemed = user[username]["reedemed"]
                     if isReedemed:
-                        authentication_result = "success"
+                        authentication_msg = "success"
+                        authenticated = True
                     else:
-                        authentication_result = "reset required"
+                        authentication_msg = "reset required"
 
-                        
                 else:
-                    authentication_result = "failure"
+                    authentication_msg = "failure"
                     
                 authentication_response = {
                     "endpoint" : "Login_result",
                     "Arguments" : {
-                        "result" : authentication_result
+                        "result" : authentication_msg
                     }
                 }
                 
                 connection.send(json.dumps(authentication_response).encode())
+                continue
                 
             if endpoint == "Reset_password" and not isReedemed:
                 arguments = data["Arguments"]
@@ -115,24 +120,12 @@ def threaded_client(connection):
                 old_password = arguments["old_password"]
                 new_password = arguments["new_password"]
                 
-                # User does not exist
-                if user_object is None:
-                    reset_response = {
-                        "endpoint" : "Reset_result",
-                        "Arguments" : {
-                            "result" : "failure"
-                        }
-                    }
-                    connection.send(json.dumps(reset_response).encode())
-                    continue
-                
-                user = user_object[username]
-                
-                # If user exists check password
-                old_password_hash = sha256(old_password.encode('utf-8')).hexdigest()
-
-                reset_result = ""
-                if password_hash == user["password"]:
+                authentication_result = authenticate_user(username, old_password)
+                isAuthenticated = authentication_result["isAuthenticated"]
+                user = authentication_result["user"]
+                                
+                reset_msg = ""
+                if isAuthenticated and (user is not None):
                     new_password_hash = sha256(new_password.encode('utf-8')).hexdigest()
                     
                     database_lock.acquire_write()
@@ -140,20 +133,20 @@ def threaded_client(connection):
                     database.updateFieldViaId("users", username, "reedemed", "1")
                     database_lock.release()
                     
-                    reset_result = "success"
+                    reset_msg = "success"
+                    authenticated = True
                 else:
-                    reset_result = "failure"
+                    reset_msg = "failure"
 
                 reset_response = {
                     "endpoint" : "Reset_result",
                     "Arguments" : {
-                        "result" : reset_result
+                        "result" : reset_msg
                     }
                 }
                 
                 connection.send(json.dumps(reset_response).encode())
-    
-    
+                continue
     
         while True:
             data = json.loads(connection.recv(2048).decode())
