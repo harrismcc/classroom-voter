@@ -263,6 +263,15 @@ class DatabaseSQL:
 
     def updateFieldViaId(self, table, myId, field, newValue):
         """
+        Updates a specific value for a specific entry. For example, to set a user's name:
+        `updateFieldViaId('users', 'example@test.com', 'firstName', 'John')`
+        Args:
+            table (string): table name
+            myId (unknown): id field (email or int)
+            field (string): name of field to change
+            newValue (string): value to place in field
+        Returns:
+            boolean: success
 
         """
         c = self.conn.cursor()

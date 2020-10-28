@@ -56,7 +56,7 @@ def notify_users(recipients):
     
 def init_user(users):
 
-    myDb = database.Database("./shared/database.json")
+    myDb = database.DatabaseSQL("./shared/example.db")
 
     for userId in users.keys():
         newUser = users[userId]
@@ -64,6 +64,7 @@ def init_user(users):
 
         user = { 
             userId : {
+                "role" : userType,
                 "firstName" : newUser["firstName"],
                 "lastName" : newUser["lastName"],
                 "password" : newUser["temporaryPassword"],
@@ -72,17 +73,8 @@ def init_user(users):
                     }
         }
 
-        if userType == "professors":
-            result = myDb.addProfessor(user)
-            if not result:
-                print("Oh no! Prof " + userId + " already exists.")
+        result = myDb.addUser(user)
 
-        elif userType == "students":
-            result = myDb.addStudent(user)
-            if not result:
-                print("Oh no! Student " + userId + " already exists.")
-        else:
-            print("User type " + userType + " does not exist")
         
     
 
