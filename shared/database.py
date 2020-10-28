@@ -245,7 +245,6 @@ class DatabaseSQL:
             #TODO: Make this return an ID
             return True
         except sqlite3.IntegrityError as e:
-            print(e)
             return False
 
     def resetUserPassword(self, userId, newHash):
