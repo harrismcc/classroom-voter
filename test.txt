@@ -1,0 +1,1 @@
+{'mrstudent@gmail.com': {'role': 'students', 'firstName': 'NewName', 'lastName': 'Doe', 'password': 'ecd4d1aad41a446759d25de6c830d60cc3c8548be9760f0babe03094e6a59ee3', 'classes': [12, 1442, 123], 'reedemed': True}}

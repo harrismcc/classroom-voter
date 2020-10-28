@@ -331,7 +331,7 @@ class DatabaseSQL:
             return False
 
 
-    def _formatStudent(self, studentTuple):
+    def _formatUser(self, studentTuple):
         out = {studentTuple[0] : {
             'role' : studentTuple[1],
             'firstName' : studentTuple[2],
@@ -360,7 +360,7 @@ class DatabaseSQL:
             c.execute("SELECT * FROM users WHERE emailAddress=? AND role=?", (email, roleFilter, ))
         result = c.fetchone()
         if result is not None:
-            return self._formatStudent(result)
+            return self._formatUser(result)
         
     def _formatPoll(self, pollTuple):
         d = json.loads(pollTuple[5])
@@ -422,6 +422,95 @@ class DatabaseSQL:
                 out[result[0]] = self._formatClass(result)
             return out
 
+    def _listStringFormat(self, l):
+        """Formats lists into the proper string for sql queries"""
+        if len(l) == 0:
+            return "()"
+        
+        s = "("
+
+        for element in l:
+            s += "'" + element + "',"
+
+        s = s[0:-1] #strip last comma
+        s += ")"
+        return s
+
+    def _getUsersInClass(self, classId, role):
+
+        #Verify inputs - no funny stuff in the sql, keep it safe
+        if type(classId) is not int:
+            raise TypeError("classId must be int")
+        elif type(role) is not str:
+            raise TypeError("classId must be int")
+
+        c = self.conn.cursor()
+        out = {}
+        #first pull class
+
+        if role == "students":
+            sql = "SELECT classes.students FROM classes WHERE classId=?"
+        else:
+            sql = "SELECT classes.professors FROM classes WHERE classId=?"
+        c.execute(sql, (classId,))
+        result = c.fetchone()
+
+        if result is not None:
+            #get student's array
+            users = json.loads(result[0])
+            #return students rows
+            sql = "SELECT * FROM users WHERE users.emailAddress IN " + self._listStringFormat(users) + " AND users.role='" + role + "'"
+            c.execute(sql)
+            result = c.fetchall()
+            for user in result:
+
+                user = self._formatUser(user)
+                out[list(user.keys())[0]] = user[list(user.keys())[0]]
+
+        return out
+
+    def getStudentsInClass(self, classId):
+        """
+        Gets the emails of all students in class w/ id classId
+        Args:
+            classId (int): id of class
+        Returns:
+            list: json array of students
+        """
+        return self._getUsersInClass(classId, "students")
+    
+    def getProfsInClass(self, classId):
+        """
+        Gets the emails of all profs in class w/ id classId
+        Args:
+            classId (int): id of class
+        Returns:
+            list: json array of profs
+        """
+        return self._getUsersInClass(classId, "professors")
+
+
+    def executeSelect(self, query, args=()):
+        """
+        Wrapper for the execution of simple SQL select querys.
+
+        Important that any dynamic/substituted values are done using the "?" syntax and
+        NOT via python string concatination. For example:
+        Wrong:
+        "SELECT * FROM classes WHERE name=" + name
+        Right
+        "SELECT * FROM classes WHERE name=?", args=(name, )
+
+        Args:
+            query (string): SQL query to execute (with optional ? substitutions)
+            args (tuple): Orderd tuple of substitution values
+        """
+        print(query, args)
+        c = self.conn.cursor()
+        c.execute(query, args)
+        result = c.fetchall()
+        return result
+
 
 
 
@@ -455,3 +544,11 @@ class DatabaseSQL:
 
 
 
+if __name__ == "__main__":
+    
+    db = DatabaseSQL("example.db")
+
+
+    
+    #print(db.getStudentsInClass(1))
+    print(db.getProfsInClass(1))

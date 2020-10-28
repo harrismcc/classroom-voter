@@ -163,21 +163,45 @@ class DatabaseSQLTesting(unittest.TestCase):
         #load up db
         cls.db = DatabaseSQL("./shared/testingDB.db")
 
-    @classmethod
-    def tearDownClass(cls):
-        pass
-
-    def test_addStudentToDB(self):
-        student = {
+        cls.userTemplate = {
         "test@gmail.com" : {
                 "firstName" : "John",
                 "lastName" : "Doe",
                 "password" : "ecd4d1aad41a446759d25de6c830d60cc3c8548be9760f0babe03094e6a59ee3",
                 "classes" : [12, 1442, 123],
                 "reedemed" : True,
-                "role" : "professor"
+                "role" : "professors"
             }
         }
+
+        cls.classTemplate = {
+            "className": 'Into to Blah',
+            "courseCode": 'UNIQ99',
+            "students" : ["mrstudent@gmail.com"],
+            "professors" : ["mrprof@gmail.com"],
+            "polls": []
+        }
+
+        cls.pollTemplate = {
+            'question': {
+                'prompt': 'What is your favorite color?',
+                "answer" : None, 
+                'options': [], 
+                'type': 'FreeResponseQuestion'
+                },
+            'startTime' : "2020-10-27 16:25:07",
+            'endTime' : "2025-10-27 16:25:07",
+            'ownerId' : 'bebop@yahoo.com',
+            'classId' : 0,
+            'responses': []}
+        
+
+    @classmethod
+    def tearDownClass(cls):
+        pass
+
+    def test_addStudentToDB(self):
+        student = self.userTemplate
 
         #test add user to db
         self.assertTrue(self.db.addUser(student))
@@ -198,13 +222,7 @@ class DatabaseSQLTesting(unittest.TestCase):
         self.assertEqual(student, self.db.getUser("test@gmail.com"))
     
     def test_addClassToDB(self):
-        classD = {
-            "className": 'Into to Blah',
-            "courseCode": 'UNIQ99',
-            "students" : [],
-            "professors" : [],
-            "polls": []
-        }
+        classD = self.classTemplate
 
         #add class to db
         self.assertTrue(self.db.addClass(classD))
@@ -225,18 +243,7 @@ class DatabaseSQLTesting(unittest.TestCase):
         self.assertEqual(classD, self.db.getClassFromId(1))
 
     def test_addPollToDB(self):
-        d = {
-            'question': {
-                'prompt': 'What is your favorite color?',
-                "answer" : None, 
-                'options': [], 
-                'type': 'FreeResponseQuestion'
-                },
-            'startTime' : "2020-10-27 16:25:07",
-            'endTime' : "2025-10-27 16:25:07",
-            'ownerId' : 'bebop@yahoo.com',
-            'classId' : 0,
-            'responses': []}
+        d = self.pollTemplate
 
         poll = Poll.fromDict(d)
         self.assertTrue(self.db.addPoll(poll))
@@ -247,8 +254,29 @@ class DatabaseSQLTesting(unittest.TestCase):
     def test_addResponseToDB(self):
         pass
 
-    def test_searchDBByField(self):
-        pass
+    def test_getUsersOfClass(self):
+        """This test asserts that profs and students can be successfully indexed from classes"""
+        self.maxDiff = None
+        newStudent = self.userTemplate
+        newStudent["mrstudent@gmail.com"] = newStudent.pop(list(newStudent.keys())[0])
+        newStudent[list(newStudent.keys())[0]]['role'] = "students"
+        self.db.addUser(newStudent)
+
+        newProf = self.userTemplate
+        newProf["mrprof@gmail.com"] = newProf.pop(list(newProf.keys())[0])
+        newProf[list(newStudent.keys())[0]]['firstName'] = "ProfJohn"
+        newProf[list(newStudent.keys())[0]]['role'] = "professors"
+        self.db.addUser(newProf)
+
+
+        st = self.db.getStudentsInClass(1)
+        self.assertEqual(len(st.keys()), 1)
+        self.assertEqual(list(st.keys())[0], "mrstudent@gmail.com")
+
+
+        pf = self.db.getProfsInClass(1)
+        self.assertEqual(len(pf.keys()), 1)
+        self.assertEqual(list(pf.keys())[0], "mrprof@gmail.com")
 
 
 if __name__ == '__main__':
