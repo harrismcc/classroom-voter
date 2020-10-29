@@ -8,13 +8,22 @@ import socket
 import sys
 import json
 from shared.pollTypes import Poll, FreeResponseQuestion
+import datetime
 
 
 def prompt_for_poll():
     question_str = input("[Required] Enter your poll question: ")
     answer_str = input("[Optional] Enter your poll answer: ")
     question = FreeResponseQuestion(question_str, answer_str)
-    poll = Poll(question)
+    
+    args = {
+        "startTime" : datetime.date.today(),
+        "endTime" : datetime.date.today(),
+        "ownerId" : "12345",
+        "classId" : "1"
+    }
+    
+    poll = Poll(question, **args)
     return poll
 
 def prompt_for_ip():

@@ -22,6 +22,9 @@ sys.path.append(os.path.dirname(__file__)) #gets pdoc working
 database = DatabaseSQL("./shared/example.db")
 database_lock = RWLock()
 
+connection_list = {}
+connection_list_lock = RWLock()
+
 def authenticate_user(username, password):
     """
         Authenticate a user by checking their existance in database and validating passwordHash
@@ -60,6 +63,28 @@ def authenticate_user(username, password):
         "user" : user
     }
 
+def add_connection(username, connection):
+    """
+        Add an authenticated user to the connection list
+        
+        Args:
+            username (key): the username associated with the connection
+            connection (value): the connection socket
+            
+        Returns:
+            True: if username is not in connection list
+            False: if username is in connection list
+    """
+    connection_list_lock.acquire_write()
+    connection_list[username] = connection
+    connection_list_lock.release()
+
+def remove_connection(username):
+    connection_list_lock.acquire_write()
+    if username in connection_list:
+        del connection_list[username]
+    connection_list_lock.release()
+
 def threaded_client(connection):
     """
     Creates a new threaded client connection loop
@@ -68,6 +93,8 @@ def threaded_client(connection):
         connection (socket): socket connection to client
 
     """
+    
+    authenticated_username = None
     
     try:    
         authenticated = False
@@ -98,6 +125,7 @@ def threaded_client(connection):
                     if isReedemed:
                         authentication_msg = "success"
                         authenticated = True
+                        authenticated_username = username
                     else:
                         authentication_msg = "reset required"
 
@@ -135,6 +163,8 @@ def threaded_client(connection):
                     
                     reset_msg = "success"
                     authenticated = True
+                    authenticated_username = username
+
                 else:
                     reset_msg = "failure"
 
@@ -147,7 +177,27 @@ def threaded_client(connection):
                 
                 connection.send(json.dumps(reset_response).encode())
                 continue
-    
+        
+        
+        #At this point the user is autheticated.
+        #User should never be None here but just in case
+        if authenticated_username is None:
+            return
+        
+        # Make sure we are not already connected to this user
+        connection_list_lock.acquire_read()
+        already_connected = authenticated_username in connection_list
+        connection_list_lock.release()
+        
+        if already_connected:
+            # Already connected to this user
+            print("Already Connected")
+            authenticated_username = None
+            return
+        else:
+            # Add the authenticated user to the connection list
+            add_connection(authenticated_username, connection)
+                
         while True:
             data = json.loads(connection.recv(2048).decode())
             
@@ -160,24 +210,43 @@ def threaded_client(connection):
             
             if endpoint == "Announce_poll":
                 poll = Poll.fromDict(data["Arguments"]["poll"])
-                polls.append(poll)
-                outgoing_msg = poll.question.toDict()
-                broadcast(json.dumps(outgoing_msg))
+                class_id = poll.classId
+                
+                database_lock.acquire_write()
+                database.addPoll(poll)
+                class_object = database.getClassFromId(class_id)
+                database_lock.release()
+                
+                class_name = class_object["className"]
+                student_ids = class_object["students"]
+                
+                print(student_ids)
+                
+                # Send poll out to all students in class
+                connection_list_lock.acquire_read()
+                for student_id in student_ids:
+                    if student_id in connection_list:
+                        student_connection = connection_list[student_id]
+                        student_connection.send(json.dumps(poll.question.toDict()).encode())
+                connection_list.release()
+
                 continue
             
             if endpoint == "Poll_response":
-                poll_response = PollResponse.fromDict(data["Arguments"]["poll"])
-                add_response_to_poll(poll_response)
+                # poll_response = PollResponse.fromDict(data["Arguments"]["poll"])
+                # add_response_to_poll(poll_response)
                 continue
             
             if endpoint == "Aggregate_poll":
-                outgoing_msg = aggregate_poll()
-                broadcast(json.dumps(outgoing_msg))
+                # outgoing_msg = aggregate_poll()
+                # broadcast(json.dumps(outgoing_msg))
                 continue
                 
     finally:
         print("Closing Connection!")
+        remove_connection(authenticated_username)
         connection.close()
+        print(connection_list)
     
 
 def main():
