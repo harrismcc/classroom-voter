@@ -24,7 +24,7 @@ def _timeToStr(t):
     else:
         return t
 
-class Database:
+class Database(object):
 
         
     def __init__(self, fname='database.json'):
@@ -199,7 +199,7 @@ class Database:
         return key in keys
 
 
-class DatabaseSQL:
+class DatabaseSQL(object):
     def __init__(self, fname='example.db'):
         self.fname = fname
         self.conn = sqlite3.connect(fname)

@@ -2,7 +2,7 @@ import json
 import datetime
 
 
-class Poll:
+class Poll(object):
     """
     The poll object, represents an entire poll and it's responses
     TODO: read in from file, export to json, import from json
@@ -140,7 +140,7 @@ class Poll:
         """
         return self.question.getPrompt()
 
-class PollResponse:
+class PollResponse(object):
     
     """ The parent class for a Poll Response """
     def __init__(self, responseBody="", anonLevel=0):
@@ -225,7 +225,7 @@ class PollResponse:
         """
         pass
 
-class PollQuestion:
+class PollQuestion(object):
     """ Parent class for a poll question - Informal Interface, should not be called directly"""
     def __init__(self, prompt, answer=None, options=None):
         self.prompt = prompt
