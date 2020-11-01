@@ -315,7 +315,26 @@ class DatabaseSQL:
             return False
 
     def addClass(self, classDict):
+        """
+        Adds a new class to the database. Note: If a class already exists w/ the same information in the DB,
+        this will create a new entry. If creating a class that might not be new, it may be worth checking if
+        a that course name/code already exists first.
+        ```json
+        {
+            "className": 'Into to Blah',
+            "courseCode": 'UNIQ99',
+            "students" : ["mrstudent@gmail.com"],
+            "professors" : ["mrprof@gmail.com"],
+            "polls": []
+        }
 
+        ```
+        Args:
+            classDict (dict): a dictionary with class information (see above)
+
+        Returns:
+            boolean: success ()
+        """
         c = self.conn.cursor()
 
 
