@@ -13,50 +13,24 @@ class VoterClient:
     """
     VoterClient is a client object that handles the socket connection to the teacher server
 
-    Attributes:
-        host (string): ip of host to connect to
-        port (int): port of host to connet to
-
     Args:
-        host (string): ip of host to connect to
-        port (int): port of host to connet to
+        clientSocket (socket): socket to connect to
 
     """
-    def __init__(self, host, port):
+    def __init__(self, clientSocket):
         """
         Creates a new VoterClient object
 
         Args:
-            host (string): ip of host to connect to
-            port (int): port of host to connet to
-
+            clientSocket (socket): socket to connect to
         """
-        self.host = host
-        self.port = int(port)
-        
-        print(self.toString())
 
-        self.startConnection()
+        self.startConnection(clientSocket)
 
-    def startConnection(self):
+    def startConnection(self, clientSocket):
         """ starts up a connection loop to the server, specified by the host ip and host port """
-        clientSocket = socket.socket()
 
-        print('Waiting for Connection To Server')
-        try:
-            clientSocket.connect((self.host, self.port))
-        except socket.error as e:
-            print(str(e))
-            quit(1)
-
-        # while True:  
-        # newPoll = self.getPoll(clientSocket)
-        # ans = self.answer(newPoll)
-        # self.sendResponse(ans, clientSocket)
         while True:
-            # may want to prompt for user input here,
-            # let them look at old responses before 
-            # asking for a new poll
 
             print("Waiting for a poll\n")
             data = json.loads(clientSocket.recv(1024).decode()) #recieve a poll (bytestr) from the server
@@ -126,7 +100,7 @@ class VoterClient:
     
 
 
-def main():
+def main(clientSocket):
     """ Parses command line arguments and creates a new VoterClient Object
             `usage: python3 nameOfFile.py <host> <host-port>`
     """
@@ -152,7 +126,7 @@ def main():
 
 
 
-    client = VoterClient(host, port)
+    client = VoterClient(clientSocket)
     # this initializes a VoterClient object
     # which involves starting the connection to the server
     # in startConnection. from there, everything 
