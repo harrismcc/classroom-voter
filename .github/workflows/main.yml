@@ -22,8 +22,7 @@ jobs:
 
       - name: Install Deps
         run: |
-        pip install pdoc3
-      # Runs a set of commands using the runners shell
+          pip install pdoc3
       - name: Main test
         run: |
           python -m unittest discover tests
