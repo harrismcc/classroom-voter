@@ -19,14 +19,12 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-
       - name: Install Deps
         run: |
           pip install pdoc3
       - name: Main test
         run: |
           python -m unittest discover tests
-
       -name: Run Pdoc
        run: |
           cd ..
