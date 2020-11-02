@@ -25,8 +25,8 @@ jobs:
       - name: Main test
         run: |
           python -m unittest discover tests
-      -name: Run Pdoc
-       run: |
+      - name: Run Pdoc
+        run: |
           cd ..
           pdoc --html classroom-voter
           rm -rf classroom-voter/docs/*
