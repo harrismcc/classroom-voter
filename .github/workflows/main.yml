@@ -34,6 +34,6 @@ jobs:
         run: |
           cd ..
           rm -rf classroom-voter/docs/*
-          pdoc --html classrrom-voter --force
+          python -m pdoc --html classrrom-voter --force
           cp html/classroom-voter/* classroom-voter/docs
           
