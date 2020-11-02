@@ -29,7 +29,6 @@ jobs:
         run: |
           cd ..
           rm -rf classroom-voter/docs/*
-          mkdir classroom-voter/docs
           python -m pdoc.cli --html --html-dir build classroom-voter --overwrite
           cp build/classroom-voter/* classroom-voter/docs
           
