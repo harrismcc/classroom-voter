@@ -115,8 +115,9 @@ def threaded_client(connection):
                 password = arguments["password"]
                 
                 authentication_result = authenticate_user(username, password)
-                isAuthenticated = authentication_result["isAuthenticated"]
+                
                 user = authentication_result["user"]
+                isAuthenticated = authentication_result["isAuthenticated"]
                 
                 authentication_msg = ""
                 if isAuthenticated and (user is not None):
@@ -125,6 +126,7 @@ def threaded_client(connection):
                     if isReedemed:
                         authentication_msg = "success"
                         authenticated = True
+                        isReedemed = True
                         authenticated_username = username
                     else:
                         authentication_msg = "reset required"
@@ -149,11 +151,13 @@ def threaded_client(connection):
                 new_password = arguments["new_password"]
                 
                 authentication_result = authenticate_user(username, old_password)
-                isAuthenticated = authentication_result["isAuthenticated"]
+                
                 user = authentication_result["user"]
+                isAuthenticated = authentication_result["isAuthenticated"]
                                 
                 reset_msg = ""
                 if isAuthenticated and (user is not None):
+                
                     new_password_hash = sha256(new_password.encode('utf-8')).hexdigest()
                     
                     database_lock.acquire_write()
@@ -163,6 +167,7 @@ def threaded_client(connection):
                     
                     reset_msg = "success"
                     authenticated = True
+                    isReedemed = True
                     authenticated_username = username
 
                 else:
@@ -179,8 +184,8 @@ def threaded_client(connection):
                 continue
         
         
-        #At this point the user is autheticated.
-        #User should never be None here but just in case
+        # At this point the user is autheticated.
+        # User should never be None here but just in case
         if authenticated_username is None:
             return
         
