@@ -10,14 +10,6 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Setup tmate session
-      uses: mxschmitt/action-tmate@v3
-
   test:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
@@ -35,12 +27,13 @@ jobs:
       - uses: actions/checkout@v2
       - name: Install Deps
         run: |
-          python -m pip install --upgrade pip
-          pip install pdoc
+          python3 -m pip install --upgrade pip
+          pip3 install setuptools wheel markdown pdoc3
       - name: Run Pdoc
         run: |
           cd ..
           rm -rf classroom-voter/docs/*
-          python -m pdoc --html classrrom-voter --force
-          cp html/classroom-voter/* classroom-voter/docs
+          mkdir classroom-voter/docs
+          python -m pdoc.cli --html --html-dir build classroom-voter --overwrite
+          cp build/classroom-voter/* classroom-voter/docs
           
