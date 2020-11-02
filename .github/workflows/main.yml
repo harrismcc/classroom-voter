@@ -25,9 +25,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Install Deps
-        run: |
-          pip3 install wheel markdown pdoc3
       - name: Run Pdoc
         run: |
           cd ..
