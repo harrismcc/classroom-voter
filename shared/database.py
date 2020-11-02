@@ -202,8 +202,13 @@ class Database(object):
 class DatabaseSQL(object):
     def __init__(self, fname='example.db'):
         self.fname = fname
-        self.conn = sqlite3.connect(fname)
-        self.cursor = self.conn.cursor()
+        try:
+            self.conn = sqlite3.connect(fname)
+            self.cursor = self.conn.cursor()
+        except sqlite3.OperationalError as e:
+            print(e)
+            self.conn = sqlite3.connect("testingDB.db")
+            self.cursor = self.conn.cursor()
         self.initTables()
 
 
@@ -561,13 +566,3 @@ class DatabaseSQL(object):
             responseId integer primary key autoincrement, userId text, responseBody text
             )''')
 
-
-
-if __name__ == "__main__":
-    
-    db = DatabaseSQL("example.db")
-
-
-    
-    #print(db.getStudentsInClass(1))
-    print(db.getProfsInClass(1))

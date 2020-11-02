@@ -1,3 +1,5 @@
+"""Tests all of the functionality in shared.database"""
+
 import json
 import unittest
 import os

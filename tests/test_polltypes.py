@@ -1,4 +1,4 @@
-""" This file runs a series of unit test on the Classes defined in `pollTypes` """
+""" Tests all of the functionality in shared.pollTypes"""
 import json
 import unittest
 import os
