@@ -27,19 +27,24 @@
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">import json
+import datetime
 
 
-class Poll:
+class Poll(object):
     &#34;&#34;&#34;
     The poll object, represents an entire poll and it&#39;s responses
     TODO: read in from file, export to json, import from json
     &#34;&#34;&#34;
-    def __init__(self, question):
+    def __init__(self, question, **kwargs):
 
         self.question = question
         &#34;&#34;&#34;PollQuestion: The question the poll is asking&#34;&#34;&#34;
         self.responses = []
         &#34;&#34;&#34;PollResponse[]: An array of the responses recorded by the student&#34;&#34;&#34;
+        self.startTime = datetime.date.today() if &#34;startTime&#34; not in kwargs.keys() else kwargs[&#34;startTime&#34;]
+        self.endTime = None if &#34;endTime&#34; not in kwargs.keys() else kwargs[&#34;endTime&#34;]
+        self.ownerId = kwargs[&#34;ownerId&#34;] if &#34;ownerId&#34; in kwargs.keys() else None
+        self.classId = kwargs[&#34;classId&#34;]if &#34;classId&#34; in kwargs.keys() else None
 
     @classmethod
     def fromDict(cls, inDict):
@@ -55,9 +60,29 @@ class Poll:
         else:
             out = cls(FreeResponseQuestion.fromDict(inDict[&#34;question&#34;]))
 
+        #populate datetimes
+        tFormat = &#39;%Y-%m-%d %H:%M:%S&#39;
+        
+        if inDict[&#34;startTime&#34;] is not None and inDict[&#34;startTime&#34;] != &#34;&#34;:
+            if type(inDict[&#34;startTime&#34;]) is str:
+                out.startTime = inDict[&#34;startTime&#34;]
+            else:
+                out.startTime = datetime.datetime.strptime(inDict[&#34;startTime&#34;], tFormat)
+        if inDict[&#34;endTime&#34;] is not None and inDict[&#34;endTime&#34;] != &#34;&#34;:
+            if type(inDict[&#34;endTime&#34;]) is str:
+                out.endTime = inDict[&#34;endTime&#34;]
+            else:
+                out.endTime = datetime.datetime.strptime(inDict[&#34;endTime&#34;], tFormat)
+        
         #Here we populate the responses list, creating new response objects for each dict respresentation of a response
         for response in inDict[&#34;responses&#34;]:
             out.responses.appned(PollResponse.fromDict(response))
+            
+        #populate id&#39;s
+        out.ownerId = inDict[&#34;ownerId&#34;] if &#34;ownerId&#34; in inDict.keys() else None
+        out.classId = inDict[&#34;classId&#34;] if &#34;classId&#34; in inDict.keys() else None
+
+        
 
         return out
 
@@ -96,12 +121,18 @@ class Poll:
         out = {}
 
         out[&#34;question&#34;] = self.question.toDict()
-        out[&#34;responses&#34;] = []
+        out[&#34;responses&#34;] = [resp.toDict() for resp in self.responses]
+        out[&#34;startTime&#34;] = self.startTime.strftime(&#39;%Y-%m-%d %H:%M:%S&#39;) if type(self.startTime) is not str else self.startTime
+        out[&#34;endTime&#34;] = self.endTime.strftime(&#39;%Y-%m-%d %H:%M:%S&#39;) if type(self.endTime) is not str else self.endTime
+        out[&#34;ownerId&#34;] = self.ownerId
+        out[&#34;classId&#34;] = self.classId
+        
 
         for response in self.responses:
             out[&#34;responses&#34;].append(response.toDict())
 
         return out
+
 
     def toJson(self):
         &#34;&#34;&#34;
@@ -110,7 +141,7 @@ class Poll:
         Returns:
             string: Json representaiton of object
         &#34;&#34;&#34;
-        return json.dumps(self.toDict())
+        return json.dumps(self.toDict(), default=str)
 
     def toBytes(self):
         &#34;&#34;&#34;
@@ -119,7 +150,7 @@ class Poll:
         Returns:
             bytes: bytearray representation of object
         &#34;&#34;&#34;
-        return json.dumps(self.toDict()).encode()
+        return self.toJson().encode()
 
     def addResponse(self, response):
         &#34;&#34;&#34; Adds a new poll response object to this Poll&#39;s responses list &#34;&#34;&#34;
@@ -137,7 +168,7 @@ class Poll:
         &#34;&#34;&#34;
         return self.question.getPrompt()
 
-class PollResponse:
+class PollResponse(object):
     
     &#34;&#34;&#34; The parent class for a Poll Response &#34;&#34;&#34;
     def __init__(self, responseBody=&#34;&#34;, anonLevel=0):
@@ -222,7 +253,7 @@ class PollResponse:
         &#34;&#34;&#34;
         pass
 
-class PollQuestion:
+class PollQuestion(object):
     &#34;&#34;&#34; Parent class for a poll question - Informal Interface, should not be called directly&#34;&#34;&#34;
     def __init__(self, prompt, answer=None, options=None):
         self.prompt = prompt
@@ -233,10 +264,11 @@ class PollQuestion:
     @classmethod
     def fromDict(cls, inDict):
         &#34;&#34;&#34; Constructs the PollQuestion object using a dictionary &#34;&#34;&#34;
-        merged = {**{&#39;answer&#39; : None, &#39;options&#39;: [], &#39;prompt&#39;: None, &#39;type&#39;: None}, **inDict}
-        #^ add empty default values to dict if not present
- 
-        return cls(merged[&#34;prompt&#34;], answer=merged[&#34;answer&#34;], options=merged[&#34;options&#34;])
+        prompt = inDict[&#34;prompt&#34;] if &#34;prompt&#34; in inDict.keys() else None
+        answer = inDict[&#34;answer&#34;] if &#34;answer&#34; in inDict.keys() else None
+        options = inDict[&#34;options&#34;] if &#34;options&#34; in inDict.keys() else None
+
+        return cls(prompt, answer=answer, options=options)
        
 
     @classmethod
@@ -565,7 +597,7 @@ class MultipleChoiceQuestion(PollQuestion):
 </dd>
 <dt id="classroom-voter.shared.pollTypes.Poll"><code class="flex name class">
 <span>class <span class="ident">Poll</span></span>
-<span>(</span><span>question)</span>
+<span>(</span><span>question, **kwargs)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>The poll object, represents an entire poll and it's responses
@@ -574,17 +606,21 @@ TODO: read in from file, export to json, import from json</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class Poll:
+<pre><code class="python">class Poll(object):
     &#34;&#34;&#34;
     The poll object, represents an entire poll and it&#39;s responses
     TODO: read in from file, export to json, import from json
     &#34;&#34;&#34;
-    def __init__(self, question):
+    def __init__(self, question, **kwargs):
 
         self.question = question
         &#34;&#34;&#34;PollQuestion: The question the poll is asking&#34;&#34;&#34;
         self.responses = []
         &#34;&#34;&#34;PollResponse[]: An array of the responses recorded by the student&#34;&#34;&#34;
+        self.startTime = datetime.date.today() if &#34;startTime&#34; not in kwargs.keys() else kwargs[&#34;startTime&#34;]
+        self.endTime = None if &#34;endTime&#34; not in kwargs.keys() else kwargs[&#34;endTime&#34;]
+        self.ownerId = kwargs[&#34;ownerId&#34;] if &#34;ownerId&#34; in kwargs.keys() else None
+        self.classId = kwargs[&#34;classId&#34;]if &#34;classId&#34; in kwargs.keys() else None
 
     @classmethod
     def fromDict(cls, inDict):
@@ -600,9 +636,29 @@ TODO: read in from file, export to json, import from json</p></div>
         else:
             out = cls(FreeResponseQuestion.fromDict(inDict[&#34;question&#34;]))
 
+        #populate datetimes
+        tFormat = &#39;%Y-%m-%d %H:%M:%S&#39;
+        
+        if inDict[&#34;startTime&#34;] is not None and inDict[&#34;startTime&#34;] != &#34;&#34;:
+            if type(inDict[&#34;startTime&#34;]) is str:
+                out.startTime = inDict[&#34;startTime&#34;]
+            else:
+                out.startTime = datetime.datetime.strptime(inDict[&#34;startTime&#34;], tFormat)
+        if inDict[&#34;endTime&#34;] is not None and inDict[&#34;endTime&#34;] != &#34;&#34;:
+            if type(inDict[&#34;endTime&#34;]) is str:
+                out.endTime = inDict[&#34;endTime&#34;]
+            else:
+                out.endTime = datetime.datetime.strptime(inDict[&#34;endTime&#34;], tFormat)
+        
         #Here we populate the responses list, creating new response objects for each dict respresentation of a response
         for response in inDict[&#34;responses&#34;]:
             out.responses.appned(PollResponse.fromDict(response))
+            
+        #populate id&#39;s
+        out.ownerId = inDict[&#34;ownerId&#34;] if &#34;ownerId&#34; in inDict.keys() else None
+        out.classId = inDict[&#34;classId&#34;] if &#34;classId&#34; in inDict.keys() else None
+
+        
 
         return out
 
@@ -641,12 +697,18 @@ TODO: read in from file, export to json, import from json</p></div>
         out = {}
 
         out[&#34;question&#34;] = self.question.toDict()
-        out[&#34;responses&#34;] = []
+        out[&#34;responses&#34;] = [resp.toDict() for resp in self.responses]
+        out[&#34;startTime&#34;] = self.startTime.strftime(&#39;%Y-%m-%d %H:%M:%S&#39;) if type(self.startTime) is not str else self.startTime
+        out[&#34;endTime&#34;] = self.endTime.strftime(&#39;%Y-%m-%d %H:%M:%S&#39;) if type(self.endTime) is not str else self.endTime
+        out[&#34;ownerId&#34;] = self.ownerId
+        out[&#34;classId&#34;] = self.classId
+        
 
         for response in self.responses:
             out[&#34;responses&#34;].append(response.toDict())
 
         return out
+
 
     def toJson(self):
         &#34;&#34;&#34;
@@ -655,7 +717,7 @@ TODO: read in from file, export to json, import from json</p></div>
         Returns:
             string: Json representaiton of object
         &#34;&#34;&#34;
-        return json.dumps(self.toDict())
+        return json.dumps(self.toDict(), default=str)
 
     def toBytes(self):
         &#34;&#34;&#34;
@@ -664,7 +726,7 @@ TODO: read in from file, export to json, import from json</p></div>
         Returns:
             bytes: bytearray representation of object
         &#34;&#34;&#34;
-        return json.dumps(self.toDict()).encode()
+        return self.toJson().encode()
 
     def addResponse(self, response):
         &#34;&#34;&#34; Adds a new poll response object to this Poll&#39;s responses list &#34;&#34;&#34;
@@ -736,9 +798,29 @@ def fromDict(cls, inDict):
     else:
         out = cls(FreeResponseQuestion.fromDict(inDict[&#34;question&#34;]))
 
+    #populate datetimes
+    tFormat = &#39;%Y-%m-%d %H:%M:%S&#39;
+    
+    if inDict[&#34;startTime&#34;] is not None and inDict[&#34;startTime&#34;] != &#34;&#34;:
+        if type(inDict[&#34;startTime&#34;]) is str:
+            out.startTime = inDict[&#34;startTime&#34;]
+        else:
+            out.startTime = datetime.datetime.strptime(inDict[&#34;startTime&#34;], tFormat)
+    if inDict[&#34;endTime&#34;] is not None and inDict[&#34;endTime&#34;] != &#34;&#34;:
+        if type(inDict[&#34;endTime&#34;]) is str:
+            out.endTime = inDict[&#34;endTime&#34;]
+        else:
+            out.endTime = datetime.datetime.strptime(inDict[&#34;endTime&#34;], tFormat)
+    
     #Here we populate the responses list, creating new response objects for each dict respresentation of a response
     for response in inDict[&#34;responses&#34;]:
         out.responses.appned(PollResponse.fromDict(response))
+        
+    #populate id&#39;s
+    out.ownerId = inDict[&#34;ownerId&#34;] if &#34;ownerId&#34; in inDict.keys() else None
+    out.classId = inDict[&#34;classId&#34;] if &#34;classId&#34; in inDict.keys() else None
+
+    
 
     return out</code></pre>
 </details>
@@ -845,7 +927,7 @@ Returns the prompt for the question</p>
     Returns:
         bytes: bytearray representation of object
     &#34;&#34;&#34;
-    return json.dumps(self.toDict()).encode()</code></pre>
+    return self.toJson().encode()</code></pre>
 </details>
 </dd>
 <dt id="classroom-voter.shared.pollTypes.Poll.toDict"><code class="name flex">
@@ -882,7 +964,12 @@ question : string
     out = {}
 
     out[&#34;question&#34;] = self.question.toDict()
-    out[&#34;responses&#34;] = []
+    out[&#34;responses&#34;] = [resp.toDict() for resp in self.responses]
+    out[&#34;startTime&#34;] = self.startTime.strftime(&#39;%Y-%m-%d %H:%M:%S&#39;) if type(self.startTime) is not str else self.startTime
+    out[&#34;endTime&#34;] = self.endTime.strftime(&#39;%Y-%m-%d %H:%M:%S&#39;) if type(self.endTime) is not str else self.endTime
+    out[&#34;ownerId&#34;] = self.ownerId
+    out[&#34;classId&#34;] = self.classId
+    
 
     for response in self.responses:
         out[&#34;responses&#34;].append(response.toDict())
@@ -911,7 +998,7 @@ question : string
     Returns:
         string: Json representaiton of object
     &#34;&#34;&#34;
-    return json.dumps(self.toDict())</code></pre>
+    return json.dumps(self.toDict(), default=str)</code></pre>
 </details>
 </dd>
 </dl>
@@ -926,7 +1013,7 @@ question : string
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class PollQuestion:
+<pre><code class="python">class PollQuestion(object):
     &#34;&#34;&#34; Parent class for a poll question - Informal Interface, should not be called directly&#34;&#34;&#34;
     def __init__(self, prompt, answer=None, options=None):
         self.prompt = prompt
@@ -937,10 +1024,11 @@ question : string
     @classmethod
     def fromDict(cls, inDict):
         &#34;&#34;&#34; Constructs the PollQuestion object using a dictionary &#34;&#34;&#34;
-        merged = {**{&#39;answer&#39; : None, &#39;options&#39;: [], &#39;prompt&#39;: None, &#39;type&#39;: None}, **inDict}
-        #^ add empty default values to dict if not present
- 
-        return cls(merged[&#34;prompt&#34;], answer=merged[&#34;answer&#34;], options=merged[&#34;options&#34;])
+        prompt = inDict[&#34;prompt&#34;] if &#34;prompt&#34; in inDict.keys() else None
+        answer = inDict[&#34;answer&#34;] if &#34;answer&#34; in inDict.keys() else None
+        options = inDict[&#34;options&#34;] if &#34;options&#34; in inDict.keys() else None
+
+        return cls(prompt, answer=answer, options=options)
        
 
     @classmethod
@@ -1069,10 +1157,11 @@ def fromBytes(cls, inBytes):
 <pre><code class="python">@classmethod
 def fromDict(cls, inDict):
     &#34;&#34;&#34; Constructs the PollQuestion object using a dictionary &#34;&#34;&#34;
-    merged = {**{&#39;answer&#39; : None, &#39;options&#39;: [], &#39;prompt&#39;: None, &#39;type&#39;: None}, **inDict}
-    #^ add empty default values to dict if not present
+    prompt = inDict[&#34;prompt&#34;] if &#34;prompt&#34; in inDict.keys() else None
+    answer = inDict[&#34;answer&#34;] if &#34;answer&#34; in inDict.keys() else None
+    options = inDict[&#34;options&#34;] if &#34;options&#34; in inDict.keys() else None
 
-    return cls(merged[&#34;prompt&#34;], answer=merged[&#34;answer&#34;], options=merged[&#34;options&#34;])</code></pre>
+    return cls(prompt, answer=answer, options=options)</code></pre>
 </details>
 </dd>
 <dt id="classroom-voter.shared.pollTypes.PollQuestion.fromJson"><code class="name flex">
@@ -1265,7 +1354,7 @@ int options</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class PollResponse:
+<pre><code class="python">class PollResponse(object):
     
     &#34;&#34;&#34; The parent class for a Poll Response &#34;&#34;&#34;
     def __init__(self, responseBody=&#34;&#34;, anonLevel=0):

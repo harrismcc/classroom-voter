@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
-<title>classroom-voter.unitTest API documentation</title>
-<meta name="description" content="This file runs a series of unit test on the Classes defined in `pollTypes`" />
+<title>classroom-voter.tests.test_polltypes API documentation</title>
+<meta name="description" content="Tests all of the functionality in shared.pollTypes" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
 <link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
@@ -19,28 +19,42 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>classroom-voter.unitTest</code></h1>
+<h1 class="title">Module <code>classroom-voter.tests.test_polltypes</code></h1>
 </header>
 <section id="section-intro">
-<p>This file runs a series of unit test on the Classes defined in <code>pollTypes</code></p>
+<p>Tests all of the functionality in shared.pollTypes</p>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">&#34;&#34;&#34; This file runs a series of unit test on the Classes defined in `pollTypes` &#34;&#34;&#34;
+<pre><code class="python">&#34;&#34;&#34; Tests all of the functionality in shared.pollTypes&#34;&#34;&#34;
 import json
 import unittest
 import os
 import sys
+import random
+
 sys.path.append(os.path.dirname(__file__)) #gets pdoc working
 
 from shared.pollTypes import *
 
 
 
+
 class PollCreationTests(unittest.TestCase):
     def setUp(self):
-        self.d = {&#39;question&#39;: {&#39;prompt&#39;: &#39;What is your favorite color?&#39;,&#34;answer&#34; : None, &#39;options&#39;: [], &#39;type&#39;: &#39;FreeResponseQuestion&#39;}, &#39;responses&#39;: []}
+        self.d = {
+                    &#39;question&#39;: {
+                        &#39;prompt&#39;: &#39;What is your favorite color?&#39;,
+                        &#34;answer&#34; : None,
+                        &#39;options&#39;: [],
+                        &#39;type&#39;: &#39;FreeResponseQuestion&#39;
+                        },
+                    &#39;startTime&#39; : &#34;2020-10-27 13:04:05&#34;,
+                    &#39;endTime&#39; : &#34;2025-10-27 13:04:05&#34;,
+                    &#39;ownerId&#39; : &#39;test@gmail.com&#39;,
+                    &#39;classId&#39; : 0,
+                    &#39;responses&#39;: []}
         self.myPoll = Poll.fromDict(self.d)
 
     def test_SimplePollCreation(self):
@@ -127,41 +141,45 @@ class PollResponseCreationTests(unittest.TestCase):
 
 class PollMethodsTesting(unittest.TestCase):
 
-    def getDummyPoll(self):
-        d = {&#39;question&#39;: {&#39;prompt&#39;: &#39;What is your favorite color?&#39;, &#39;options&#39;: [&#34;Red&#34;, &#34;Blue&#34;], &#39;type&#39;: &#39;FreeResponseQuestion&#39;}, &#39;responses&#39;: []}
-        myPoll = Poll.fromDict(d)
-        return myPoll
+    def setUp(self):
+        self.d = {
+                    &#39;question&#39;: {
+                        &#39;prompt&#39;: &#39;What is your favorite color?&#39;,
+                        &#34;answer&#34; : None,
+                        &#39;options&#39;: [],
+                        &#39;type&#39;: &#39;FreeResponseQuestion&#39;
+                        },
+                    &#39;responses&#39;: [],
+                    &#39;startTime&#39; : &#34;2020-10-27 13:04:05&#34;,
+                    &#39;endTime&#39; : &#34;2025-10-27 13:04:05&#34;,
+                    &#39;ownerId&#39; : &#39;test@gmail.com&#39;,
+                    &#39;classId&#39; : 0,
+                    }
+        self.myPoll = Poll.fromDict(self.d)
 
     def test_PollResponseAddition(self):
-        myPoll = self.getDummyPoll()
         resp = PollResponse(&#34;Red&#34;)
 
-        self.assertIsInstance(myPoll, Poll)
+        self.assertIsInstance(self.myPoll, Poll)
         self.assertIsInstance(resp, PollResponse)
-        self.assertEqual(myPoll.responses, [])
+        self.assertEqual(self.myPoll.responses, [])
 
-        myPoll.addResponse(resp)
-        self.assertEqual(myPoll.responses, [resp])
+        self.myPoll.addResponse(resp)
+        self.assertEqual(self.myPoll.responses, [resp])
 
-        self.assertRaises(TypeError, myPoll.addResponse, &#34;Not a response object&#34;)
+        self.assertRaises(TypeError, self.myPoll.addResponse, &#34;Not a response object&#34;)
 
     def test_toDict(self):
-        d = {&#39;question&#39;: {&#39;prompt&#39;: &#39;What is your favorite color?&#39;, &#34;answer&#34; : None, &#39;options&#39;: [&#34;Red&#34;, &#34;Blue&#34;], &#39;type&#39;: &#39;FreeResponseQuestion&#39;}, &#39;responses&#39;: []}
-        myPoll = self.getDummyPoll()
-        self.assertEqual(myPoll.toDict(), d)
+        self.assertEqual(self.myPoll.toDict(), self.d)
 
     def test_toJson(self):
-        d = {&#39;question&#39;: {&#39;prompt&#39;: &#39;What is your favorite color?&#39;, &#34;answer&#34; : None, &#39;options&#39;: [&#34;Red&#34;, &#34;Blue&#34;], &#39;type&#39;: &#39;FreeResponseQuestion&#39;}, &#39;responses&#39;: []}
-        j = json.dumps(d)
-        myPoll = self.getDummyPoll()
-        self.assertEqual(myPoll.toJson(), j)
+        self.assertEqual(self.myPoll.toJson(), json.dumps(self.d))
 
     def test_toBytes(self):
-        d = {&#39;question&#39;: {&#39;prompt&#39;: &#39;What is your favorite color?&#39;,&#34;answer&#34; : None, &#39;options&#39;: [&#34;Red&#34;, &#34;Blue&#34;], &#39;type&#39;: &#39;FreeResponseQuestion&#39;}, &#39;responses&#39;: []}
-        j = json.dumps(d)
-        b = j.encode()
-        myPoll = self.getDummyPoll()
-        self.assertEqual(myPoll.toBytes(), b)
+        self.assertEqual(self.myPoll.toBytes(), json.dumps(self.d).encode())
+
+
+
 
 if __name__ == &#39;__main__&#39;:
 
@@ -177,7 +195,7 @@ if __name__ == &#39;__main__&#39;:
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="classroom-voter.unitTest.PollCreationTests"><code class="flex name class">
+<dt id="classroom-voter.tests.test_polltypes.PollCreationTests"><code class="flex name class">
 <span>class <span class="ident">PollCreationTests</span></span>
 <span>(</span><span>methodName='runTest')</span>
 </code></dt>
@@ -216,7 +234,18 @@ not have a method with the specified name.</p></div>
 </summary>
 <pre><code class="python">class PollCreationTests(unittest.TestCase):
     def setUp(self):
-        self.d = {&#39;question&#39;: {&#39;prompt&#39;: &#39;What is your favorite color?&#39;,&#34;answer&#34; : None, &#39;options&#39;: [], &#39;type&#39;: &#39;FreeResponseQuestion&#39;}, &#39;responses&#39;: []}
+        self.d = {
+                    &#39;question&#39;: {
+                        &#39;prompt&#39;: &#39;What is your favorite color?&#39;,
+                        &#34;answer&#34; : None,
+                        &#39;options&#39;: [],
+                        &#39;type&#39;: &#39;FreeResponseQuestion&#39;
+                        },
+                    &#39;startTime&#39; : &#34;2020-10-27 13:04:05&#34;,
+                    &#39;endTime&#39; : &#34;2025-10-27 13:04:05&#34;,
+                    &#39;ownerId&#39; : &#39;test@gmail.com&#39;,
+                    &#39;classId&#39; : 0,
+                    &#39;responses&#39;: []}
         self.myPoll = Poll.fromDict(self.d)
 
     def test_SimplePollCreation(self):
@@ -235,7 +264,7 @@ not have a method with the specified name.</p></div>
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="classroom-voter.unitTest.PollCreationTests.setUp"><code class="name flex">
+<dt id="classroom-voter.tests.test_polltypes.PollCreationTests.setUp"><code class="name flex">
 <span>def <span class="ident">setUp</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -245,11 +274,22 @@ not have a method with the specified name.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def setUp(self):
-    self.d = {&#39;question&#39;: {&#39;prompt&#39;: &#39;What is your favorite color?&#39;,&#34;answer&#34; : None, &#39;options&#39;: [], &#39;type&#39;: &#39;FreeResponseQuestion&#39;}, &#39;responses&#39;: []}
+    self.d = {
+                &#39;question&#39;: {
+                    &#39;prompt&#39;: &#39;What is your favorite color?&#39;,
+                    &#34;answer&#34; : None,
+                    &#39;options&#39;: [],
+                    &#39;type&#39;: &#39;FreeResponseQuestion&#39;
+                    },
+                &#39;startTime&#39; : &#34;2020-10-27 13:04:05&#34;,
+                &#39;endTime&#39; : &#34;2025-10-27 13:04:05&#34;,
+                &#39;ownerId&#39; : &#39;test@gmail.com&#39;,
+                &#39;classId&#39; : 0,
+                &#39;responses&#39;: []}
     self.myPoll = Poll.fromDict(self.d)</code></pre>
 </details>
 </dd>
-<dt id="classroom-voter.unitTest.PollCreationTests.test_PollCreateFromdDict"><code class="name flex">
+<dt id="classroom-voter.tests.test_polltypes.PollCreationTests.test_PollCreateFromdDict"><code class="name flex">
 <span>def <span class="ident">test_PollCreateFromdDict</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -265,7 +305,7 @@ not have a method with the specified name.</p></div>
     self.assertEqual(self.myPoll.toDict(), self.d)</code></pre>
 </details>
 </dd>
-<dt id="classroom-voter.unitTest.PollCreationTests.test_SimplePollCreation"><code class="name flex">
+<dt id="classroom-voter.tests.test_polltypes.PollCreationTests.test_SimplePollCreation"><code class="name flex">
 <span>def <span class="ident">test_SimplePollCreation</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -281,7 +321,7 @@ not have a method with the specified name.</p></div>
 </dd>
 </dl>
 </dd>
-<dt id="classroom-voter.unitTest.PollMethodsTesting"><code class="flex name class">
+<dt id="classroom-voter.tests.test_polltypes.PollMethodsTesting"><code class="flex name class">
 <span>class <span class="ident">PollMethodsTesting</span></span>
 <span>(</span><span>methodName='runTest')</span>
 </code></dt>
@@ -320,41 +360,42 @@ not have a method with the specified name.</p></div>
 </summary>
 <pre><code class="python">class PollMethodsTesting(unittest.TestCase):
 
-    def getDummyPoll(self):
-        d = {&#39;question&#39;: {&#39;prompt&#39;: &#39;What is your favorite color?&#39;, &#39;options&#39;: [&#34;Red&#34;, &#34;Blue&#34;], &#39;type&#39;: &#39;FreeResponseQuestion&#39;}, &#39;responses&#39;: []}
-        myPoll = Poll.fromDict(d)
-        return myPoll
+    def setUp(self):
+        self.d = {
+                    &#39;question&#39;: {
+                        &#39;prompt&#39;: &#39;What is your favorite color?&#39;,
+                        &#34;answer&#34; : None,
+                        &#39;options&#39;: [],
+                        &#39;type&#39;: &#39;FreeResponseQuestion&#39;
+                        },
+                    &#39;responses&#39;: [],
+                    &#39;startTime&#39; : &#34;2020-10-27 13:04:05&#34;,
+                    &#39;endTime&#39; : &#34;2025-10-27 13:04:05&#34;,
+                    &#39;ownerId&#39; : &#39;test@gmail.com&#39;,
+                    &#39;classId&#39; : 0,
+                    }
+        self.myPoll = Poll.fromDict(self.d)
 
     def test_PollResponseAddition(self):
-        myPoll = self.getDummyPoll()
         resp = PollResponse(&#34;Red&#34;)
 
-        self.assertIsInstance(myPoll, Poll)
+        self.assertIsInstance(self.myPoll, Poll)
         self.assertIsInstance(resp, PollResponse)
-        self.assertEqual(myPoll.responses, [])
+        self.assertEqual(self.myPoll.responses, [])
 
-        myPoll.addResponse(resp)
-        self.assertEqual(myPoll.responses, [resp])
+        self.myPoll.addResponse(resp)
+        self.assertEqual(self.myPoll.responses, [resp])
 
-        self.assertRaises(TypeError, myPoll.addResponse, &#34;Not a response object&#34;)
+        self.assertRaises(TypeError, self.myPoll.addResponse, &#34;Not a response object&#34;)
 
     def test_toDict(self):
-        d = {&#39;question&#39;: {&#39;prompt&#39;: &#39;What is your favorite color?&#39;, &#34;answer&#34; : None, &#39;options&#39;: [&#34;Red&#34;, &#34;Blue&#34;], &#39;type&#39;: &#39;FreeResponseQuestion&#39;}, &#39;responses&#39;: []}
-        myPoll = self.getDummyPoll()
-        self.assertEqual(myPoll.toDict(), d)
+        self.assertEqual(self.myPoll.toDict(), self.d)
 
     def test_toJson(self):
-        d = {&#39;question&#39;: {&#39;prompt&#39;: &#39;What is your favorite color?&#39;, &#34;answer&#34; : None, &#39;options&#39;: [&#34;Red&#34;, &#34;Blue&#34;], &#39;type&#39;: &#39;FreeResponseQuestion&#39;}, &#39;responses&#39;: []}
-        j = json.dumps(d)
-        myPoll = self.getDummyPoll()
-        self.assertEqual(myPoll.toJson(), j)
+        self.assertEqual(self.myPoll.toJson(), json.dumps(self.d))
 
     def test_toBytes(self):
-        d = {&#39;question&#39;: {&#39;prompt&#39;: &#39;What is your favorite color?&#39;,&#34;answer&#34; : None, &#39;options&#39;: [&#34;Red&#34;, &#34;Blue&#34;], &#39;type&#39;: &#39;FreeResponseQuestion&#39;}, &#39;responses&#39;: []}
-        j = json.dumps(d)
-        b = j.encode()
-        myPoll = self.getDummyPoll()
-        self.assertEqual(myPoll.toBytes(), b)</code></pre>
+        self.assertEqual(self.myPoll.toBytes(), json.dumps(self.d).encode())</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -362,22 +403,33 @@ not have a method with the specified name.</p></div>
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="classroom-voter.unitTest.PollMethodsTesting.getDummyPoll"><code class="name flex">
-<span>def <span class="ident">getDummyPoll</span></span>(<span>self)</span>
+<dt id="classroom-voter.tests.test_polltypes.PollMethodsTesting.setUp"><code class="name flex">
+<span>def <span class="ident">setUp</span></span>(<span>self)</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Hook method for setting up the test fixture before exercising it.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def getDummyPoll(self):
-    d = {&#39;question&#39;: {&#39;prompt&#39;: &#39;What is your favorite color?&#39;, &#39;options&#39;: [&#34;Red&#34;, &#34;Blue&#34;], &#39;type&#39;: &#39;FreeResponseQuestion&#39;}, &#39;responses&#39;: []}
-    myPoll = Poll.fromDict(d)
-    return myPoll</code></pre>
+<pre><code class="python">def setUp(self):
+    self.d = {
+                &#39;question&#39;: {
+                    &#39;prompt&#39;: &#39;What is your favorite color?&#39;,
+                    &#34;answer&#34; : None,
+                    &#39;options&#39;: [],
+                    &#39;type&#39;: &#39;FreeResponseQuestion&#39;
+                    },
+                &#39;responses&#39;: [],
+                &#39;startTime&#39; : &#34;2020-10-27 13:04:05&#34;,
+                &#39;endTime&#39; : &#34;2025-10-27 13:04:05&#34;,
+                &#39;ownerId&#39; : &#39;test@gmail.com&#39;,
+                &#39;classId&#39; : 0,
+                }
+    self.myPoll = Poll.fromDict(self.d)</code></pre>
 </details>
 </dd>
-<dt id="classroom-voter.unitTest.PollMethodsTesting.test_PollResponseAddition"><code class="name flex">
+<dt id="classroom-voter.tests.test_polltypes.PollMethodsTesting.test_PollResponseAddition"><code class="name flex">
 <span>def <span class="ident">test_PollResponseAddition</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -387,20 +439,19 @@ not have a method with the specified name.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def test_PollResponseAddition(self):
-    myPoll = self.getDummyPoll()
     resp = PollResponse(&#34;Red&#34;)
 
-    self.assertIsInstance(myPoll, Poll)
+    self.assertIsInstance(self.myPoll, Poll)
     self.assertIsInstance(resp, PollResponse)
-    self.assertEqual(myPoll.responses, [])
+    self.assertEqual(self.myPoll.responses, [])
 
-    myPoll.addResponse(resp)
-    self.assertEqual(myPoll.responses, [resp])
+    self.myPoll.addResponse(resp)
+    self.assertEqual(self.myPoll.responses, [resp])
 
-    self.assertRaises(TypeError, myPoll.addResponse, &#34;Not a response object&#34;)</code></pre>
+    self.assertRaises(TypeError, self.myPoll.addResponse, &#34;Not a response object&#34;)</code></pre>
 </details>
 </dd>
-<dt id="classroom-voter.unitTest.PollMethodsTesting.test_toBytes"><code class="name flex">
+<dt id="classroom-voter.tests.test_polltypes.PollMethodsTesting.test_toBytes"><code class="name flex">
 <span>def <span class="ident">test_toBytes</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -410,14 +461,10 @@ not have a method with the specified name.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def test_toBytes(self):
-    d = {&#39;question&#39;: {&#39;prompt&#39;: &#39;What is your favorite color?&#39;,&#34;answer&#34; : None, &#39;options&#39;: [&#34;Red&#34;, &#34;Blue&#34;], &#39;type&#39;: &#39;FreeResponseQuestion&#39;}, &#39;responses&#39;: []}
-    j = json.dumps(d)
-    b = j.encode()
-    myPoll = self.getDummyPoll()
-    self.assertEqual(myPoll.toBytes(), b)</code></pre>
+    self.assertEqual(self.myPoll.toBytes(), json.dumps(self.d).encode())</code></pre>
 </details>
 </dd>
-<dt id="classroom-voter.unitTest.PollMethodsTesting.test_toDict"><code class="name flex">
+<dt id="classroom-voter.tests.test_polltypes.PollMethodsTesting.test_toDict"><code class="name flex">
 <span>def <span class="ident">test_toDict</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -427,12 +474,10 @@ not have a method with the specified name.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def test_toDict(self):
-    d = {&#39;question&#39;: {&#39;prompt&#39;: &#39;What is your favorite color?&#39;, &#34;answer&#34; : None, &#39;options&#39;: [&#34;Red&#34;, &#34;Blue&#34;], &#39;type&#39;: &#39;FreeResponseQuestion&#39;}, &#39;responses&#39;: []}
-    myPoll = self.getDummyPoll()
-    self.assertEqual(myPoll.toDict(), d)</code></pre>
+    self.assertEqual(self.myPoll.toDict(), self.d)</code></pre>
 </details>
 </dd>
-<dt id="classroom-voter.unitTest.PollMethodsTesting.test_toJson"><code class="name flex">
+<dt id="classroom-voter.tests.test_polltypes.PollMethodsTesting.test_toJson"><code class="name flex">
 <span>def <span class="ident">test_toJson</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -442,15 +487,12 @@ not have a method with the specified name.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def test_toJson(self):
-    d = {&#39;question&#39;: {&#39;prompt&#39;: &#39;What is your favorite color?&#39;, &#34;answer&#34; : None, &#39;options&#39;: [&#34;Red&#34;, &#34;Blue&#34;], &#39;type&#39;: &#39;FreeResponseQuestion&#39;}, &#39;responses&#39;: []}
-    j = json.dumps(d)
-    myPoll = self.getDummyPoll()
-    self.assertEqual(myPoll.toJson(), j)</code></pre>
+    self.assertEqual(self.myPoll.toJson(), json.dumps(self.d))</code></pre>
 </details>
 </dd>
 </dl>
 </dd>
-<dt id="classroom-voter.unitTest.PollResponseCreationTests"><code class="flex name class">
+<dt id="classroom-voter.tests.test_polltypes.PollResponseCreationTests"><code class="flex name class">
 <span>class <span class="ident">PollResponseCreationTests</span></span>
 <span>(</span><span>methodName='runTest')</span>
 </code></dt>
@@ -520,7 +562,7 @@ not have a method with the specified name.</p></div>
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="classroom-voter.unitTest.PollResponseCreationTests.setUp"><code class="name flex">
+<dt id="classroom-voter.tests.test_polltypes.PollResponseCreationTests.setUp"><code class="name flex">
 <span>def <span class="ident">setUp</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -534,7 +576,7 @@ not have a method with the specified name.</p></div>
     self.resp = PollResponse(self.body)</code></pre>
 </details>
 </dd>
-<dt id="classroom-voter.unitTest.PollResponseCreationTests.test_addAnswer"><code class="name flex">
+<dt id="classroom-voter.tests.test_polltypes.PollResponseCreationTests.test_addAnswer"><code class="name flex">
 <span>def <span class="ident">test_addAnswer</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -548,7 +590,7 @@ not have a method with the specified name.</p></div>
     self.assertEqual(resp.responseBody, &#34;body&#34;)</code></pre>
 </details>
 </dd>
-<dt id="classroom-voter.unitTest.PollResponseCreationTests.test_createRegular"><code class="name flex">
+<dt id="classroom-voter.tests.test_polltypes.PollResponseCreationTests.test_createRegular"><code class="name flex">
 <span>def <span class="ident">test_createRegular</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -562,7 +604,7 @@ not have a method with the specified name.</p></div>
     self.assertEqual(self.resp.responseBody, self.body)</code></pre>
 </details>
 </dd>
-<dt id="classroom-voter.unitTest.PollResponseCreationTests.test_createWithFromDict"><code class="name flex">
+<dt id="classroom-voter.tests.test_polltypes.PollResponseCreationTests.test_createWithFromDict"><code class="name flex">
 <span>def <span class="ident">test_createWithFromDict</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -583,7 +625,7 @@ not have a method with the specified name.</p></div>
     self.assertEqual(respAnon.anonLevel, 5)</code></pre>
 </details>
 </dd>
-<dt id="classroom-voter.unitTest.PollResponseCreationTests.test_fromBytes"><code class="name flex">
+<dt id="classroom-voter.tests.test_polltypes.PollResponseCreationTests.test_fromBytes"><code class="name flex">
 <span>def <span class="ident">test_fromBytes</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -598,7 +640,7 @@ not have a method with the specified name.</p></div>
 </dd>
 </dl>
 </dd>
-<dt id="classroom-voter.unitTest.QuestionCreationTests"><code class="flex name class">
+<dt id="classroom-voter.tests.test_polltypes.QuestionCreationTests"><code class="flex name class">
 <span>class <span class="ident">QuestionCreationTests</span></span>
 <span>(</span><span>methodName='runTest')</span>
 </code></dt>
@@ -679,7 +721,7 @@ not have a method with the specified name.</p></div>
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="classroom-voter.unitTest.QuestionCreationTests.setUp"><code class="name flex">
+<dt id="classroom-voter.tests.test_polltypes.QuestionCreationTests.setUp"><code class="name flex">
 <span>def <span class="ident">setUp</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -693,7 +735,7 @@ not have a method with the specified name.</p></div>
     self.myGenericQuestion = PollQuestion.fromDict(self.testDict)</code></pre>
 </details>
 </dd>
-<dt id="classroom-voter.unitTest.QuestionCreationTests.test_CreationWithOptions"><code class="name flex">
+<dt id="classroom-voter.tests.test_polltypes.QuestionCreationTests.test_CreationWithOptions"><code class="name flex">
 <span>def <span class="ident">test_CreationWithOptions</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -708,7 +750,7 @@ not have a method with the specified name.</p></div>
     self.assertEqual(PollQuestion.fromDict(newDict).options, [&#34;Red&#34;, &#34;Blue&#34;])</code></pre>
 </details>
 </dd>
-<dt id="classroom-voter.unitTest.QuestionCreationTests.test_FreeResponseQuestion"><code class="name flex">
+<dt id="classroom-voter.tests.test_polltypes.QuestionCreationTests.test_FreeResponseQuestion"><code class="name flex">
 <span>def <span class="ident">test_FreeResponseQuestion</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -724,7 +766,7 @@ not have a method with the specified name.</p></div>
     self.assertIsInstance(myFreeQuestion, FreeResponseQuestion)</code></pre>
 </details>
 </dd>
-<dt id="classroom-voter.unitTest.QuestionCreationTests.test_MultipleChoiceQuestion"><code class="name flex">
+<dt id="classroom-voter.tests.test_polltypes.QuestionCreationTests.test_MultipleChoiceQuestion"><code class="name flex">
 <span>def <span class="ident">test_MultipleChoiceQuestion</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -739,7 +781,7 @@ not have a method with the specified name.</p></div>
     myMultQuestion.setAnswer(&#34;Redsdd&#34;)</code></pre>
 </details>
 </dd>
-<dt id="classroom-voter.unitTest.QuestionCreationTests.test_PollQuestion"><code class="name flex">
+<dt id="classroom-voter.tests.test_polltypes.QuestionCreationTests.test_PollQuestion"><code class="name flex">
 <span>def <span class="ident">test_PollQuestion</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -759,7 +801,7 @@ not have a method with the specified name.</p></div>
     self.assertEqual(myGenericQuestion.prompt, prompt)</code></pre>
 </details>
 </dd>
-<dt id="classroom-voter.unitTest.QuestionCreationTests.test_PollQuestion_Dict"><code class="name flex">
+<dt id="classroom-voter.tests.test_polltypes.QuestionCreationTests.test_PollQuestion_Dict"><code class="name flex">
 <span>def <span class="ident">test_PollQuestion_Dict</span></span>(<span>self)</span>
 </code></dt>
 <dd>
@@ -788,48 +830,48 @@ not have a method with the specified name.</p></div>
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="classroom-voter" href="index.html">classroom-voter</a></code></li>
+<li><code><a title="classroom-voter.tests" href="index.html">classroom-voter.tests</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="classroom-voter.unitTest.PollCreationTests" href="#classroom-voter.unitTest.PollCreationTests">PollCreationTests</a></code></h4>
+<h4><code><a title="classroom-voter.tests.test_polltypes.PollCreationTests" href="#classroom-voter.tests.test_polltypes.PollCreationTests">PollCreationTests</a></code></h4>
 <ul class="">
-<li><code><a title="classroom-voter.unitTest.PollCreationTests.setUp" href="#classroom-voter.unitTest.PollCreationTests.setUp">setUp</a></code></li>
-<li><code><a title="classroom-voter.unitTest.PollCreationTests.test_PollCreateFromdDict" href="#classroom-voter.unitTest.PollCreationTests.test_PollCreateFromdDict">test_PollCreateFromdDict</a></code></li>
-<li><code><a title="classroom-voter.unitTest.PollCreationTests.test_SimplePollCreation" href="#classroom-voter.unitTest.PollCreationTests.test_SimplePollCreation">test_SimplePollCreation</a></code></li>
+<li><code><a title="classroom-voter.tests.test_polltypes.PollCreationTests.setUp" href="#classroom-voter.tests.test_polltypes.PollCreationTests.setUp">setUp</a></code></li>
+<li><code><a title="classroom-voter.tests.test_polltypes.PollCreationTests.test_PollCreateFromdDict" href="#classroom-voter.tests.test_polltypes.PollCreationTests.test_PollCreateFromdDict">test_PollCreateFromdDict</a></code></li>
+<li><code><a title="classroom-voter.tests.test_polltypes.PollCreationTests.test_SimplePollCreation" href="#classroom-voter.tests.test_polltypes.PollCreationTests.test_SimplePollCreation">test_SimplePollCreation</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="classroom-voter.unitTest.PollMethodsTesting" href="#classroom-voter.unitTest.PollMethodsTesting">PollMethodsTesting</a></code></h4>
+<h4><code><a title="classroom-voter.tests.test_polltypes.PollMethodsTesting" href="#classroom-voter.tests.test_polltypes.PollMethodsTesting">PollMethodsTesting</a></code></h4>
 <ul class="">
-<li><code><a title="classroom-voter.unitTest.PollMethodsTesting.getDummyPoll" href="#classroom-voter.unitTest.PollMethodsTesting.getDummyPoll">getDummyPoll</a></code></li>
-<li><code><a title="classroom-voter.unitTest.PollMethodsTesting.test_PollResponseAddition" href="#classroom-voter.unitTest.PollMethodsTesting.test_PollResponseAddition">test_PollResponseAddition</a></code></li>
-<li><code><a title="classroom-voter.unitTest.PollMethodsTesting.test_toBytes" href="#classroom-voter.unitTest.PollMethodsTesting.test_toBytes">test_toBytes</a></code></li>
-<li><code><a title="classroom-voter.unitTest.PollMethodsTesting.test_toDict" href="#classroom-voter.unitTest.PollMethodsTesting.test_toDict">test_toDict</a></code></li>
-<li><code><a title="classroom-voter.unitTest.PollMethodsTesting.test_toJson" href="#classroom-voter.unitTest.PollMethodsTesting.test_toJson">test_toJson</a></code></li>
+<li><code><a title="classroom-voter.tests.test_polltypes.PollMethodsTesting.setUp" href="#classroom-voter.tests.test_polltypes.PollMethodsTesting.setUp">setUp</a></code></li>
+<li><code><a title="classroom-voter.tests.test_polltypes.PollMethodsTesting.test_PollResponseAddition" href="#classroom-voter.tests.test_polltypes.PollMethodsTesting.test_PollResponseAddition">test_PollResponseAddition</a></code></li>
+<li><code><a title="classroom-voter.tests.test_polltypes.PollMethodsTesting.test_toBytes" href="#classroom-voter.tests.test_polltypes.PollMethodsTesting.test_toBytes">test_toBytes</a></code></li>
+<li><code><a title="classroom-voter.tests.test_polltypes.PollMethodsTesting.test_toDict" href="#classroom-voter.tests.test_polltypes.PollMethodsTesting.test_toDict">test_toDict</a></code></li>
+<li><code><a title="classroom-voter.tests.test_polltypes.PollMethodsTesting.test_toJson" href="#classroom-voter.tests.test_polltypes.PollMethodsTesting.test_toJson">test_toJson</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="classroom-voter.unitTest.PollResponseCreationTests" href="#classroom-voter.unitTest.PollResponseCreationTests">PollResponseCreationTests</a></code></h4>
+<h4><code><a title="classroom-voter.tests.test_polltypes.PollResponseCreationTests" href="#classroom-voter.tests.test_polltypes.PollResponseCreationTests">PollResponseCreationTests</a></code></h4>
 <ul class="">
-<li><code><a title="classroom-voter.unitTest.PollResponseCreationTests.setUp" href="#classroom-voter.unitTest.PollResponseCreationTests.setUp">setUp</a></code></li>
-<li><code><a title="classroom-voter.unitTest.PollResponseCreationTests.test_addAnswer" href="#classroom-voter.unitTest.PollResponseCreationTests.test_addAnswer">test_addAnswer</a></code></li>
-<li><code><a title="classroom-voter.unitTest.PollResponseCreationTests.test_createRegular" href="#classroom-voter.unitTest.PollResponseCreationTests.test_createRegular">test_createRegular</a></code></li>
-<li><code><a title="classroom-voter.unitTest.PollResponseCreationTests.test_createWithFromDict" href="#classroom-voter.unitTest.PollResponseCreationTests.test_createWithFromDict">test_createWithFromDict</a></code></li>
-<li><code><a title="classroom-voter.unitTest.PollResponseCreationTests.test_fromBytes" href="#classroom-voter.unitTest.PollResponseCreationTests.test_fromBytes">test_fromBytes</a></code></li>
+<li><code><a title="classroom-voter.tests.test_polltypes.PollResponseCreationTests.setUp" href="#classroom-voter.tests.test_polltypes.PollResponseCreationTests.setUp">setUp</a></code></li>
+<li><code><a title="classroom-voter.tests.test_polltypes.PollResponseCreationTests.test_addAnswer" href="#classroom-voter.tests.test_polltypes.PollResponseCreationTests.test_addAnswer">test_addAnswer</a></code></li>
+<li><code><a title="classroom-voter.tests.test_polltypes.PollResponseCreationTests.test_createRegular" href="#classroom-voter.tests.test_polltypes.PollResponseCreationTests.test_createRegular">test_createRegular</a></code></li>
+<li><code><a title="classroom-voter.tests.test_polltypes.PollResponseCreationTests.test_createWithFromDict" href="#classroom-voter.tests.test_polltypes.PollResponseCreationTests.test_createWithFromDict">test_createWithFromDict</a></code></li>
+<li><code><a title="classroom-voter.tests.test_polltypes.PollResponseCreationTests.test_fromBytes" href="#classroom-voter.tests.test_polltypes.PollResponseCreationTests.test_fromBytes">test_fromBytes</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="classroom-voter.unitTest.QuestionCreationTests" href="#classroom-voter.unitTest.QuestionCreationTests">QuestionCreationTests</a></code></h4>
+<h4><code><a title="classroom-voter.tests.test_polltypes.QuestionCreationTests" href="#classroom-voter.tests.test_polltypes.QuestionCreationTests">QuestionCreationTests</a></code></h4>
 <ul class="">
-<li><code><a title="classroom-voter.unitTest.QuestionCreationTests.setUp" href="#classroom-voter.unitTest.QuestionCreationTests.setUp">setUp</a></code></li>
-<li><code><a title="classroom-voter.unitTest.QuestionCreationTests.test_CreationWithOptions" href="#classroom-voter.unitTest.QuestionCreationTests.test_CreationWithOptions">test_CreationWithOptions</a></code></li>
-<li><code><a title="classroom-voter.unitTest.QuestionCreationTests.test_FreeResponseQuestion" href="#classroom-voter.unitTest.QuestionCreationTests.test_FreeResponseQuestion">test_FreeResponseQuestion</a></code></li>
-<li><code><a title="classroom-voter.unitTest.QuestionCreationTests.test_MultipleChoiceQuestion" href="#classroom-voter.unitTest.QuestionCreationTests.test_MultipleChoiceQuestion">test_MultipleChoiceQuestion</a></code></li>
-<li><code><a title="classroom-voter.unitTest.QuestionCreationTests.test_PollQuestion" href="#classroom-voter.unitTest.QuestionCreationTests.test_PollQuestion">test_PollQuestion</a></code></li>
-<li><code><a title="classroom-voter.unitTest.QuestionCreationTests.test_PollQuestion_Dict" href="#classroom-voter.unitTest.QuestionCreationTests.test_PollQuestion_Dict">test_PollQuestion_Dict</a></code></li>
+<li><code><a title="classroom-voter.tests.test_polltypes.QuestionCreationTests.setUp" href="#classroom-voter.tests.test_polltypes.QuestionCreationTests.setUp">setUp</a></code></li>
+<li><code><a title="classroom-voter.tests.test_polltypes.QuestionCreationTests.test_CreationWithOptions" href="#classroom-voter.tests.test_polltypes.QuestionCreationTests.test_CreationWithOptions">test_CreationWithOptions</a></code></li>
+<li><code><a title="classroom-voter.tests.test_polltypes.QuestionCreationTests.test_FreeResponseQuestion" href="#classroom-voter.tests.test_polltypes.QuestionCreationTests.test_FreeResponseQuestion">test_FreeResponseQuestion</a></code></li>
+<li><code><a title="classroom-voter.tests.test_polltypes.QuestionCreationTests.test_MultipleChoiceQuestion" href="#classroom-voter.tests.test_polltypes.QuestionCreationTests.test_MultipleChoiceQuestion">test_MultipleChoiceQuestion</a></code></li>
+<li><code><a title="classroom-voter.tests.test_polltypes.QuestionCreationTests.test_PollQuestion" href="#classroom-voter.tests.test_polltypes.QuestionCreationTests.test_PollQuestion">test_PollQuestion</a></code></li>
+<li><code><a title="classroom-voter.tests.test_polltypes.QuestionCreationTests.test_PollQuestion_Dict" href="#classroom-voter.tests.test_polltypes.QuestionCreationTests.test_PollQuestion_Dict">test_PollQuestion_Dict</a></code></li>
 </ul>
 </li>
 </ul>

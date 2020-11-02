@@ -1,0 +1,2030 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.1" />
+<title>classroom-voter.shared.database API documentation</title>
+<meta name="description" content="This file holds classes/function to interact with the database" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>classroom-voter.shared.database</code></h1>
+</header>
+<section id="section-intro">
+<p>This file holds classes/function to interact with the database</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;This file holds classes/function to interact with the database&#34;&#34;&#34;
+import sys
+import json
+import os
+import sqlite3
+import datetime
+
+
+
+
+
+# HELPER FUNCTIONS #
+
+def _strToTime(s):
+
+    if s is not None and s != &#34;&#34;:
+        return datetime.datetime.strptime(s, &#39;%Y-%m-%d %H:%M:%S&#39;)
+    else:
+        return s
+
+def _timeToStr(t):
+    if t is not None:
+        return datetime.datetime.strftime(t, &#39;%Y-%m-%d %H:%M:%S&#39;)
+    else:
+        return t
+
+class Database(object):
+
+        
+    def __init__(self, fname=&#39;database.json&#39;):
+        &#34;&#34;&#34;
+        Database constructor, open database file and create new on if none exists
+        
+        Args:
+            fname (string): filename of database file
+        &#34;&#34;&#34;
+        if not os.path.isfile(fname):
+            print(&#34;File doesn&#39;t exist&#34;)
+            self.createNewDatabase(fname)
+        self.fname = fname
+
+        try:
+            self.myFile = open(fname, &#39;r+&#39;)
+            self.myDict = json.load(self.myFile)
+        except FileNotFoundError:
+            print(&#34;Is this pdoc? Setting manual path. If this is being run by a real person - STOP HERE!&#34;)
+            self.fname = &#34;/home/siim/Desktop/cs181s/classroom-voter/shared/database.json&#34;
+            os.chdir(&#34;/home/siim/Desktop/cs181s/classroom-voter&#34;)
+            self.myFile = open(fname, &#39;r+&#39;)
+            self.myDict = json.load(self.myFile)
+
+        
+        self.users = self.getField([&#34;users&#34;])
+        self.students = self.getField([&#34;users&#34;, &#34;students&#34;])
+        self.professors = self.getField([&#34;users&#34;, &#34;professors&#34;])
+        
+        
+    def __del__(self):
+        &#34;&#34;&#34;Database destructor, close the open file&#34;&#34;&#34;
+        self.myFile.close()
+
+    def updateFile(self):
+        &#34;&#34;&#34; Updates the database file to match memory &#34;&#34;&#34;
+        self.myFile.seek(0) #seek to start of file
+        self.myFile.truncate() #erase contents
+        json.dump(self.myDict, self.myFile) #overwrite
+
+
+    def createNewDatabase(self, fname=&#39;database.json&#39;):
+        &#34;&#34;&#34;
+        Creates a new empty database file
+
+        Args:
+            fname (string): filename of database file
+        &#34;&#34;&#34;
+        d = {
+            &#34;users&#34; : {
+                &#34;students&#34; : {},
+                &#34;professors&#34; : {}
+            },
+            &#34;polls&#34; : {},
+            &#34;classes&#34; : {},
+        }
+
+        print(&#34;writing file to &#34; + fname)
+        print(os.listdir())
+        try:
+            with open(fname, &#34;w+&#34;) as f:
+                f.write(json.dumps(d))
+        except FileNotFoundError:
+            print(&#39;FileNotFound&#39;)
+
+
+    def addStudent(self, userDict):
+        &#34;&#34;&#34;
+        Add a new student entry to the database
+
+        ```json
+        student-email : {
+            &#34;firstName&#34; : first-name,
+            &#34;lastName&#34; : last-name,
+            &#34;password&#34; : password-hash,
+            &#34;classes&#34; : {
+                            &#34;class-id&#34; : poll-id-of-last-response,
+                            &#34;class-id&#34; : poll-id-of-last-response,
+                            ... 
+                            &#34;class-id&#34; : poll-id-of-last-response,
+                        },
+            &#34;reedemed&#34; : false,
+            }
+        ```
+
+        Args:
+            userDict (dict): A python dictionary representing a student entry
+
+        Returns:
+            boolean: Success of database insertion
+        &#34;&#34;&#34;
+        studentId = list(userDict.keys())[0]
+
+        if not self.keyExists(studentId, [&#34;users&#34;, &#34;students&#34;]):
+            self.myDict[&#34;users&#34;][&#34;students&#34;][studentId] = userDict[studentId]
+            self.updateFile()
+            return True
+        else:
+            return False
+
+    
+
+    def addProfessor(self, professorDict):
+        &#34;&#34;&#34;
+        Add a new professor entry to the database.
+
+        ```json
+        professor-email : {
+                &#34;firstName&#34; : first-name,
+                &#34;lastName&#34; : last-name,
+                &#34;password&#34; : password-hash,
+                &#34;classes&#34; : [class-id, class-id, ..., class-id],
+                &#34;reedemed&#34; : false,
+            }
+        ```
+
+        Args:
+            professorDict (dict): A python dictionary representing a professor entry
+
+        Returns:
+            boolean: Success of database insertion
+        &#34;&#34;&#34;
+        profId = list(professorDict.keys())[0]
+
+        if not self.keyExists(profId, [&#34;users&#34;, &#34;professors&#34;]):
+            self.myDict[&#34;users&#34;][&#34;professors&#34;][profId] = professorDict[profId]
+            self.updateFile()
+            return True
+        else:
+            return False
+
+    def addPoll(self, pollDict):
+        pass
+
+    def addClass(self, classDict):
+        pass
+
+    def getStudent(self, studentId):
+        &#34;&#34;&#34;
+        Gets a student from the db using their student id
+
+        Args:
+            studentId (string): student email
+
+        Returns:
+            dict: student object (None if student doesn&#39;t exist)
+        &#34;&#34;&#34;
+
+        return self.getField([&#34;users&#34;, &#34;students&#34;, studentId])
+
+
+    def getField(self, fieldList):
+
+        d = self.myDict
+        try:
+            for field in fieldList:
+                d = d[field]
+        except KeyError:
+            #field/key not real
+            return {}
+
+        return d
+
+    def keyExists(self, key, fieldList):
+        &#34;&#34;&#34;
+        Check if key exists in db
+        &#34;&#34;&#34;
+
+        d = self.getField(fieldList)
+        keys = list(d.keys())
+
+        return key in keys
+
+
+class DatabaseSQL(object):
+    def __init__(self, fname=&#39;example.db&#39;):
+        self.fname = fname
+        try:
+            self.conn = sqlite3.connect(fname)
+            self.cursor = self.conn.cursor()
+        except sqlite3.OperationalError as e:
+            print(e)
+            self.conn = sqlite3.connect(&#34;testingDB.db&#34;)
+            self.cursor = self.conn.cursor()
+        self.initTables()
+
+
+    def addUser(self, userDict):
+        
+        &#34;&#34;&#34;
+        Add a new user entry to the database
+
+        ```json
+        user-email : {
+            &#34;firstName&#34; : first-name,
+            &#34;lastName&#34; : last-name,
+            &#34;password&#34; : password-hash,
+            &#34;classes&#34; : {
+                            &#34;class-id&#34; : poll-id-of-last-response,
+                            &#34;class-id&#34; : poll-id-of-last-response,
+                            ... 
+                            &#34;class-id&#34; : poll-id-of-last-response,
+                        },
+            &#34;reedemed&#34; : false,
+            &#34;role&#34; : &#34;student&#34;
+            }
+        ```
+
+        Args:
+            userDict (dict): A python dictionary representing a student entry
+
+        Returns:
+            int: id of n
+        &#34;&#34;&#34;
+        email = list(userDict.keys())[0]
+
+        vals = (email, userDict[email][&#39;role&#39;], userDict[email][&#39;firstName&#39;], 
+                userDict[email][&#39;lastName&#39;], userDict[email][&#39;password&#39;], 
+                json.dumps(userDict[email][&#39;classes&#39;]), userDict[email][&#39;reedemed&#39;], )
+        try:
+            result = self.cursor.execute(&#34;INSERT INTO users VALUES (?, ?, ?, ?, ?, ?, ?)&#34;, vals)
+            self.conn.commit()
+            #TODO: Make this return an ID
+            return True
+        except sqlite3.IntegrityError as e:
+            return False
+
+    def resetUserPassword(self, userId, newHash):
+        &#34;&#34;&#34;
+        Resets a user&#39;s password has in the db to a new one
+
+        Args:
+            userId (string): user email
+            newHas (string): new password hash
+        Returns:
+            boolean: success
+        &#34;&#34;&#34;
+
+        return self.updateFieldViaId(&#34;users&#34;, userId, &#34;hashedPassword&#34;, newHash)
+
+    def updateFieldViaId(self, table, myId, field, newValue):
+        &#34;&#34;&#34;
+        Updates a specific value for a specific entry. For example, to set a user&#39;s name:
+        `updateFieldViaId(&#39;users&#39;, &#39;example@test.com&#39;, &#39;firstName&#39;, &#39;John&#39;)`
+        Args:
+            table (string): table name
+            myId (unknown): id field (email or int)
+            field (string): name of field to change
+            newValue (string): value to place in field
+        Returns:
+            boolean: success
+
+        &#34;&#34;&#34;
+        c = self.conn.cursor()
+
+        ids = {
+            &#34;polls&#34; : &#34;pollId&#34;,
+            &#34;responses&#34; : &#34;responseId&#34;,
+            &#34;users&#34; : &#34;emailAddress&#34;,
+            &#34;classes&#34; : &#34;classId&#34;
+        }
+
+        try:
+            c.execute(&#34;UPDATE &#39;&#34;+ table +&#34;&#39; SET &#34;+ field +&#34; = &#39;&#34;+ newValue +&#34;&#39; WHERE &#34;+ ids[table] +&#34; = &#39;&#34;+ str(myId) + &#34;&#39;&#34;)
+            self.conn.commit()
+            return True
+        except sqlite3.IntegrityError:
+            return False
+
+        
+
+    def addPoll(self, pollObject):
+        &#34;&#34;&#34;
+        Adds a new poll to the DB
+
+        Args:
+            pollObject (Poll): Poll object to add to the db
+
+        Returns:
+            boolean: True if inserted, False otherwise
+        &#34;&#34;&#34;
+        
+
+        c = self.conn.cursor()
+
+        #pollId int primary key, start timestamp, end timestamp, ownerId text, classId number, pollJson text
+        vals = (pollObject.startTime, pollObject.endTime, pollObject.ownerId, pollObject.classId, pollObject.question.toJson())
+        try:
+            c.execute(&#34;INSERT INTO polls VALUES (NULL, ?, ?, ?, ?, ?)&#34;, vals)
+            self.conn.commit()
+            return True
+        except sqlite3.IntegrityError as e:
+            return False
+
+    def addClass(self, classDict):
+        &#34;&#34;&#34;
+        Adds a new class to the database. Note: If a class already exists w/ the same information in the DB,
+        this will create a new entry. If creating a class that might not be new, it may be worth checking if
+        a that course name/code already exists first.
+        ```json
+        {
+            &#34;className&#34;: &#39;Into to Blah&#39;,
+            &#34;courseCode&#34;: &#39;UNIQ99&#39;,
+            &#34;students&#34; : [&#34;mrstudent@gmail.com&#34;],
+            &#34;professors&#34; : [&#34;mrprof@gmail.com&#34;],
+            &#34;polls&#34;: []
+        }
+
+        ```
+        Args:
+            classDict (dict): a dictionary with class information (see above)
+
+        Returns:
+            boolean: success ()
+        &#34;&#34;&#34;
+        c = self.conn.cursor()
+
+
+        vals = (classDict[&#34;className&#34;], classDict[&#34;courseCode&#34;], json.dumps(classDict[&#34;students&#34;]),
+                json.dumps(classDict[&#34;professors&#34;]), json.dumps(classDict[&#34;polls&#34;]))
+
+        try:
+            #classId int primary key, className text, courseCode text, students text, professors text, polls text
+            c.execute(&#34;INSERT INTO classes VALUES (NULL, ?, ?, ?, ?, ?)&#34;, vals)
+            self.conn.commit()
+            return True
+        except sqlite3.IntegrityError as e:
+            return False
+
+
+    def _formatUser(self, studentTuple):
+        out = {studentTuple[0] : {
+            &#39;role&#39; : studentTuple[1],
+            &#39;firstName&#39; : studentTuple[2],
+            &#39;lastName&#39; : studentTuple[3],
+            &#39;password&#39; : studentTuple[4],
+            &#39;classes&#39; : json.loads(studentTuple[5]),
+            &#39;reedemed&#39; : studentTuple[6] != 0
+        }}
+
+        return out
+
+    def getUser(self, email, roleFilter=None):
+        &#34;&#34;&#34;
+        gets a user from the db based on user id (email)
+
+        Args:
+            email (string): user id (email)
+            roleFilter (string): role to filter by
+        &#34;&#34;&#34;
+        c = self.conn.cursor()
+
+
+        if roleFilter is None:
+            c.execute(&#34;SELECT * FROM users WHERE emailAddress=?&#34;, (email, ))
+        else:
+            c.execute(&#34;SELECT * FROM users WHERE emailAddress=? AND role=?&#34;, (email, roleFilter, ))
+        result = c.fetchone()
+        if result is not None:
+            return self._formatUser(result)
+        
+    def _formatPoll(self, pollTuple):
+        d = json.loads(pollTuple[5])
+
+        out = {
+            &#39;question&#39;: d,
+            &#39;startTime&#39; : pollTuple[1],
+            &#39;endTime&#39; : pollTuple[2],
+            &#39;ownerId&#39; : pollTuple[3],
+            &#39;classId&#39; : pollTuple[4],
+            &#39;responses&#39;: []}
+        return out
+
+
+    def getPollFromId(self, pollId):
+        &#34;&#34;&#34; Get poll from DB with the pollId (int) &#34;&#34;&#34;
+        c = self.conn.cursor()
+
+        c.execute(&#34;SELECT * FROM polls WHERE pollId=?&#34;, (pollId, ))
+        result = c.fetchone()
+
+        if result is not None:
+            return self._formatPoll(result)
+
+
+    def _formatClass(self, classTuple):
+        out = {
+                &#34;className&#34;: classTuple[1],
+                &#34;courseCode&#34;: classTuple[2],
+                &#34;students&#34; : json.loads(classTuple[3]),
+                &#34;professors&#34; : json.loads(classTuple[4]),
+                &#34;polls&#34;: json.loads(classTuple[5])
+            }
+
+        return out
+
+    def getClassFromId(self, classId):
+        &#34;&#34;&#34; Get Class from DB with the classId (int) &#34;&#34;&#34;
+        c = self.conn.cursor()
+
+        c.execute(&#34;SELECT * FROM classes WHERE classId=?&#34;, (classId, ))
+        result = c.fetchone()
+        
+        if result is not None:
+            return self._formatClass(result)
+
+
+
+    def getClassFromCourseCode(self, courseCode):
+        &#34;&#34;&#34; get Class/s from DB with the course code (string) &#34;&#34;&#34;
+        c = self.conn.cursor()
+
+        c.execute(&#39;SELECT * FROM classes WHERE courseCode=?&#39;, (courseCode, ))
+        results = c.fetchall()
+
+        if results is not None:
+            out = {}
+            for result in results:
+                out[result[0]] = self._formatClass(result)
+            return out
+
+    def _listStringFormat(self, l):
+        &#34;&#34;&#34;Formats lists into the proper string for sql queries&#34;&#34;&#34;
+        if len(l) == 0:
+            return &#34;()&#34;
+        
+        s = &#34;(&#34;
+
+        for element in l:
+            s += &#34;&#39;&#34; + element + &#34;&#39;,&#34;
+
+        s = s[0:-1] #strip last comma
+        s += &#34;)&#34;
+        return s
+
+    def _getUsersInClass(self, classId, role):
+
+        #Verify inputs - no funny stuff in the sql, keep it safe
+        if type(classId) is not int:
+            raise TypeError(&#34;classId must be int&#34;)
+        elif type(role) is not str:
+            raise TypeError(&#34;classId must be int&#34;)
+
+        c = self.conn.cursor()
+        out = {}
+        #first pull class
+
+        if role == &#34;students&#34;:
+            sql = &#34;SELECT classes.students FROM classes WHERE classId=?&#34;
+        else:
+            sql = &#34;SELECT classes.professors FROM classes WHERE classId=?&#34;
+        c.execute(sql, (classId,))
+        result = c.fetchone()
+
+        if result is not None:
+            #get student&#39;s array
+            users = json.loads(result[0])
+            #return students rows
+            sql = &#34;SELECT * FROM users WHERE users.emailAddress IN &#34; + self._listStringFormat(users) + &#34; AND users.role=&#39;&#34; + role + &#34;&#39;&#34;
+            c.execute(sql)
+            result = c.fetchall()
+            for user in result:
+
+                user = self._formatUser(user)
+                out[list(user.keys())[0]] = user[list(user.keys())[0]]
+
+        return out
+
+    def getStudentsInClass(self, classId):
+        &#34;&#34;&#34;
+        Gets the emails of all students in class w/ id classId
+        Args:
+            classId (int): id of class
+        Returns:
+            list: json array of students
+        &#34;&#34;&#34;
+        return self._getUsersInClass(classId, &#34;students&#34;)
+    
+    def getProfsInClass(self, classId):
+        &#34;&#34;&#34;
+        Gets the emails of all profs in class w/ id classId
+        Args:
+            classId (int): id of class
+        Returns:
+            list: json array of profs
+        &#34;&#34;&#34;
+        return self._getUsersInClass(classId, &#34;professors&#34;)
+
+
+    def executeSelect(self, query, args=()):
+        &#34;&#34;&#34;
+        Wrapper for the execution of simple SQL select querys.
+
+        Important that any dynamic/substituted values are done using the &#34;?&#34; syntax and
+        NOT via python string concatination. For example:
+        Wrong:
+        &#34;SELECT * FROM classes WHERE name=&#34; + name
+        Right
+        &#34;SELECT * FROM classes WHERE name=?&#34;, args=(name, )
+
+        Args:
+            query (string): SQL query to execute (with optional ? substitutions)
+            args (tuple): Orderd tuple of substitution values
+        &#34;&#34;&#34;
+        print(query, args)
+        c = self.conn.cursor()
+        c.execute(query, args)
+        result = c.fetchall()
+        return result
+
+
+
+
+        
+    def __del__(self):
+        self.conn.close()
+
+    def initTables(self):
+        &#34;&#34;&#34;Creates new tables if they don&#39;t exist yet&#34;&#34;&#34;
+        c = self.conn.cursor()
+
+        #Create Users
+        c.execute(&#39;&#39;&#39;CREATE TABLE IF NOT EXISTS users(
+            emailAddress text, role text, firstName text, lastName text, hashedPassword text, classes text, reedemed boolean, 
+            primary key (emailAddress, role))&#39;&#39;&#39;)
+
+        #Create Polls
+        c.execute(&#39;&#39;&#39; CREATE TABLE IF NOT EXISTS polls (
+            pollId integer primary key autoincrement, start timestamp, end timestamp, ownerId text, classId number, pollQuestion text
+            )&#39;&#39;&#39;)
+
+        #Create Classes
+        c.execute(&#39;&#39;&#39; CREATE TABLE IF NOT EXISTS classes (
+            classId integer primary key autoincrement, className text, courseCode text, students text, professors text, polls text
+            )&#39;&#39;&#39;)
+
+        #Create Responses
+        c.execute(&#39;&#39;&#39; CREATE TABLE IF NOT EXISTS responses (
+            responseId integer primary key autoincrement, userId text, responseBody text
+            )&#39;&#39;&#39;)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="classroom-voter.shared.database.Database"><code class="flex name class">
+<span>class <span class="ident">Database</span></span>
+<span>(</span><span>fname='database.json')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Database constructor, open database file and create new on if none exists</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>fname</code></strong> :&ensp;<code>string</code></dt>
+<dd>filename of database file</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Database(object):
+
+        
+    def __init__(self, fname=&#39;database.json&#39;):
+        &#34;&#34;&#34;
+        Database constructor, open database file and create new on if none exists
+        
+        Args:
+            fname (string): filename of database file
+        &#34;&#34;&#34;
+        if not os.path.isfile(fname):
+            print(&#34;File doesn&#39;t exist&#34;)
+            self.createNewDatabase(fname)
+        self.fname = fname
+
+        try:
+            self.myFile = open(fname, &#39;r+&#39;)
+            self.myDict = json.load(self.myFile)
+        except FileNotFoundError:
+            print(&#34;Is this pdoc? Setting manual path. If this is being run by a real person - STOP HERE!&#34;)
+            self.fname = &#34;/home/siim/Desktop/cs181s/classroom-voter/shared/database.json&#34;
+            os.chdir(&#34;/home/siim/Desktop/cs181s/classroom-voter&#34;)
+            self.myFile = open(fname, &#39;r+&#39;)
+            self.myDict = json.load(self.myFile)
+
+        
+        self.users = self.getField([&#34;users&#34;])
+        self.students = self.getField([&#34;users&#34;, &#34;students&#34;])
+        self.professors = self.getField([&#34;users&#34;, &#34;professors&#34;])
+        
+        
+    def __del__(self):
+        &#34;&#34;&#34;Database destructor, close the open file&#34;&#34;&#34;
+        self.myFile.close()
+
+    def updateFile(self):
+        &#34;&#34;&#34; Updates the database file to match memory &#34;&#34;&#34;
+        self.myFile.seek(0) #seek to start of file
+        self.myFile.truncate() #erase contents
+        json.dump(self.myDict, self.myFile) #overwrite
+
+
+    def createNewDatabase(self, fname=&#39;database.json&#39;):
+        &#34;&#34;&#34;
+        Creates a new empty database file
+
+        Args:
+            fname (string): filename of database file
+        &#34;&#34;&#34;
+        d = {
+            &#34;users&#34; : {
+                &#34;students&#34; : {},
+                &#34;professors&#34; : {}
+            },
+            &#34;polls&#34; : {},
+            &#34;classes&#34; : {},
+        }
+
+        print(&#34;writing file to &#34; + fname)
+        print(os.listdir())
+        try:
+            with open(fname, &#34;w+&#34;) as f:
+                f.write(json.dumps(d))
+        except FileNotFoundError:
+            print(&#39;FileNotFound&#39;)
+
+
+    def addStudent(self, userDict):
+        &#34;&#34;&#34;
+        Add a new student entry to the database
+
+        ```json
+        student-email : {
+            &#34;firstName&#34; : first-name,
+            &#34;lastName&#34; : last-name,
+            &#34;password&#34; : password-hash,
+            &#34;classes&#34; : {
+                            &#34;class-id&#34; : poll-id-of-last-response,
+                            &#34;class-id&#34; : poll-id-of-last-response,
+                            ... 
+                            &#34;class-id&#34; : poll-id-of-last-response,
+                        },
+            &#34;reedemed&#34; : false,
+            }
+        ```
+
+        Args:
+            userDict (dict): A python dictionary representing a student entry
+
+        Returns:
+            boolean: Success of database insertion
+        &#34;&#34;&#34;
+        studentId = list(userDict.keys())[0]
+
+        if not self.keyExists(studentId, [&#34;users&#34;, &#34;students&#34;]):
+            self.myDict[&#34;users&#34;][&#34;students&#34;][studentId] = userDict[studentId]
+            self.updateFile()
+            return True
+        else:
+            return False
+
+    
+
+    def addProfessor(self, professorDict):
+        &#34;&#34;&#34;
+        Add a new professor entry to the database.
+
+        ```json
+        professor-email : {
+                &#34;firstName&#34; : first-name,
+                &#34;lastName&#34; : last-name,
+                &#34;password&#34; : password-hash,
+                &#34;classes&#34; : [class-id, class-id, ..., class-id],
+                &#34;reedemed&#34; : false,
+            }
+        ```
+
+        Args:
+            professorDict (dict): A python dictionary representing a professor entry
+
+        Returns:
+            boolean: Success of database insertion
+        &#34;&#34;&#34;
+        profId = list(professorDict.keys())[0]
+
+        if not self.keyExists(profId, [&#34;users&#34;, &#34;professors&#34;]):
+            self.myDict[&#34;users&#34;][&#34;professors&#34;][profId] = professorDict[profId]
+            self.updateFile()
+            return True
+        else:
+            return False
+
+    def addPoll(self, pollDict):
+        pass
+
+    def addClass(self, classDict):
+        pass
+
+    def getStudent(self, studentId):
+        &#34;&#34;&#34;
+        Gets a student from the db using their student id
+
+        Args:
+            studentId (string): student email
+
+        Returns:
+            dict: student object (None if student doesn&#39;t exist)
+        &#34;&#34;&#34;
+
+        return self.getField([&#34;users&#34;, &#34;students&#34;, studentId])
+
+
+    def getField(self, fieldList):
+
+        d = self.myDict
+        try:
+            for field in fieldList:
+                d = d[field]
+        except KeyError:
+            #field/key not real
+            return {}
+
+        return d
+
+    def keyExists(self, key, fieldList):
+        &#34;&#34;&#34;
+        Check if key exists in db
+        &#34;&#34;&#34;
+
+        d = self.getField(fieldList)
+        keys = list(d.keys())
+
+        return key in keys</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="classroom-voter.shared.database.Database.addClass"><code class="name flex">
+<span>def <span class="ident">addClass</span></span>(<span>self, classDict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def addClass(self, classDict):
+    pass</code></pre>
+</details>
+</dd>
+<dt id="classroom-voter.shared.database.Database.addPoll"><code class="name flex">
+<span>def <span class="ident">addPoll</span></span>(<span>self, pollDict)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def addPoll(self, pollDict):
+    pass</code></pre>
+</details>
+</dd>
+<dt id="classroom-voter.shared.database.Database.addProfessor"><code class="name flex">
+<span>def <span class="ident">addProfessor</span></span>(<span>self, professorDict)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Add a new professor entry to the database.</p>
+<pre><code class="language-json">professor-email : {
+        &quot;firstName&quot; : first-name,
+        &quot;lastName&quot; : last-name,
+        &quot;password&quot; : password-hash,
+        &quot;classes&quot; : [class-id, class-id, ..., class-id],
+        &quot;reedemed&quot; : false,
+    }
+</code></pre>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>professorDict</code></strong> :&ensp;<code>dict</code></dt>
+<dd>A python dictionary representing a professor entry</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>boolean</code></dt>
+<dd>Success of database insertion</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def addProfessor(self, professorDict):
+    &#34;&#34;&#34;
+    Add a new professor entry to the database.
+
+    ```json
+    professor-email : {
+            &#34;firstName&#34; : first-name,
+            &#34;lastName&#34; : last-name,
+            &#34;password&#34; : password-hash,
+            &#34;classes&#34; : [class-id, class-id, ..., class-id],
+            &#34;reedemed&#34; : false,
+        }
+    ```
+
+    Args:
+        professorDict (dict): A python dictionary representing a professor entry
+
+    Returns:
+        boolean: Success of database insertion
+    &#34;&#34;&#34;
+    profId = list(professorDict.keys())[0]
+
+    if not self.keyExists(profId, [&#34;users&#34;, &#34;professors&#34;]):
+        self.myDict[&#34;users&#34;][&#34;professors&#34;][profId] = professorDict[profId]
+        self.updateFile()
+        return True
+    else:
+        return False</code></pre>
+</details>
+</dd>
+<dt id="classroom-voter.shared.database.Database.addStudent"><code class="name flex">
+<span>def <span class="ident">addStudent</span></span>(<span>self, userDict)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Add a new student entry to the database</p>
+<pre><code class="language-json">student-email : {
+    &quot;firstName&quot; : first-name,
+    &quot;lastName&quot; : last-name,
+    &quot;password&quot; : password-hash,
+    &quot;classes&quot; : {
+                    &quot;class-id&quot; : poll-id-of-last-response,
+                    &quot;class-id&quot; : poll-id-of-last-response,
+                    ... 
+                    &quot;class-id&quot; : poll-id-of-last-response,
+                },
+    &quot;reedemed&quot; : false,
+    }
+</code></pre>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>userDict</code></strong> :&ensp;<code>dict</code></dt>
+<dd>A python dictionary representing a student entry</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>boolean</code></dt>
+<dd>Success of database insertion</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def addStudent(self, userDict):
+    &#34;&#34;&#34;
+    Add a new student entry to the database
+
+    ```json
+    student-email : {
+        &#34;firstName&#34; : first-name,
+        &#34;lastName&#34; : last-name,
+        &#34;password&#34; : password-hash,
+        &#34;classes&#34; : {
+                        &#34;class-id&#34; : poll-id-of-last-response,
+                        &#34;class-id&#34; : poll-id-of-last-response,
+                        ... 
+                        &#34;class-id&#34; : poll-id-of-last-response,
+                    },
+        &#34;reedemed&#34; : false,
+        }
+    ```
+
+    Args:
+        userDict (dict): A python dictionary representing a student entry
+
+    Returns:
+        boolean: Success of database insertion
+    &#34;&#34;&#34;
+    studentId = list(userDict.keys())[0]
+
+    if not self.keyExists(studentId, [&#34;users&#34;, &#34;students&#34;]):
+        self.myDict[&#34;users&#34;][&#34;students&#34;][studentId] = userDict[studentId]
+        self.updateFile()
+        return True
+    else:
+        return False</code></pre>
+</details>
+</dd>
+<dt id="classroom-voter.shared.database.Database.createNewDatabase"><code class="name flex">
+<span>def <span class="ident">createNewDatabase</span></span>(<span>self, fname='database.json')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a new empty database file</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>fname</code></strong> :&ensp;<code>string</code></dt>
+<dd>filename of database file</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def createNewDatabase(self, fname=&#39;database.json&#39;):
+    &#34;&#34;&#34;
+    Creates a new empty database file
+
+    Args:
+        fname (string): filename of database file
+    &#34;&#34;&#34;
+    d = {
+        &#34;users&#34; : {
+            &#34;students&#34; : {},
+            &#34;professors&#34; : {}
+        },
+        &#34;polls&#34; : {},
+        &#34;classes&#34; : {},
+    }
+
+    print(&#34;writing file to &#34; + fname)
+    print(os.listdir())
+    try:
+        with open(fname, &#34;w+&#34;) as f:
+            f.write(json.dumps(d))
+    except FileNotFoundError:
+        print(&#39;FileNotFound&#39;)</code></pre>
+</details>
+</dd>
+<dt id="classroom-voter.shared.database.Database.getField"><code class="name flex">
+<span>def <span class="ident">getField</span></span>(<span>self, fieldList)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getField(self, fieldList):
+
+    d = self.myDict
+    try:
+        for field in fieldList:
+            d = d[field]
+    except KeyError:
+        #field/key not real
+        return {}
+
+    return d</code></pre>
+</details>
+</dd>
+<dt id="classroom-voter.shared.database.Database.getStudent"><code class="name flex">
+<span>def <span class="ident">getStudent</span></span>(<span>self, studentId)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets a student from the db using their student id</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>studentId</code></strong> :&ensp;<code>string</code></dt>
+<dd>student email</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>dict</code></dt>
+<dd>student object (None if student doesn't exist)</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getStudent(self, studentId):
+    &#34;&#34;&#34;
+    Gets a student from the db using their student id
+
+    Args:
+        studentId (string): student email
+
+    Returns:
+        dict: student object (None if student doesn&#39;t exist)
+    &#34;&#34;&#34;
+
+    return self.getField([&#34;users&#34;, &#34;students&#34;, studentId])</code></pre>
+</details>
+</dd>
+<dt id="classroom-voter.shared.database.Database.keyExists"><code class="name flex">
+<span>def <span class="ident">keyExists</span></span>(<span>self, key, fieldList)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Check if key exists in db</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def keyExists(self, key, fieldList):
+    &#34;&#34;&#34;
+    Check if key exists in db
+    &#34;&#34;&#34;
+
+    d = self.getField(fieldList)
+    keys = list(d.keys())
+
+    return key in keys</code></pre>
+</details>
+</dd>
+<dt id="classroom-voter.shared.database.Database.updateFile"><code class="name flex">
+<span>def <span class="ident">updateFile</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Updates the database file to match memory</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def updateFile(self):
+    &#34;&#34;&#34; Updates the database file to match memory &#34;&#34;&#34;
+    self.myFile.seek(0) #seek to start of file
+    self.myFile.truncate() #erase contents
+    json.dump(self.myDict, self.myFile) #overwrite</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="classroom-voter.shared.database.DatabaseSQL"><code class="flex name class">
+<span>class <span class="ident">DatabaseSQL</span></span>
+<span>(</span><span>fname='example.db')</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class DatabaseSQL(object):
+    def __init__(self, fname=&#39;example.db&#39;):
+        self.fname = fname
+        try:
+            self.conn = sqlite3.connect(fname)
+            self.cursor = self.conn.cursor()
+        except sqlite3.OperationalError as e:
+            print(e)
+            self.conn = sqlite3.connect(&#34;testingDB.db&#34;)
+            self.cursor = self.conn.cursor()
+        self.initTables()
+
+
+    def addUser(self, userDict):
+        
+        &#34;&#34;&#34;
+        Add a new user entry to the database
+
+        ```json
+        user-email : {
+            &#34;firstName&#34; : first-name,
+            &#34;lastName&#34; : last-name,
+            &#34;password&#34; : password-hash,
+            &#34;classes&#34; : {
+                            &#34;class-id&#34; : poll-id-of-last-response,
+                            &#34;class-id&#34; : poll-id-of-last-response,
+                            ... 
+                            &#34;class-id&#34; : poll-id-of-last-response,
+                        },
+            &#34;reedemed&#34; : false,
+            &#34;role&#34; : &#34;student&#34;
+            }
+        ```
+
+        Args:
+            userDict (dict): A python dictionary representing a student entry
+
+        Returns:
+            int: id of n
+        &#34;&#34;&#34;
+        email = list(userDict.keys())[0]
+
+        vals = (email, userDict[email][&#39;role&#39;], userDict[email][&#39;firstName&#39;], 
+                userDict[email][&#39;lastName&#39;], userDict[email][&#39;password&#39;], 
+                json.dumps(userDict[email][&#39;classes&#39;]), userDict[email][&#39;reedemed&#39;], )
+        try:
+            result = self.cursor.execute(&#34;INSERT INTO users VALUES (?, ?, ?, ?, ?, ?, ?)&#34;, vals)
+            self.conn.commit()
+            #TODO: Make this return an ID
+            return True
+        except sqlite3.IntegrityError as e:
+            return False
+
+    def resetUserPassword(self, userId, newHash):
+        &#34;&#34;&#34;
+        Resets a user&#39;s password has in the db to a new one
+
+        Args:
+            userId (string): user email
+            newHas (string): new password hash
+        Returns:
+            boolean: success
+        &#34;&#34;&#34;
+
+        return self.updateFieldViaId(&#34;users&#34;, userId, &#34;hashedPassword&#34;, newHash)
+
+    def updateFieldViaId(self, table, myId, field, newValue):
+        &#34;&#34;&#34;
+        Updates a specific value for a specific entry. For example, to set a user&#39;s name:
+        `updateFieldViaId(&#39;users&#39;, &#39;example@test.com&#39;, &#39;firstName&#39;, &#39;John&#39;)`
+        Args:
+            table (string): table name
+            myId (unknown): id field (email or int)
+            field (string): name of field to change
+            newValue (string): value to place in field
+        Returns:
+            boolean: success
+
+        &#34;&#34;&#34;
+        c = self.conn.cursor()
+
+        ids = {
+            &#34;polls&#34; : &#34;pollId&#34;,
+            &#34;responses&#34; : &#34;responseId&#34;,
+            &#34;users&#34; : &#34;emailAddress&#34;,
+            &#34;classes&#34; : &#34;classId&#34;
+        }
+
+        try:
+            c.execute(&#34;UPDATE &#39;&#34;+ table +&#34;&#39; SET &#34;+ field +&#34; = &#39;&#34;+ newValue +&#34;&#39; WHERE &#34;+ ids[table] +&#34; = &#39;&#34;+ str(myId) + &#34;&#39;&#34;)
+            self.conn.commit()
+            return True
+        except sqlite3.IntegrityError:
+            return False
+
+        
+
+    def addPoll(self, pollObject):
+        &#34;&#34;&#34;
+        Adds a new poll to the DB
+
+        Args:
+            pollObject (Poll): Poll object to add to the db
+
+        Returns:
+            boolean: True if inserted, False otherwise
+        &#34;&#34;&#34;
+        
+
+        c = self.conn.cursor()
+
+        #pollId int primary key, start timestamp, end timestamp, ownerId text, classId number, pollJson text
+        vals = (pollObject.startTime, pollObject.endTime, pollObject.ownerId, pollObject.classId, pollObject.question.toJson())
+        try:
+            c.execute(&#34;INSERT INTO polls VALUES (NULL, ?, ?, ?, ?, ?)&#34;, vals)
+            self.conn.commit()
+            return True
+        except sqlite3.IntegrityError as e:
+            return False
+
+    def addClass(self, classDict):
+        &#34;&#34;&#34;
+        Adds a new class to the database. Note: If a class already exists w/ the same information in the DB,
+        this will create a new entry. If creating a class that might not be new, it may be worth checking if
+        a that course name/code already exists first.
+        ```json
+        {
+            &#34;className&#34;: &#39;Into to Blah&#39;,
+            &#34;courseCode&#34;: &#39;UNIQ99&#39;,
+            &#34;students&#34; : [&#34;mrstudent@gmail.com&#34;],
+            &#34;professors&#34; : [&#34;mrprof@gmail.com&#34;],
+            &#34;polls&#34;: []
+        }
+
+        ```
+        Args:
+            classDict (dict): a dictionary with class information (see above)
+
+        Returns:
+            boolean: success ()
+        &#34;&#34;&#34;
+        c = self.conn.cursor()
+
+
+        vals = (classDict[&#34;className&#34;], classDict[&#34;courseCode&#34;], json.dumps(classDict[&#34;students&#34;]),
+                json.dumps(classDict[&#34;professors&#34;]), json.dumps(classDict[&#34;polls&#34;]))
+
+        try:
+            #classId int primary key, className text, courseCode text, students text, professors text, polls text
+            c.execute(&#34;INSERT INTO classes VALUES (NULL, ?, ?, ?, ?, ?)&#34;, vals)
+            self.conn.commit()
+            return True
+        except sqlite3.IntegrityError as e:
+            return False
+
+
+    def _formatUser(self, studentTuple):
+        out = {studentTuple[0] : {
+            &#39;role&#39; : studentTuple[1],
+            &#39;firstName&#39; : studentTuple[2],
+            &#39;lastName&#39; : studentTuple[3],
+            &#39;password&#39; : studentTuple[4],
+            &#39;classes&#39; : json.loads(studentTuple[5]),
+            &#39;reedemed&#39; : studentTuple[6] != 0
+        }}
+
+        return out
+
+    def getUser(self, email, roleFilter=None):
+        &#34;&#34;&#34;
+        gets a user from the db based on user id (email)
+
+        Args:
+            email (string): user id (email)
+            roleFilter (string): role to filter by
+        &#34;&#34;&#34;
+        c = self.conn.cursor()
+
+
+        if roleFilter is None:
+            c.execute(&#34;SELECT * FROM users WHERE emailAddress=?&#34;, (email, ))
+        else:
+            c.execute(&#34;SELECT * FROM users WHERE emailAddress=? AND role=?&#34;, (email, roleFilter, ))
+        result = c.fetchone()
+        if result is not None:
+            return self._formatUser(result)
+        
+    def _formatPoll(self, pollTuple):
+        d = json.loads(pollTuple[5])
+
+        out = {
+            &#39;question&#39;: d,
+            &#39;startTime&#39; : pollTuple[1],
+            &#39;endTime&#39; : pollTuple[2],
+            &#39;ownerId&#39; : pollTuple[3],
+            &#39;classId&#39; : pollTuple[4],
+            &#39;responses&#39;: []}
+        return out
+
+
+    def getPollFromId(self, pollId):
+        &#34;&#34;&#34; Get poll from DB with the pollId (int) &#34;&#34;&#34;
+        c = self.conn.cursor()
+
+        c.execute(&#34;SELECT * FROM polls WHERE pollId=?&#34;, (pollId, ))
+        result = c.fetchone()
+
+        if result is not None:
+            return self._formatPoll(result)
+
+
+    def _formatClass(self, classTuple):
+        out = {
+                &#34;className&#34;: classTuple[1],
+                &#34;courseCode&#34;: classTuple[2],
+                &#34;students&#34; : json.loads(classTuple[3]),
+                &#34;professors&#34; : json.loads(classTuple[4]),
+                &#34;polls&#34;: json.loads(classTuple[5])
+            }
+
+        return out
+
+    def getClassFromId(self, classId):
+        &#34;&#34;&#34; Get Class from DB with the classId (int) &#34;&#34;&#34;
+        c = self.conn.cursor()
+
+        c.execute(&#34;SELECT * FROM classes WHERE classId=?&#34;, (classId, ))
+        result = c.fetchone()
+        
+        if result is not None:
+            return self._formatClass(result)
+
+
+
+    def getClassFromCourseCode(self, courseCode):
+        &#34;&#34;&#34; get Class/s from DB with the course code (string) &#34;&#34;&#34;
+        c = self.conn.cursor()
+
+        c.execute(&#39;SELECT * FROM classes WHERE courseCode=?&#39;, (courseCode, ))
+        results = c.fetchall()
+
+        if results is not None:
+            out = {}
+            for result in results:
+                out[result[0]] = self._formatClass(result)
+            return out
+
+    def _listStringFormat(self, l):
+        &#34;&#34;&#34;Formats lists into the proper string for sql queries&#34;&#34;&#34;
+        if len(l) == 0:
+            return &#34;()&#34;
+        
+        s = &#34;(&#34;
+
+        for element in l:
+            s += &#34;&#39;&#34; + element + &#34;&#39;,&#34;
+
+        s = s[0:-1] #strip last comma
+        s += &#34;)&#34;
+        return s
+
+    def _getUsersInClass(self, classId, role):
+
+        #Verify inputs - no funny stuff in the sql, keep it safe
+        if type(classId) is not int:
+            raise TypeError(&#34;classId must be int&#34;)
+        elif type(role) is not str:
+            raise TypeError(&#34;classId must be int&#34;)
+
+        c = self.conn.cursor()
+        out = {}
+        #first pull class
+
+        if role == &#34;students&#34;:
+            sql = &#34;SELECT classes.students FROM classes WHERE classId=?&#34;
+        else:
+            sql = &#34;SELECT classes.professors FROM classes WHERE classId=?&#34;
+        c.execute(sql, (classId,))
+        result = c.fetchone()
+
+        if result is not None:
+            #get student&#39;s array
+            users = json.loads(result[0])
+            #return students rows
+            sql = &#34;SELECT * FROM users WHERE users.emailAddress IN &#34; + self._listStringFormat(users) + &#34; AND users.role=&#39;&#34; + role + &#34;&#39;&#34;
+            c.execute(sql)
+            result = c.fetchall()
+            for user in result:
+
+                user = self._formatUser(user)
+                out[list(user.keys())[0]] = user[list(user.keys())[0]]
+
+        return out
+
+    def getStudentsInClass(self, classId):
+        &#34;&#34;&#34;
+        Gets the emails of all students in class w/ id classId
+        Args:
+            classId (int): id of class
+        Returns:
+            list: json array of students
+        &#34;&#34;&#34;
+        return self._getUsersInClass(classId, &#34;students&#34;)
+    
+    def getProfsInClass(self, classId):
+        &#34;&#34;&#34;
+        Gets the emails of all profs in class w/ id classId
+        Args:
+            classId (int): id of class
+        Returns:
+            list: json array of profs
+        &#34;&#34;&#34;
+        return self._getUsersInClass(classId, &#34;professors&#34;)
+
+
+    def executeSelect(self, query, args=()):
+        &#34;&#34;&#34;
+        Wrapper for the execution of simple SQL select querys.
+
+        Important that any dynamic/substituted values are done using the &#34;?&#34; syntax and
+        NOT via python string concatination. For example:
+        Wrong:
+        &#34;SELECT * FROM classes WHERE name=&#34; + name
+        Right
+        &#34;SELECT * FROM classes WHERE name=?&#34;, args=(name, )
+
+        Args:
+            query (string): SQL query to execute (with optional ? substitutions)
+            args (tuple): Orderd tuple of substitution values
+        &#34;&#34;&#34;
+        print(query, args)
+        c = self.conn.cursor()
+        c.execute(query, args)
+        result = c.fetchall()
+        return result
+
+
+
+
+        
+    def __del__(self):
+        self.conn.close()
+
+    def initTables(self):
+        &#34;&#34;&#34;Creates new tables if they don&#39;t exist yet&#34;&#34;&#34;
+        c = self.conn.cursor()
+
+        #Create Users
+        c.execute(&#39;&#39;&#39;CREATE TABLE IF NOT EXISTS users(
+            emailAddress text, role text, firstName text, lastName text, hashedPassword text, classes text, reedemed boolean, 
+            primary key (emailAddress, role))&#39;&#39;&#39;)
+
+        #Create Polls
+        c.execute(&#39;&#39;&#39; CREATE TABLE IF NOT EXISTS polls (
+            pollId integer primary key autoincrement, start timestamp, end timestamp, ownerId text, classId number, pollQuestion text
+            )&#39;&#39;&#39;)
+
+        #Create Classes
+        c.execute(&#39;&#39;&#39; CREATE TABLE IF NOT EXISTS classes (
+            classId integer primary key autoincrement, className text, courseCode text, students text, professors text, polls text
+            )&#39;&#39;&#39;)
+
+        #Create Responses
+        c.execute(&#39;&#39;&#39; CREATE TABLE IF NOT EXISTS responses (
+            responseId integer primary key autoincrement, userId text, responseBody text
+            )&#39;&#39;&#39;)</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="classroom-voter.shared.database.DatabaseSQL.addClass"><code class="name flex">
+<span>def <span class="ident">addClass</span></span>(<span>self, classDict)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Adds a new class to the database. Note: If a class already exists w/ the same information in the DB,
+this will create a new entry. If creating a class that might not be new, it may be worth checking if
+a that course name/code already exists first.</p>
+<pre><code class="language-json">{
+    &quot;className&quot;: 'Into to Blah',
+    &quot;courseCode&quot;: 'UNIQ99',
+    &quot;students&quot; : [&quot;mrstudent@gmail.com&quot;],
+    &quot;professors&quot; : [&quot;mrprof@gmail.com&quot;],
+    &quot;polls&quot;: []
+}
+
+</code></pre>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>classDict</code></strong> :&ensp;<code>dict</code></dt>
+<dd>a dictionary with class information (see above)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>boolean</code></dt>
+<dd>success ()</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def addClass(self, classDict):
+    &#34;&#34;&#34;
+    Adds a new class to the database. Note: If a class already exists w/ the same information in the DB,
+    this will create a new entry. If creating a class that might not be new, it may be worth checking if
+    a that course name/code already exists first.
+    ```json
+    {
+        &#34;className&#34;: &#39;Into to Blah&#39;,
+        &#34;courseCode&#34;: &#39;UNIQ99&#39;,
+        &#34;students&#34; : [&#34;mrstudent@gmail.com&#34;],
+        &#34;professors&#34; : [&#34;mrprof@gmail.com&#34;],
+        &#34;polls&#34;: []
+    }
+
+    ```
+    Args:
+        classDict (dict): a dictionary with class information (see above)
+
+    Returns:
+        boolean: success ()
+    &#34;&#34;&#34;
+    c = self.conn.cursor()
+
+
+    vals = (classDict[&#34;className&#34;], classDict[&#34;courseCode&#34;], json.dumps(classDict[&#34;students&#34;]),
+            json.dumps(classDict[&#34;professors&#34;]), json.dumps(classDict[&#34;polls&#34;]))
+
+    try:
+        #classId int primary key, className text, courseCode text, students text, professors text, polls text
+        c.execute(&#34;INSERT INTO classes VALUES (NULL, ?, ?, ?, ?, ?)&#34;, vals)
+        self.conn.commit()
+        return True
+    except sqlite3.IntegrityError as e:
+        return False</code></pre>
+</details>
+</dd>
+<dt id="classroom-voter.shared.database.DatabaseSQL.addPoll"><code class="name flex">
+<span>def <span class="ident">addPoll</span></span>(<span>self, pollObject)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Adds a new poll to the DB</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>pollObject</code></strong> :&ensp;<code>Poll</code></dt>
+<dd>Poll object to add to the db</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>boolean</code></dt>
+<dd>True if inserted, False otherwise</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def addPoll(self, pollObject):
+    &#34;&#34;&#34;
+    Adds a new poll to the DB
+
+    Args:
+        pollObject (Poll): Poll object to add to the db
+
+    Returns:
+        boolean: True if inserted, False otherwise
+    &#34;&#34;&#34;
+    
+
+    c = self.conn.cursor()
+
+    #pollId int primary key, start timestamp, end timestamp, ownerId text, classId number, pollJson text
+    vals = (pollObject.startTime, pollObject.endTime, pollObject.ownerId, pollObject.classId, pollObject.question.toJson())
+    try:
+        c.execute(&#34;INSERT INTO polls VALUES (NULL, ?, ?, ?, ?, ?)&#34;, vals)
+        self.conn.commit()
+        return True
+    except sqlite3.IntegrityError as e:
+        return False</code></pre>
+</details>
+</dd>
+<dt id="classroom-voter.shared.database.DatabaseSQL.addUser"><code class="name flex">
+<span>def <span class="ident">addUser</span></span>(<span>self, userDict)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Add a new user entry to the database</p>
+<pre><code class="language-json">user-email : {
+    &quot;firstName&quot; : first-name,
+    &quot;lastName&quot; : last-name,
+    &quot;password&quot; : password-hash,
+    &quot;classes&quot; : {
+                    &quot;class-id&quot; : poll-id-of-last-response,
+                    &quot;class-id&quot; : poll-id-of-last-response,
+                    ... 
+                    &quot;class-id&quot; : poll-id-of-last-response,
+                },
+    &quot;reedemed&quot; : false,
+    &quot;role&quot; : &quot;student&quot;
+    }
+</code></pre>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>userDict</code></strong> :&ensp;<code>dict</code></dt>
+<dd>A python dictionary representing a student entry</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>int</code></dt>
+<dd>id of n</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def addUser(self, userDict):
+    
+    &#34;&#34;&#34;
+    Add a new user entry to the database
+
+    ```json
+    user-email : {
+        &#34;firstName&#34; : first-name,
+        &#34;lastName&#34; : last-name,
+        &#34;password&#34; : password-hash,
+        &#34;classes&#34; : {
+                        &#34;class-id&#34; : poll-id-of-last-response,
+                        &#34;class-id&#34; : poll-id-of-last-response,
+                        ... 
+                        &#34;class-id&#34; : poll-id-of-last-response,
+                    },
+        &#34;reedemed&#34; : false,
+        &#34;role&#34; : &#34;student&#34;
+        }
+    ```
+
+    Args:
+        userDict (dict): A python dictionary representing a student entry
+
+    Returns:
+        int: id of n
+    &#34;&#34;&#34;
+    email = list(userDict.keys())[0]
+
+    vals = (email, userDict[email][&#39;role&#39;], userDict[email][&#39;firstName&#39;], 
+            userDict[email][&#39;lastName&#39;], userDict[email][&#39;password&#39;], 
+            json.dumps(userDict[email][&#39;classes&#39;]), userDict[email][&#39;reedemed&#39;], )
+    try:
+        result = self.cursor.execute(&#34;INSERT INTO users VALUES (?, ?, ?, ?, ?, ?, ?)&#34;, vals)
+        self.conn.commit()
+        #TODO: Make this return an ID
+        return True
+    except sqlite3.IntegrityError as e:
+        return False</code></pre>
+</details>
+</dd>
+<dt id="classroom-voter.shared.database.DatabaseSQL.executeSelect"><code class="name flex">
+<span>def <span class="ident">executeSelect</span></span>(<span>self, query, args=())</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Wrapper for the execution of simple SQL select querys.</p>
+<p>Important that any dynamic/substituted values are done using the "?" syntax and
+NOT via python string concatination. For example:
+Wrong:
+"SELECT * FROM classes WHERE name=" + name
+Right
+"SELECT * FROM classes WHERE name=?", args=(name, )</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>query</code></strong> :&ensp;<code>string</code></dt>
+<dd>SQL query to execute (with optional ? substitutions)</dd>
+<dt><strong><code>args</code></strong> :&ensp;<code>tuple</code></dt>
+<dd>Orderd tuple of substitution values</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def executeSelect(self, query, args=()):
+    &#34;&#34;&#34;
+    Wrapper for the execution of simple SQL select querys.
+
+    Important that any dynamic/substituted values are done using the &#34;?&#34; syntax and
+    NOT via python string concatination. For example:
+    Wrong:
+    &#34;SELECT * FROM classes WHERE name=&#34; + name
+    Right
+    &#34;SELECT * FROM classes WHERE name=?&#34;, args=(name, )
+
+    Args:
+        query (string): SQL query to execute (with optional ? substitutions)
+        args (tuple): Orderd tuple of substitution values
+    &#34;&#34;&#34;
+    print(query, args)
+    c = self.conn.cursor()
+    c.execute(query, args)
+    result = c.fetchall()
+    return result</code></pre>
+</details>
+</dd>
+<dt id="classroom-voter.shared.database.DatabaseSQL.getClassFromCourseCode"><code class="name flex">
+<span>def <span class="ident">getClassFromCourseCode</span></span>(<span>self, courseCode)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>get Class/s from DB with the course code (string)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getClassFromCourseCode(self, courseCode):
+    &#34;&#34;&#34; get Class/s from DB with the course code (string) &#34;&#34;&#34;
+    c = self.conn.cursor()
+
+    c.execute(&#39;SELECT * FROM classes WHERE courseCode=?&#39;, (courseCode, ))
+    results = c.fetchall()
+
+    if results is not None:
+        out = {}
+        for result in results:
+            out[result[0]] = self._formatClass(result)
+        return out</code></pre>
+</details>
+</dd>
+<dt id="classroom-voter.shared.database.DatabaseSQL.getClassFromId"><code class="name flex">
+<span>def <span class="ident">getClassFromId</span></span>(<span>self, classId)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get Class from DB with the classId (int)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getClassFromId(self, classId):
+    &#34;&#34;&#34; Get Class from DB with the classId (int) &#34;&#34;&#34;
+    c = self.conn.cursor()
+
+    c.execute(&#34;SELECT * FROM classes WHERE classId=?&#34;, (classId, ))
+    result = c.fetchone()
+    
+    if result is not None:
+        return self._formatClass(result)</code></pre>
+</details>
+</dd>
+<dt id="classroom-voter.shared.database.DatabaseSQL.getPollFromId"><code class="name flex">
+<span>def <span class="ident">getPollFromId</span></span>(<span>self, pollId)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get poll from DB with the pollId (int)</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getPollFromId(self, pollId):
+    &#34;&#34;&#34; Get poll from DB with the pollId (int) &#34;&#34;&#34;
+    c = self.conn.cursor()
+
+    c.execute(&#34;SELECT * FROM polls WHERE pollId=?&#34;, (pollId, ))
+    result = c.fetchone()
+
+    if result is not None:
+        return self._formatPoll(result)</code></pre>
+</details>
+</dd>
+<dt id="classroom-voter.shared.database.DatabaseSQL.getProfsInClass"><code class="name flex">
+<span>def <span class="ident">getProfsInClass</span></span>(<span>self, classId)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets the emails of all profs in class w/ id classId</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>classId</code></strong> :&ensp;<code>int</code></dt>
+<dd>id of class</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list</code></dt>
+<dd>json array of profs</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getProfsInClass(self, classId):
+    &#34;&#34;&#34;
+    Gets the emails of all profs in class w/ id classId
+    Args:
+        classId (int): id of class
+    Returns:
+        list: json array of profs
+    &#34;&#34;&#34;
+    return self._getUsersInClass(classId, &#34;professors&#34;)</code></pre>
+</details>
+</dd>
+<dt id="classroom-voter.shared.database.DatabaseSQL.getStudentsInClass"><code class="name flex">
+<span>def <span class="ident">getStudentsInClass</span></span>(<span>self, classId)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets the emails of all students in class w/ id classId</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>classId</code></strong> :&ensp;<code>int</code></dt>
+<dd>id of class</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>list</code></dt>
+<dd>json array of students</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getStudentsInClass(self, classId):
+    &#34;&#34;&#34;
+    Gets the emails of all students in class w/ id classId
+    Args:
+        classId (int): id of class
+    Returns:
+        list: json array of students
+    &#34;&#34;&#34;
+    return self._getUsersInClass(classId, &#34;students&#34;)</code></pre>
+</details>
+</dd>
+<dt id="classroom-voter.shared.database.DatabaseSQL.getUser"><code class="name flex">
+<span>def <span class="ident">getUser</span></span>(<span>self, email, roleFilter=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>gets a user from the db based on user id (email)</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>email</code></strong> :&ensp;<code>string</code></dt>
+<dd>user id (email)</dd>
+<dt><strong><code>roleFilter</code></strong> :&ensp;<code>string</code></dt>
+<dd>role to filter by</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def getUser(self, email, roleFilter=None):
+    &#34;&#34;&#34;
+    gets a user from the db based on user id (email)
+
+    Args:
+        email (string): user id (email)
+        roleFilter (string): role to filter by
+    &#34;&#34;&#34;
+    c = self.conn.cursor()
+
+
+    if roleFilter is None:
+        c.execute(&#34;SELECT * FROM users WHERE emailAddress=?&#34;, (email, ))
+    else:
+        c.execute(&#34;SELECT * FROM users WHERE emailAddress=? AND role=?&#34;, (email, roleFilter, ))
+    result = c.fetchone()
+    if result is not None:
+        return self._formatUser(result)</code></pre>
+</details>
+</dd>
+<dt id="classroom-voter.shared.database.DatabaseSQL.initTables"><code class="name flex">
+<span>def <span class="ident">initTables</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates new tables if they don't exist yet</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def initTables(self):
+    &#34;&#34;&#34;Creates new tables if they don&#39;t exist yet&#34;&#34;&#34;
+    c = self.conn.cursor()
+
+    #Create Users
+    c.execute(&#39;&#39;&#39;CREATE TABLE IF NOT EXISTS users(
+        emailAddress text, role text, firstName text, lastName text, hashedPassword text, classes text, reedemed boolean, 
+        primary key (emailAddress, role))&#39;&#39;&#39;)
+
+    #Create Polls
+    c.execute(&#39;&#39;&#39; CREATE TABLE IF NOT EXISTS polls (
+        pollId integer primary key autoincrement, start timestamp, end timestamp, ownerId text, classId number, pollQuestion text
+        )&#39;&#39;&#39;)
+
+    #Create Classes
+    c.execute(&#39;&#39;&#39; CREATE TABLE IF NOT EXISTS classes (
+        classId integer primary key autoincrement, className text, courseCode text, students text, professors text, polls text
+        )&#39;&#39;&#39;)
+
+    #Create Responses
+    c.execute(&#39;&#39;&#39; CREATE TABLE IF NOT EXISTS responses (
+        responseId integer primary key autoincrement, userId text, responseBody text
+        )&#39;&#39;&#39;)</code></pre>
+</details>
+</dd>
+<dt id="classroom-voter.shared.database.DatabaseSQL.resetUserPassword"><code class="name flex">
+<span>def <span class="ident">resetUserPassword</span></span>(<span>self, userId, newHash)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Resets a user's password has in the db to a new one</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>userId</code></strong> :&ensp;<code>string</code></dt>
+<dd>user email</dd>
+<dt><strong><code>newHas</code></strong> :&ensp;<code>string</code></dt>
+<dd>new password hash</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>boolean</code></dt>
+<dd>success</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def resetUserPassword(self, userId, newHash):
+    &#34;&#34;&#34;
+    Resets a user&#39;s password has in the db to a new one
+
+    Args:
+        userId (string): user email
+        newHas (string): new password hash
+    Returns:
+        boolean: success
+    &#34;&#34;&#34;
+
+    return self.updateFieldViaId(&#34;users&#34;, userId, &#34;hashedPassword&#34;, newHash)</code></pre>
+</details>
+</dd>
+<dt id="classroom-voter.shared.database.DatabaseSQL.updateFieldViaId"><code class="name flex">
+<span>def <span class="ident">updateFieldViaId</span></span>(<span>self, table, myId, field, newValue)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Updates a specific value for a specific entry. For example, to set a user's name:
+<code>updateFieldViaId('users', 'example@test.com', 'firstName', 'John')</code></p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>table</code></strong> :&ensp;<code>string</code></dt>
+<dd>table name</dd>
+<dt><strong><code>myId</code></strong> :&ensp;<code>unknown</code></dt>
+<dd>id field (email or int)</dd>
+<dt><strong><code>field</code></strong> :&ensp;<code>string</code></dt>
+<dd>name of field to change</dd>
+<dt><strong><code>newValue</code></strong> :&ensp;<code>string</code></dt>
+<dd>value to place in field</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>boolean</code></dt>
+<dd>success</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def updateFieldViaId(self, table, myId, field, newValue):
+    &#34;&#34;&#34;
+    Updates a specific value for a specific entry. For example, to set a user&#39;s name:
+    `updateFieldViaId(&#39;users&#39;, &#39;example@test.com&#39;, &#39;firstName&#39;, &#39;John&#39;)`
+    Args:
+        table (string): table name
+        myId (unknown): id field (email or int)
+        field (string): name of field to change
+        newValue (string): value to place in field
+    Returns:
+        boolean: success
+
+    &#34;&#34;&#34;
+    c = self.conn.cursor()
+
+    ids = {
+        &#34;polls&#34; : &#34;pollId&#34;,
+        &#34;responses&#34; : &#34;responseId&#34;,
+        &#34;users&#34; : &#34;emailAddress&#34;,
+        &#34;classes&#34; : &#34;classId&#34;
+    }
+
+    try:
+        c.execute(&#34;UPDATE &#39;&#34;+ table +&#34;&#39; SET &#34;+ field +&#34; = &#39;&#34;+ newValue +&#34;&#39; WHERE &#34;+ ids[table] +&#34; = &#39;&#34;+ str(myId) + &#34;&#39;&#34;)
+        self.conn.commit()
+        return True
+    except sqlite3.IntegrityError:
+        return False</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="classroom-voter.shared" href="index.html">classroom-voter.shared</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="classroom-voter.shared.database.Database" href="#classroom-voter.shared.database.Database">Database</a></code></h4>
+<ul class="two-column">
+<li><code><a title="classroom-voter.shared.database.Database.addClass" href="#classroom-voter.shared.database.Database.addClass">addClass</a></code></li>
+<li><code><a title="classroom-voter.shared.database.Database.addPoll" href="#classroom-voter.shared.database.Database.addPoll">addPoll</a></code></li>
+<li><code><a title="classroom-voter.shared.database.Database.addProfessor" href="#classroom-voter.shared.database.Database.addProfessor">addProfessor</a></code></li>
+<li><code><a title="classroom-voter.shared.database.Database.addStudent" href="#classroom-voter.shared.database.Database.addStudent">addStudent</a></code></li>
+<li><code><a title="classroom-voter.shared.database.Database.createNewDatabase" href="#classroom-voter.shared.database.Database.createNewDatabase">createNewDatabase</a></code></li>
+<li><code><a title="classroom-voter.shared.database.Database.getField" href="#classroom-voter.shared.database.Database.getField">getField</a></code></li>
+<li><code><a title="classroom-voter.shared.database.Database.getStudent" href="#classroom-voter.shared.database.Database.getStudent">getStudent</a></code></li>
+<li><code><a title="classroom-voter.shared.database.Database.keyExists" href="#classroom-voter.shared.database.Database.keyExists">keyExists</a></code></li>
+<li><code><a title="classroom-voter.shared.database.Database.updateFile" href="#classroom-voter.shared.database.Database.updateFile">updateFile</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="classroom-voter.shared.database.DatabaseSQL" href="#classroom-voter.shared.database.DatabaseSQL">DatabaseSQL</a></code></h4>
+<ul class="">
+<li><code><a title="classroom-voter.shared.database.DatabaseSQL.addClass" href="#classroom-voter.shared.database.DatabaseSQL.addClass">addClass</a></code></li>
+<li><code><a title="classroom-voter.shared.database.DatabaseSQL.addPoll" href="#classroom-voter.shared.database.DatabaseSQL.addPoll">addPoll</a></code></li>
+<li><code><a title="classroom-voter.shared.database.DatabaseSQL.addUser" href="#classroom-voter.shared.database.DatabaseSQL.addUser">addUser</a></code></li>
+<li><code><a title="classroom-voter.shared.database.DatabaseSQL.executeSelect" href="#classroom-voter.shared.database.DatabaseSQL.executeSelect">executeSelect</a></code></li>
+<li><code><a title="classroom-voter.shared.database.DatabaseSQL.getClassFromCourseCode" href="#classroom-voter.shared.database.DatabaseSQL.getClassFromCourseCode">getClassFromCourseCode</a></code></li>
+<li><code><a title="classroom-voter.shared.database.DatabaseSQL.getClassFromId" href="#classroom-voter.shared.database.DatabaseSQL.getClassFromId">getClassFromId</a></code></li>
+<li><code><a title="classroom-voter.shared.database.DatabaseSQL.getPollFromId" href="#classroom-voter.shared.database.DatabaseSQL.getPollFromId">getPollFromId</a></code></li>
+<li><code><a title="classroom-voter.shared.database.DatabaseSQL.getProfsInClass" href="#classroom-voter.shared.database.DatabaseSQL.getProfsInClass">getProfsInClass</a></code></li>
+<li><code><a title="classroom-voter.shared.database.DatabaseSQL.getStudentsInClass" href="#classroom-voter.shared.database.DatabaseSQL.getStudentsInClass">getStudentsInClass</a></code></li>
+<li><code><a title="classroom-voter.shared.database.DatabaseSQL.getUser" href="#classroom-voter.shared.database.DatabaseSQL.getUser">getUser</a></code></li>
+<li><code><a title="classroom-voter.shared.database.DatabaseSQL.initTables" href="#classroom-voter.shared.database.DatabaseSQL.initTables">initTables</a></code></li>
+<li><code><a title="classroom-voter.shared.database.DatabaseSQL.resetUserPassword" href="#classroom-voter.shared.database.DatabaseSQL.resetUserPassword">resetUserPassword</a></code></li>
+<li><code><a title="classroom-voter.shared.database.DatabaseSQL.updateFieldViaId" href="#classroom-voter.shared.database.DatabaseSQL.updateFieldViaId">updateFieldViaId</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+</footer>
+</body>
+</html>

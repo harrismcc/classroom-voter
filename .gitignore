@@ -1,3 +1,4 @@
 .vscode/
 shared/__pycache__/
+tests/__pycache__/
 .pylintrc
