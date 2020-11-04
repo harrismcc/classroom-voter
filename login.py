@@ -79,17 +79,17 @@ def main():
         username = input("Enter username: ")
         password = getpass.getpass()
         result = attempt_login(clientSocket, username, password)
-        if result['Login_result'] == 'success' or result['Login_result'] == 'must reset':
+        if result['Arguments']['result'] == 'success' or result['Arguments']['result'] == 'must reset':
             break
         print('Invalid credentials. Try again.')
     
-    if result['Login_result'] == 'must reset':
+    if result['Arguments']['result'] == 'must reset':
         new_password = getpass.getpass(prompt="Please choose a new password: ")
         reset_password(clientSocket, username, password, new_password)
 
-    if result['account_type'] == 'student':
+    if result['Arguments']['account_type'] == 'student':
         client.main(clientSocket)
-    elif result['account_type'] == 'professor':
+    elif result['Arguments']['account_type'] == 'professor':
         professor.main(clientSocket)
 
 if __name__ == "__main__":
