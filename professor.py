@@ -48,31 +48,34 @@ def send_poll(clientSocket, poll):
     send_msg(clientSocket, msg)
 
 def collect_responses(clientSocket):
-    msg = {
-        "endpoint": "Aggregate_poll",
-        "Arguments": {}
-    }
-    send_msg(clientSocket, msg)
-    data = json.loads(clientSocket.recv(2048).decode())
-    return data
+    # msg = {
+    #     "endpoint": "Aggregate_poll",
+    #     "Arguments": {}
+    # }
+    # send_msg(clientSocket, msg)
+    # data = json.loads(clientSocket.recv(2048).decode())
+    # return data
+    return "pass"
 
 def main(clientSocket):
 
     while True:
-        prompt = input("To create a new poll, enter  'np'. To collect responses, enter 'cr'. To quit, enter 'quit': ")
-        if prompt == 'cr':
-            responses = collect_responses(clientSocket)
-            print("Results: ", responses)
-        elif prompt == 'np':
+        prompt = input("Would you like to:\n 1: Send a new poll\n 2: Quit\n\n")
+ 
+        if prompt == '1':
             poll = prompt_for_poll()
             send_poll(clientSocket, poll)
-        elif prompt == 'quit':
+        elif prompt == 'cr':
+            responses = collect_responses(clientSocket)
+            print("Results: ", responses)
+        elif prompt == '2':
             print("#"*80)
             print('\t\t\tClosing session')
             print("#"*80)
             return
+
         else:
-            print('Unrecognized input ' + prompt + ". Expected 'np', 'cr', or 'quit'")
+            print('Unrecognized input ' + prompt + ". Expected '1', '2'")
 
 if __name__ == "__main__":
     main()
