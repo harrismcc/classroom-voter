@@ -60,7 +60,7 @@ def authenticate_user(username, password):
     
     return {
         "isAuthenticated" : isAuthenticated,
-        "user" : user
+        "user" : user_object
     }
 
 def add_connection(username, connection):
@@ -100,6 +100,7 @@ def threaded_client(connection):
         authenticated = False
         isReedemed = False
         while not authenticated:
+            
             data = json.loads(connection.recv(2048).decode())
         
             print(data)
@@ -118,18 +119,20 @@ def threaded_client(connection):
                 
                 user = authentication_result["user"]
                 isAuthenticated = authentication_result["isAuthenticated"]
-                
+                                
                 authentication_msg = ""
+                account_type = None
                 if isAuthenticated and (user is not None):
-                                    
+                                             
                     isReedemed = user[username]["reedemed"]
                     if isReedemed:
                         authentication_msg = "success"
-                        authenticated = True
-                        isReedemed = True
                         authenticated_username = username
+                        authenticated = True
                     else:
-                        authentication_msg = "reset required"
+                        authentication_msg = "must reset"
+                        
+                    account_type = user[username]["role"]
 
                 else:
                     authentication_msg = "failure"
@@ -137,14 +140,15 @@ def threaded_client(connection):
                 authentication_response = {
                     "endpoint" : "Login_result",
                     "Arguments" : {
-                        "result" : authentication_msg
+                        "result" : authentication_msg,
+                        "account_type" : account_type
                     }
                 }
                 
                 connection.send(json.dumps(authentication_response).encode())
                 continue
                 
-            if endpoint == "Reset_password" and not isReedemed:
+            if endpoint == "Reset_password":
                 arguments = data["Arguments"]
                 username = arguments["username"]
                 old_password = arguments["old_password"]
@@ -156,6 +160,7 @@ def threaded_client(connection):
                 isAuthenticated = authentication_result["isAuthenticated"]
                                 
                 reset_msg = ""
+                account_type = None
                 if isAuthenticated and (user is not None):
                 
                     new_password_hash = sha256(new_password.encode('utf-8')).hexdigest()
@@ -166,9 +171,9 @@ def threaded_client(connection):
                     database_lock.release()
                     
                     reset_msg = "success"
-                    authenticated = True
-                    isReedemed = True
+                    account_type = user[username]["role"]
                     authenticated_username = username
+                    authenticated = True
 
                 else:
                     reset_msg = "failure"
@@ -176,7 +181,8 @@ def threaded_client(connection):
                 reset_response = {
                     "endpoint" : "Reset_result",
                     "Arguments" : {
-                        "result" : reset_msg
+                        "result" : reset_msg,
+                        "account_type" : account_type
                     }
                 }
                 
@@ -204,6 +210,7 @@ def threaded_client(connection):
             add_connection(authenticated_username, connection)
                 
         while True:
+            print("Trying to get poll")
             data = json.loads(connection.recv(2048).decode())
             
             print(data)
@@ -214,13 +221,20 @@ def threaded_client(connection):
             endpoint = data["endpoint"]
             
             if endpoint == "Announce_poll":
+            
+                print("Announcing Poll!")
+                
                 poll = Poll.fromDict(data["Arguments"]["poll"])
                 class_id = poll.classId
+                
+                print("Class: ", class_id)
                 
                 database_lock.acquire_write()
                 database.addPoll(poll)
                 class_object = database.getClassFromId(class_id)
                 database_lock.release()
+                
+                print(class_object)
                 
                 class_name = class_object["className"]
                 student_ids = class_object["students"]
@@ -245,6 +259,8 @@ def threaded_client(connection):
             if endpoint == "Aggregate_poll":
                 # outgoing_msg = aggregate_poll()
                 # broadcast(json.dumps(outgoing_msg))
+                # get poll from id
+
                 continue
                 
     finally:
