@@ -2,39 +2,88 @@
 The `server` module handles the socket networking with the clients, placing them each into
 their own threaded connection.
 """
-import socket
 import os
 import sys
 import json
+import socket
+import threading
+
 from _thread import *
 from threading import Thread
-import threading
-import sys
-sys.path.append(os.path.dirname(__file__)) #gets pdoc working
+
+from hashlib import sha256
+
 from shared.pollTypes import *
+from shared.database import *
+from shared.locks import *
 
-CONNECTION_LIST = []
-clients_lock = threading.Lock()
+sys.path.append(os.path.dirname(__file__)) #gets pdoc working
 
-polls = []
+database = DatabaseSQL("./shared/example.db")
+database_lock = RWLock()
 
-def broadcast(msg):
-    with clients_lock:
-        for c in CONNECTION_LIST:
-            c.send(json.dumps(msg).encode())
+connection_list = {}
+connection_list_lock = RWLock()
+
+def authenticate_user(username, password):
+    """
+        Authenticate a user by checking their existance in database and validating passwordHash
+        
+        Args:
+            username: the username (email) trying to be authenticated
+            password: the password used for authentication
             
-def aggregate_poll():
-    # Since there is only one poll right now it will be the first
-    # Future there needs to be some sort of poll id
-    responses = []
-    for response in polls[0].responses:
-        responses.append(response.responseBody)
+        Returns:
+            True and user if authenticated
+            False and none of not authenticated
+    """
+    isAuthenticated = False
+    user_object = None
     
-    return responses
+    database_lock.acquire_read()
+    user = database.getUser(username)
+    database_lock.release()
     
-def add_response_to_poll(response):
-    poll = polls[0]
-    poll.addResponse(response)
+    if user is not None:
+        stored_password_hash = user[username]["password"]
+        given_password_hash = sha256(password.encode('utf-8')).hexdigest()
+
+        if given_password_hash == stored_password_hash:
+            isAuthenticated = True
+            user_object = user
+        else:
+            isAuthenticated = False
+            user_object = None
+    else:
+        isAuthenticated = False
+        user_object = None
+    
+    return {
+        "isAuthenticated" : isAuthenticated,
+        "user" : user_object
+    }
+
+def add_connection(username, connection):
+    """
+        Add an authenticated user to the connection list
+        
+        Args:
+            username (key): the username associated with the connection
+            connection (value): the connection socket
+            
+        Returns:
+            True: if username is not in connection list
+            False: if username is in connection list
+    """
+    connection_list_lock.acquire_write()
+    connection_list[username] = connection
+    connection_list_lock.release()
+
+def remove_connection(username):
+    connection_list_lock.acquire_write()
+    if username in connection_list:
+        del connection_list[username]
+    connection_list_lock.release()
 
 def threaded_client(connection):
     """
@@ -44,8 +93,124 @@ def threaded_client(connection):
         connection (socket): socket connection to client
 
     """
-    try:
+    
+    authenticated_username = None
+    
+    try:    
+        authenticated = False
+        isReedemed = False
+        while not authenticated:
+            
+            data = json.loads(connection.recv(2048).decode())
+        
+            print(data)
+        
+            if not data:
+                break
+            
+            endpoint = data["endpoint"]
+            
+            if endpoint == "Login":
+                arguments = data["Arguments"]
+                username = arguments["username"]
+                password = arguments["password"]
+                
+                authentication_result = authenticate_user(username, password)
+                
+                user = authentication_result["user"]
+                isAuthenticated = authentication_result["isAuthenticated"]
+                                
+                authentication_msg = ""
+                account_type = None
+                if isAuthenticated and (user is not None):
+                                             
+                    isReedemed = user[username]["reedemed"]
+                    if isReedemed:
+                        authentication_msg = "success"
+                        authenticated_username = username
+                        authenticated = True
+                    else:
+                        authentication_msg = "must reset"
+                        
+                    account_type = user[username]["role"]
+
+                else:
+                    authentication_msg = "failure"
+                    
+                authentication_response = {
+                    "endpoint" : "Login_result",
+                    "Arguments" : {
+                        "result" : authentication_msg,
+                        "account_type" : account_type
+                    }
+                }
+                
+                connection.send(json.dumps(authentication_response).encode())
+                continue
+                
+            if endpoint == "Reset_password":
+                arguments = data["Arguments"]
+                username = arguments["username"]
+                old_password = arguments["old_password"]
+                new_password = arguments["new_password"]
+                
+                authentication_result = authenticate_user(username, old_password)
+                
+                user = authentication_result["user"]
+                isAuthenticated = authentication_result["isAuthenticated"]
+                                
+                reset_msg = ""
+                account_type = None
+                if isAuthenticated and (user is not None):
+                
+                    new_password_hash = sha256(new_password.encode('utf-8')).hexdigest()
+                    
+                    database_lock.acquire_write()
+                    database.updateFieldViaId("users", username, "hashedPassword", new_password_hash)
+                    database.updateFieldViaId("users", username, "reedemed", "1")
+                    database_lock.release()
+                    
+                    reset_msg = "success"
+                    account_type = user[username]["role"]
+                    authenticated_username = username
+                    authenticated = True
+
+                else:
+                    reset_msg = "failure"
+
+                reset_response = {
+                    "endpoint" : "Reset_result",
+                    "Arguments" : {
+                        "result" : reset_msg,
+                        "account_type" : account_type
+                    }
+                }
+                
+                connection.send(json.dumps(reset_response).encode())
+                continue
+        
+        
+        # At this point the user is autheticated.
+        # User should never be None here but just in case
+        if authenticated_username is None:
+            return
+        
+        # Make sure we are not already connected to this user
+        connection_list_lock.acquire_read()
+        already_connected = authenticated_username in connection_list
+        connection_list_lock.release()
+        
+        if already_connected:
+            # Already connected to this user
+            print("Already Connected")
+            authenticated_username = None
+            return
+        else:
+            # Add the authenticated user to the connection list
+            add_connection(authenticated_username, connection)
+                
         while True:
+            print("Trying to get poll")
             data = json.loads(connection.recv(2048).decode())
             
             print(data)
@@ -56,26 +221,53 @@ def threaded_client(connection):
             endpoint = data["endpoint"]
             
             if endpoint == "Announce_poll":
+            
+                print("Announcing Poll!")
+                
                 poll = Poll.fromDict(data["Arguments"]["poll"])
-                polls.append(poll)
-                outgoing_msg = poll.question.toDict()
-                broadcast(json.dumps(outgoing_msg))
+                class_id = poll.classId
+                
+                print("Class: ", class_id)
+                
+                database_lock.acquire_write()
+                database.addPoll(poll)
+                class_object = database.getClassFromId(class_id)
+                database_lock.release()
+                
+                print(class_object)
+                
+                class_name = class_object["className"]
+                student_ids = class_object["students"]
+                
+                print(student_ids)
+                
+                # Send poll out to all students in class
+                connection_list_lock.acquire_read()
+                for student_id in student_ids:
+                    if student_id in connection_list:
+                        student_connection = connection_list[student_id]
+                        student_connection.send(json.dumps(poll.question.toDict()).encode())
+                connection_list.release()
+
                 continue
             
             if endpoint == "Poll_response":
-                poll_response = PollResponse.fromDict(data["Arguments"]["poll"])
-                add_response_to_poll(poll_response)
+                # poll_response = PollResponse.fromDict(data["Arguments"]["poll"])
+                # add_response_to_poll(poll_response)
                 continue
             
             if endpoint == "Aggregate_poll":
-                outgoing_msg = aggregate_poll()
-                broadcast(json.dumps(outgoing_msg))
+                # outgoing_msg = aggregate_poll()
+                # broadcast(json.dumps(outgoing_msg))
+                # get poll from id
+
                 continue
                 
     finally:
-        with clients_lock:
-            CONNECTION_LIST.remove(connection)
-            connection.close()
+        print("Closing Connection!")
+        remove_connection(authenticated_username)
+        connection.close()
+        print(connection_list)
     
 
 def main():
@@ -98,13 +290,10 @@ def main():
 
     print('Waiting for a Connection To Client..')
     serverSocket.listen(5)
-
+    
     #continuiously accept new connections
     while True:
         client, address = serverSocket.accept()
-        
-        with clients_lock:
-            CONNECTION_LIST.append(client)
                 
         print('Connected to: ' + address[0] + ':' + str(address[1]))
 

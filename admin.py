@@ -6,7 +6,7 @@ from email.utils import COMMASPACE, formatdate
 import time
 from shared import database
 
-def welcome_email(recipient):
+def welcome_email(recipient_id, recipient):
     """
         The welcome email that users will receive when they are added to system
         
@@ -14,14 +14,17 @@ def welcome_email(recipient):
             recepient: The users unique identifier
     """
     
+    print(recipient)
+    
     welcome_message = "Welcome to Classroom Voter. This email contains your user name and temporary password.  Please login to choose your own password."
     first_name = recipient["firstName"]
     last_name = recipient["lastName"]
-    userId = recipient["userID"]
+    user_id = recipient_id
     temporary_password = recipient["temporaryPassword"]
     classes = recipient["classes"]
+    type = recipient["type"]
     
-    welcome_message = "Hello " + first_name + " " + last_name + ". " "Welcome to Classroom Voter.  This email contains your username, password, and registered classes.  The next step for you is to login using these credintials to finish setting up your account.\n\n" + "Username: " + userId + "\n" + "Temporary Password: " + temporary_password + "\n" + "Registered Classes: " + classes
+    welcome_message = "Hello " + first_name + " " + last_name + ". " "Welcome to Classroom Voter.  This email contains your username, password, and registered classes.  The next step for you is to login using these credintials to finish setting up your account.\n\n" + "Username: " + user_id + "\n" + "Temporary Password: " + temporary_password + "\n" + "Registered Classes: " + str(classes)
     
     return welcome_message
     
@@ -45,12 +48,12 @@ def notify_users(recipients):
     msg["From"] = "classroomvoterAd@gmail.com"
     msg["Subject"] = "Classroom Voter Credintials"
     
-    for recipient in recipients:
-        msg["To"] = recipient
-        welcome_message = welcome_email(recipients[recipient])
+    for recipient_id in recipients:
+        msg["To"] = recipient_id
+        welcome_message = welcome_email(recipient_id, recipients[recipient_id])
         msg.attach(MIMEText(welcome_message))
 
-        smtp.sendmail("classroomvoterAd@gmail.com", recipient, msg.as_string())
+        smtp.sendmail("classroomvoterAd@gmail.com", recipient_id, msg.as_string())
 
     smtp.close()
     
@@ -75,42 +78,16 @@ def init_user(users):
 
         result = myDb.addUser(user)
 
-        
-    
-
 newUsers = {
-    "douglaswebster99@gmail.com" : {
+    "douglaswebster98@gmail.com" : {
         "firstName" : "Douglas",
         "lastName" : "Webster",
         "temporaryPassword" : "123",
         "classes" : ["cs181"],
         "type" : "students"
-    },
-    "douglaswebster@gmail.com" : {
-        "firstName" : "Douglas",
-        "lastName" : "Webster",
-        "temporaryPassword" : "123",
-        "classes" : ["cs181"],
-        "type" : "students"
-    },
-    "professor@gmail.com" : {
-        "firstName" : "Professor",
-        "lastName" : "XXX",
-        "temporaryPassword" : "123",
-        "classes" : ["cs181"],
-        "type" : "professors"
-    },
-    "professor2@gmail.com" : {
-        "firstName" : "Professor",
-        "lastName" : "XXX",
-        "temporaryPassword" : "123",
-        "classes" : ["cs181"],
-        "type" : "professors"
     }
 }
 
-print(newUsers)
-
 init_user(newUsers)
 
-# notify_users(newUsers)
+notify_users(newUsers)

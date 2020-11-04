@@ -209,6 +209,8 @@ class DatabaseSQL(object):
             print(e)
             self.conn = sqlite3.connect("testingDB.db")
             self.cursor = self.conn.cursor()
+        self.conn = sqlite3.connect(fname, check_same_thread=False)
+        self.cursor = self.conn.cursor()
         self.initTables()
 
 
