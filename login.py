@@ -87,10 +87,12 @@ def main():
         new_password = getpass.getpass(prompt="Please choose a new password: ")
         reset_password(clientSocket, username, password, new_password)
 
-    if result['Arguments']['account_type'] == 'student':
+    if result['Arguments']['account_type'] == 'students':
         client.main(clientSocket)
-    elif result['Arguments']['account_type'] == 'professor':
+    elif result['Arguments']['account_type'] == 'professors':
         professor.main(clientSocket)
+        
+
 
 if __name__ == "__main__":
     main()

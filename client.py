@@ -33,10 +33,10 @@ class VoterClient:
         while True:
 
             print("Waiting for a poll\n")
-            data = json.loads(clientSocket.recv(1024).decode()) #recieve a poll (bytestr) from the server
+            data = json.loads(clientSocket.recv(1024).decode())
 
             poll_question = self.getPollQuestion(data)
-            if poll_question != None: #question = None if bad response
+            if poll_question is not None:
                 response = self.answerPoll(poll_question)
                 self.sendResponse(response, clientSocket)    
             time.sleep(1)
@@ -55,16 +55,16 @@ class VoterClient:
             
         Returns:
             newPoll: a PollQuestion object consisting of the new question
-        """     
-        #todo: error handling
+        """
+        
         try:
-            poll_question = PollQuestion.fromJson(data)
-        except:
-            print("malformed response: " + data)
-            return None    
-        else:
+            poll_question = PollQuestion.fromDict(data)
             print("you have recieved a new poll")
             return poll_question
+        except:
+            print("malformed response: ", data)
+            return None    
+            
 
 
     def answerPoll(self, question):
@@ -77,6 +77,7 @@ class VoterClient:
         Returns:
             ans: a PollResponse object (the user's response to the poll)
         """
+        
         print(question.getPrompt())
         resp = input("Answer: ")
         return PollResponse(resp)
@@ -88,7 +89,7 @@ class VoterClient:
         Args:
             ans: a Response object, the answer to be sent
             clientSocket: the socket with the destination server"""
-        #clientSocket.send(ans.toBytes())
+            
         msg = {
             "endpoint": "Poll_response",
             "Arguments": {
@@ -101,30 +102,6 @@ class VoterClient:
 
 
 def main(clientSocket):
-    """ Parses command line arguments and creates a new VoterClient Object
-            `usage: python3 nameOfFile.py <host> <host-port>`
-    """
-    
-    #TODO: change this out for argparse
-    if len(sys.argv)!=1 and len(sys.argv)!= 3: # either need no args or both ip and port
-        print("usage: python3 %s or python3 %s <server-ip> <server-port>" % sys.argv[0])
-        quit(1)
-
-    host = None
-    port = None
-
-    print("#"*80)
-    print('\t\t\tWelcome to classroom voter')
-    print("#"*80)
-
-    if len(sys.argv) == 3:
-        host = sys.argv[1]
-        port = sys.argv[2]
-    else:
-        host = input("Enter the IP address of the server (eg 192.168.61.1): ")
-        port = int(input("Enter the port of the server (eg 1500): "))
-
-
 
     client = VoterClient(clientSocket)
     # this initializes a VoterClient object

@@ -210,7 +210,6 @@ def threaded_client(connection):
             add_connection(authenticated_username, connection)
                 
         while True:
-            print("Trying to get poll")
             data = json.loads(connection.recv(2048).decode())
             
             print(data)
@@ -221,39 +220,35 @@ def threaded_client(connection):
             endpoint = data["endpoint"]
             
             if endpoint == "Announce_poll":
-            
-                print("Announcing Poll!")
-                
+                            
                 poll = Poll.fromDict(data["Arguments"]["poll"])
                 class_id = poll.classId
-                
-                print("Class: ", class_id)
-                
+                                
                 database_lock.acquire_write()
                 database.addPoll(poll)
                 class_object = database.getClassFromId(class_id)
                 database_lock.release()
-                
-                print(class_object)
-                
+                                
                 class_name = class_object["className"]
                 student_ids = class_object["students"]
-                
-                print(student_ids)
-                
+        
                 # Send poll out to all students in class
                 connection_list_lock.acquire_read()
                 for student_id in student_ids:
                     if student_id in connection_list:
                         student_connection = connection_list[student_id]
                         student_connection.send(json.dumps(poll.question.toDict()).encode())
-                connection_list.release()
-
+                connection_list_lock.release()
+                
                 continue
             
             if endpoint == "Poll_response":
-                # poll_response = PollResponse.fromDict(data["Arguments"]["poll"])
-                # add_response_to_poll(poll_response)
+                poll_response = PollResponse.fromDict(data["Arguments"]["poll"])
+                
+                """database_lock.acquire_write()
+                add_response_to_poll(poll_response)
+                database_lock.release()"""
+                
                 continue
             
             if endpoint == "Aggregate_poll":

@@ -57,13 +57,6 @@ def collect_responses(clientSocket):
     return data
 
 def main(clientSocket):
-    try:
-        clientSocket.connect((ip, port))
-        print('Successful Connection')
-    except socket.error as e:
-        print('Failed Connection: ' + str(e))
-        return
-
 
     while True:
         prompt = input("To create a new poll, enter  'np'. To collect responses, enter 'cr'. To quit, enter 'quit': ")
