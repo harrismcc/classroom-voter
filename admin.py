@@ -5,6 +5,7 @@ from email.mime.text import MIMEText
 from email.utils import COMMASPACE, formatdate
 import time
 from shared import database
+from hashlib import sha256
 
 def welcome_email(recipient_id, recipient):
     """
@@ -70,7 +71,7 @@ def init_user(users):
                 "role" : userType,
                 "firstName" : newUser["firstName"],
                 "lastName" : newUser["lastName"],
-                "password" : newUser["temporaryPassword"],
+                "password" : sha256(newUser["temporaryPassword"].encode('utf-8')).hexdigest(),
                 "classes" : newUser["classes"],
                 "reedemed" : False
                     }
