@@ -14,18 +14,36 @@ import professor
 import client
 
 
+
 def prompt_for_ip():
+    """prompts the user for IP address and port of server
+
+    Returns:
+         (ip, port)"""
     ip = input("Enter the IP address of the server (eg 192.168.61.1): ")
     port = int(input("Enter the port of the server (eg 1500): "))
     return (ip, port)
 
 def send_msg(clientSocket, msg):
+    """writes a message to the client socket
+
+    Args:
+         clientSocket: a socket to the server
+         msg: the message to send"""
     try:
         clientSocket.send(str.encode(json.dumps(msg)))
     except socket.error as e:
         print('Failed to send message: ' + str(e))
 
 def attempt_login(clientSocket, username, password):
+    """Attempts to log in to the server with certain credentials
+
+    Args:
+         clientSocket: a socket to the server
+         username: string username
+         password: string password
+    Returns:
+        response: dictionary of the arguments in the response from the server"""
     msg = {
         "endpoint": "Login",
         "Arguments": {
@@ -36,6 +54,42 @@ def attempt_login(clientSocket, username, password):
     send_msg(clientSocket, msg)
     response = json.loads(clientSocket.recv(2048).decode())
     return response
+
+
+def get_new_password():
+    """prompts the user for a new password that satisfies comprehensive8 requirements
+    Returns:
+        password: string password that satisfies comprehensive8"""
+
+    valid = False
+    password = ""
+    while not valid:
+        password = getpass.getpass(prompt = "please enter your new password: \n(note: Password must have atleast 8 characters including an uppercase and lowercase letter, a symbol, and a digit.\n")
+        valid = True
+        if len(password) < 8:
+            valid = False
+            print("password must be at least eight characters! \n")
+        if not any(x.isupper() for x in password):
+            valid = False
+            print("password must contain at least one uppercase character! \n")
+        if not any(x.islower() for x in password):
+            valid = False
+            print("password must contain at least one lowercase character! \n")
+        if not any(x.isnumeric() for x in password):
+            valid = False
+            print("password must contain at least one digit! \n")
+        symbols = '!@#$%^&*()-_+=`~[]{},./<>?|'
+        if not any(x in symbols for x in password):
+            valid = False
+            print("password must contain at least one symbol (!@#$%^&*()-_+=`~[]{},./<>?|) \n")
+        if valid:
+            confirm = getpass.getpass(prompt = "please enter the password again to confirm:")
+            if confirm != password:
+                valid = False
+                print("Passwords don't match! Try again")
+
+    return password
+
 
 def reset_password(clientSocket, username, password, new_password):
     msg = {
@@ -84,9 +138,12 @@ def main():
         print('Invalid credentials. Try again.')
     
     if result['Arguments']['result'] == 'must reset':
-        new_password = getpass.getpass(prompt="Please choose a new password: ")
+        #new_password = getpass.getpass(prompt="Please choose a new password: ")
+        new_password = get_new_password()
         reset_password(clientSocket, username, password, new_password)
 
+
+    
     if result['Arguments']['account_type'] == 'students':
         client.main(clientSocket)
     elif result['Arguments']['account_type'] == 'professors':
