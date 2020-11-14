@@ -4,3 +4,6 @@ shared/__pycache__/
 tests/__pycache__/
 .pylintrc
 __pycache__
+*.db
+*.out
+*.logs
