@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 The `server` module handles the socket networking with the clients, placing them each into
 their own threaded connection.
@@ -19,7 +20,9 @@ from shared.locks import *
 
 sys.path.append(os.path.dirname(__file__)) #gets pdoc working
 
-database = DatabaseSQL("./shared/example.db")
+dirname = os.path.dirname(__file__)
+db_path = os.path.join(dirname, 'shared/example.db')
+database = DatabaseSQL(db_path)
 database_lock = RWLock()
 
 connection_list = {}
@@ -100,13 +103,13 @@ def threaded_client(connection):
         authenticated = False
         isReedemed = False
         while not authenticated:
-            
-            data = json.loads(connection.recv(2048).decode())
-        
-            print(data)
-        
+            data = connection.recv(2048)
             if not data:
                 break
+
+            data = json.loads(data.decode())
+
+            print(data)
             
             endpoint = data["endpoint"]
             
@@ -210,12 +213,13 @@ def threaded_client(connection):
             add_connection(authenticated_username, connection)
                 
         while True:
-            data = json.loads(connection.recv(2048).decode())
-            
-            print(data)
-
+            data = connection.recv(2048)
             if not data:
                 break
+
+            data = json.loads(data.decode())
+
+            print(data)
             
             endpoint = data["endpoint"]
             
@@ -228,6 +232,8 @@ def threaded_client(connection):
                 database.addPoll(poll)
                 class_object = database.getClassFromId(class_id)
                 database_lock.release()
+                if class_object is None:
+                    continue
                                 
                 class_name = class_object["className"]
                 student_ids = class_object["students"]
