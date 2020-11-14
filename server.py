@@ -49,7 +49,8 @@ def authenticate_user(username, password):
     
     if user is not None:
         stored_password_hash = user[username]["password"]
-        given_password_hash = sha256(password.encode('utf-8')).hexdigest()
+        salt = user[username]["salt"]
+        given_password_hash = sha256((password + salt).encode('utf-8')).hexdigest()
 
         if given_password_hash == stored_password_hash:
             isAuthenticated = True
@@ -165,8 +166,8 @@ def threaded_client(connection):
                 reset_msg = ""
                 account_type = None
                 if isAuthenticated and (user is not None):
-                
-                    new_password_hash = sha256(new_password.encode('utf-8')).hexdigest()
+                    salt = user['salt']
+                    new_password_hash = sha256((new_password+salt).encode('utf-8')).hexdigest()
                     
                     database_lock.acquire_write()
                     database.updateFieldViaId("users", username, "hashedPassword", new_password_hash)

@@ -82,7 +82,7 @@ def init_user(users):
                 "role": userType,
                 "firstName": newUser["firstName"],
                 "lastName": newUser["lastName"],
-                "password": sha256(newUser["temporaryPassword"].encode('utf-8')).hexdigest(),
+                "password": newUser["temporaryPassword"],
                 "classes": newUser["classes"],
                 "reedemed": False
             }
