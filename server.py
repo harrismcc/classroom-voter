@@ -225,29 +225,26 @@ def threaded_client(connection):
             endpoint = data["endpoint"]
             
             if endpoint == "Announce_poll":
-                            
                 poll = Poll.fromDict(data["Arguments"]["poll"])
-                class_id = poll.classId
                                 
                 database_lock.acquire_write()
                 database.addPoll(poll)
-                class_object = database.getClassFromId(class_id)
                 database_lock.release()
-                if class_object is None:
-                    continue
-                                
-                class_name = class_object["className"]
-                student_ids = class_object["students"]
-        
-                # Send poll out to all students in class
-                connection_list_lock.acquire_read()
-                for student_id in student_ids:
-                    if student_id in connection_list:
-                        student_connection = connection_list[student_id]
-                        student_connection.send(json.dumps(poll.question.toDict()).encode())
-                connection_list_lock.release()
-                
                 continue
+            
+            if endpoint == "Get_next_poll":
+                # Send out the next unseen poll
+                connection_list_lock.acquire_read()
+                student_connection = connection_list[authenticated_username]
+                next_poll = database.getNextPollForUser(authenticated_username)
+                if not next_poll:
+                    student_connection.send("No new polls".encode())
+
+                next_poll_question = {
+                    "prompt": next_poll['question']
+                }
+                student_connection.send(json.dumps(next_poll_question).encode())
+                connection_list_lock.release()
             
             if endpoint == "Poll_response":
                 poll_response = PollResponse.fromDict(data["Arguments"]["poll"])
