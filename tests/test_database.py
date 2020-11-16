@@ -26,6 +26,7 @@ class DatabaseSQLTesting(unittest.TestCase):
                 "firstName" : "John",
                 "lastName" : "Doe",
                 "password" : "ecd4d1aad41a446759d25de6c830d60cc3c8548be9760f0babe03094e6a59ee3",
+                'salt' : '',
                 "classes" : [12, 1442, 123],
                 "reedemed" : True,
                 "role" : "professors"
@@ -33,6 +34,7 @@ class DatabaseSQLTesting(unittest.TestCase):
         }
 
         cls.classTemplate = {
+            'classId' : 1,
             "className": 'Into to Blah',
             "courseCode": 'UNIQ99',
             "students" : ["mrstudent@gmail.com"],
@@ -50,6 +52,7 @@ class DatabaseSQLTesting(unittest.TestCase):
             'startTime' : "2020-10-27 16:25:07",
             'endTime' : "2025-10-27 16:25:07",
             'ownerId' : 'bebop@yahoo.com',
+            'pollId' : 1,
             'classId' : 0,
             'responses': []}
         
