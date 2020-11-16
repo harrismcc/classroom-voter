@@ -8,7 +8,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import COMMASPACE, formatdate
 import time
-from shared import database
+from shared import database # pylint: disable=import-error
 from hashlib import sha256
 
 

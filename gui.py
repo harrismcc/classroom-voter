@@ -2,8 +2,8 @@ from tkinter import *
 import json
 import asyncio
 from login import *
-from client import VoterClient
-from shared.pollTypes import PollResponse
+from client import VoterClient # pylint: disable=import-error
+from shared.pollTypes import PollResponse # pylint: disable=import-error
 
 def displayErrorWindow(master, message):
     """Displays an error window with the message and an OK button"""

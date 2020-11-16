@@ -6,7 +6,7 @@ import socket
 import os
 import sys
 import time
-from shared.pollTypes import PollResponse, PollQuestion
+from shared.pollTypes import PollResponse, PollQuestion # pylint: disable=import-error
 import json
 
 class VoterClient:
@@ -42,8 +42,8 @@ class VoterClient:
                 msg = {
                     "endpoint": "Get_next_poll"
                 }
-                clientSocket.send(json.dumps(msg))
-                data = clientSocket.recv(1024)
+                self.clientSocket.send(json.dumps(msg))
+                data = self.clientSocket.recv(1024)
                 data = json.loads(data.decode())
                 if data is None or data == "No new polls":
                     print("No new polls.")
