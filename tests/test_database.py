@@ -60,13 +60,19 @@ class DatabaseSQLTesting(unittest.TestCase):
 
     def test_addStudentToDB(self):
         student = self.userTemplate
+        def students_are_equal_modulo_salt(a, b):
+            for email in a:
+                for k in a[email]:
+                    if k != "password" and k != "salt" and a[email][k] != b[email][k]:
+                        return False
+            return True
 
         #test add user to db
         self.assertTrue(self.db.addUser(student))
 
         #test pull that user from the db
         result = self.db.getUser("test@gmail.com")
-        self.assertEqual(student, result)
+        self.assertTrue(students_are_equal_modulo_salt(student, result))
 
         #test pull to nothing
         result = self.db.getUser("notindb")
@@ -77,7 +83,7 @@ class DatabaseSQLTesting(unittest.TestCase):
         self.assertTrue(result)
         student["test@gmail.com"]["firstName"] = "NewName"
 
-        self.assertEqual(student, self.db.getUser("test@gmail.com"))
+        self.assertTrue(students_are_equal_modulo_salt(student, self.db.getUser("test@gmail.com")))
     
     def test_addClassToDB(self):
         classD = self.classTemplate

@@ -4,7 +4,8 @@ import json
 import os
 import sqlite3
 import datetime
-
+import random
+from hashlib import sha256
 
 
 
@@ -224,6 +225,7 @@ class DatabaseSQL(object):
             "firstName" : first-name,
             "lastName" : last-name,
             "password" : password-hash,
+            "salt"     : salt,
             "classes" : {
                             "class-id" : poll-id-of-last-response,
                             "class-id" : poll-id-of-last-response,
@@ -242,12 +244,16 @@ class DatabaseSQL(object):
             int: id of n
         """
         email = list(userDict.keys())[0]
+        salt = str(random.randint(0, 4096))
+        hashed_pass = sha256(
+            (userDict[email]['password'] + salt).encode('utf-8')).hexdigest()
+        unseen_polls = json.dumps([])
 
-        vals = (email, userDict[email]['role'], userDict[email]['firstName'], 
-                userDict[email]['lastName'], userDict[email]['password'], 
-                json.dumps(userDict[email]['classes']), userDict[email]['reedemed'], )
+        vals = (email, userDict[email]['role'], userDict[email]['firstName'],
+                userDict[email]['lastName'], hashed_pass, salt,
+                json.dumps(userDict[email]['classes']), userDict[email]['reedemed'], unseen_polls, )
         try:
-            result = self.cursor.execute("INSERT INTO users VALUES (?, ?, ?, ?, ?, ?, ?)", vals)
+            result = self.cursor.execute("INSERT INTO users VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", vals)
             self.conn.commit()
             #TODO: Make this return an ID
             return True
@@ -296,11 +302,35 @@ class DatabaseSQL(object):
         except sqlite3.IntegrityError:
             return False
 
+
+    def getNextPollForUser(self, student_id):
+        """
+        Get the next poll for the user, or None if none is available.
+        Removes poll from list.
+
+        Args:
+            student_id: student of the next poll to get
+
+        Returns:
+            pollObject (Poll): Poll object for the next poll
+        """
+        student = self.getUser(student_id)
+        student = student[list(student.keys())[0]]
+        unseen_polls = json.loads(student['unseenPolls'])
+        if not unseen_polls:
+            return None
+        next_poll_id = unseen_polls.pop()
+
+        # Put the popped list back in the table
+        updateFieldViaId('users', student_id, 'unseenPolls', jsonn.dumps(unseen_polls))
+
+        return self.getPollFromId(next_poll_id)
         
 
     def addPoll(self, pollObject):
         """
-        Adds a new poll to the DB
+        Adds a new poll to the DB. Automatically adds it to the 
+        list of unseen polls for all users.
 
         Args:
             pollObject (Poll): Poll object to add to the db
@@ -320,6 +350,17 @@ class DatabaseSQL(object):
             return True
         except sqlite3.IntegrityError as e:
             return False
+
+        class_object = self.getClassFromId(pollObject.classId)
+        student_ids = class_object["students"]
+        for student_id in student_ids:
+            # Add poll to unseen polls for that student
+            student = self.getUser(student_id)
+            student = student[list(student.keys())[0]]
+            unseen_polls = json.loads(student['unseenPolls'])
+            unseen_polls.append(pollObject.pollId)
+            updateFieldViaId('users', student_id, 'unseenPolls', jsonn.dumps(unseen_polls))
+
 
     def addClass(self, classDict):
         """
@@ -363,8 +404,10 @@ class DatabaseSQL(object):
             'firstName' : studentTuple[2],
             'lastName' : studentTuple[3],
             'password' : studentTuple[4],
-            'classes' : json.loads(studentTuple[5]),
-            'reedemed' : studentTuple[6] != 0
+            'salt' : studentTuple[5],
+            'classes' : json.loads(studentTuple[6]),
+            'reedemed' : studentTuple[7] != 0,
+            'unseenPolls' : json.loads(studentTuple[8]),
         }}
 
         return out
@@ -550,8 +593,9 @@ class DatabaseSQL(object):
 
         #Create Users
         c.execute('''CREATE TABLE IF NOT EXISTS users(
-            emailAddress text, role text, firstName text, lastName text, hashedPassword text, classes text, reedemed boolean, 
-            primary key (emailAddress, role))''')
+            emailAddress text, role text, firstName text, lastName text,
+            hashedPassword text, salt text, classes text, reedemed boolean, 
+            unseenPolls text, primary key (emailAddress, role))''')
 
         #Create Polls
         c.execute(''' CREATE TABLE IF NOT EXISTS polls (
