@@ -302,7 +302,7 @@ class PollQuestion(object):
         Returns:
             string: the question prompt    
         """
-        return self.prompt
+        return str(self.prompt)
 
     def setAnswer(self, answer):
         """

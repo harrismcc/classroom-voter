@@ -44,6 +44,7 @@ def authenticate_user(username, password):
     user_object = None
     
     database_lock.acquire_read()
+
     user = database.getUser(username)
     database_lock.release()
     
@@ -145,7 +146,8 @@ def threaded_client(connection):
                     "endpoint" : "Login_result",
                     "Arguments" : {
                         "result" : authentication_msg,
-                        "account_type" : account_type
+                        "account_type" : account_type, 
+                        "username" : username
                     }
                 }
                 
@@ -166,7 +168,7 @@ def threaded_client(connection):
                 reset_msg = ""
                 account_type = None
                 if isAuthenticated and (user is not None):
-                    salt = user['salt']
+                    salt = user[username]['salt']
                     new_password_hash = sha256((new_password+salt).encode('utf-8')).hexdigest()
                     
                     database_lock.acquire_write()
@@ -186,7 +188,8 @@ def threaded_client(connection):
                     "endpoint" : "Reset_result",
                     "Arguments" : {
                         "result" : reset_msg,
-                        "account_type" : account_type
+                        "account_type" : account_type,
+                        "username" : username
                     }
                 }
                 
@@ -233,6 +236,7 @@ def threaded_client(connection):
                 continue
             
             if endpoint == "Get_next_poll":
+                '''
                 # Send out the next unseen poll
                 connection_list_lock.acquire_read()
                 student_connection = connection_list[authenticated_username]
@@ -244,10 +248,42 @@ def threaded_client(connection):
                     "prompt": next_poll['question']
                 }
                 student_connection.send(json.dumps(next_poll_question).encode())
+                connection_list_lock.release()'''
+
+
+                #TODO: Currently this just returns the top of the list of unanswered polls,
+                #      it might be better to send the client the entire list and let them
+                #      sort it out client-side
+                connection_list_lock.acquire_read()
+                student_connection = connection_list[authenticated_username]
+
+
+                username = authenticated_username
+                role = "students"
+                resp = database.getPollsForUser(username, role)
+                out = []
+
+                responded = database.getAnsweredPollIdsForUser(username)
+                for poll in resp:
+                    if poll["pollId"] not in responded:
+                        out.append(poll)
+    
+                try:
+                    out = out[0]
+                except IndexError:
+                    out = {}
+
+                student_connection.send(json.dumps(out).encode())
                 connection_list_lock.release()
+                
+
+
             
             if endpoint == "Poll_response":
                 poll_response = PollResponse.fromDict(data["Arguments"]["poll"])
+                print(authenticated_username)
+
+                database.addResponse(authenticated_username, int(data["Arguments"]["pollId"]), json.dumps(poll_response.toDict()))
                 
                 """database_lock.acquire_write()
                 add_response_to_poll(poll_response)
@@ -261,6 +297,38 @@ def threaded_client(connection):
                 # get poll from id
 
                 continue
+            
+            if endpoint == "Get_polls_for_user":
+                """gets all polls for user"""
+                username = data["Arguments"]["username"]
+                role = data["Arguments"]["role"]
+                filterValue = None
+                try:
+                    filterValue = data["Arguments"]["filter"]
+                except KeyError:
+                    pass
+            
+                resp = database.getPollsForUser(username, role)
+                out = []
+
+                if filterValue == "active":
+                    responded = database.getAnsweredPollIdsForUser(username)
+                    for poll in resp:
+                        if poll["pollId"] not in responded:
+                            out.append(poll)
+                elif filterValue == "answered":
+                    responded = database.getAnsweredPollIdsForUser(username)
+                    for poll in resp:
+                        if poll["pollId"] in responded:
+                            out.append(poll)
+                else:
+                    out = resp
+
+                connection.send(json.dumps(out).encode())
+                
+
+
+
                 
     finally:
         print("Closing Connection!")
@@ -278,6 +346,7 @@ def main():
     port = sys.argv[1]
 
     serverSocket = socket.socket()
+    serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     host = 'localhost'
     port = int(port)
     threadCount = 0
