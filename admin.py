@@ -4,6 +4,7 @@ import smtplib
 import os
 import ssl
 import json
+import random
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import COMMASPACE, formatdate
@@ -77,12 +78,16 @@ def init_user(users):
         newUser = users[userId]
         userType = newUser["type"]
 
+        salt = str(random.randint(0, 4096))
+        hashed_pass = sha256((newUser["temporaryPassword"] + salt).encode('utf-8')).hexdigest()
+
         user = {
             userId: {
                 "role": userType,
                 "firstName": newUser["firstName"],
                 "lastName": newUser["lastName"],
-                "password": newUser["temporaryPassword"],
+                "password": hashed_pass,
+                "salt": salt,
                 "classes": newUser["classes"],
                 "reedemed": False
             }

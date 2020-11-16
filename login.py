@@ -69,25 +69,32 @@ class LoginTools(object):
 
     def main(self):
 
-
-
         while True:
             username = input("Enter username: ")
-            password = getpass.getpass()
+            password = self.safe_prompt_for_password()
             result = self.attempt_login(username, password)
             if result['Arguments']['result'] == 'success' or result['Arguments']['result'] == 'must reset':
                 break
-            if self.cli: print('Invalid credentials. Try again.')
+            print('Invalid credentials. Try again.')
         
         if result['Arguments']['result'] == 'must reset':
-            new_password = getpass.getpass(prompt="Please choose a new password: ")
+            new_password = self.safe_prompt_for_password("Please choose a new password:")
             self.reset_password(username, password, new_password)
 
         if result['Arguments']['account_type'] == 'students':
-            client.main(self.clientSocket)
+            client.main(self.clientSocket, result['Arguments']['username'])
         elif result['Arguments']['account_type'] == 'professors':
             professor.main(self.clientSocket)
         
+    def safe_prompt_for_password(self, prompt='Enter Password: '):
+        if os.isatty(sys.stdin.fileno()):
+            os.system("stty -echo")
+            password = input(prompt)
+            os.system("stty echo")
+            print("")
+        else:
+            password = input(prompt)
+        return password
 
 
 
@@ -95,18 +102,6 @@ def prompt_for_ip():
     ip = input("Enter the IP address of the server (eg 192.168.61.1): ")
     port = int(input("Enter the port of the server (eg 1500): "))
     return (ip, port)
-
-if __name__ == "__main__":
-
-def safe_prompt_for_password(prompt='Enter Password: '):
-    if os.isatty(sys.stdin.fileno()):
-        os.system("stty -echo")
-        password = input(prompt)
-        os.system("stty echo")
-        print("")
-    else:
-        password = input(prompt)
-    return password
 
 def main():
     if len(sys.argv)!=1 and len(sys.argv)!= 3: # either need no args or both ip and port
@@ -124,31 +119,11 @@ def main():
             port = int(sys.argv[2])
     else:
         ip, port = prompt_for_ip()
-
-    clientSocket = socket.socket()
-    try:
-        clientSocket.connect((ip, port))
-        print('Successful Connection')
-    except socket.error as e:
-        print('Failed Connection: ' + str(e))
-        return
-
-    while True:
-        username = input("Enter username: ")
-        password = safe_prompt_for_password()
-        result = attempt_login(clientSocket, username, password)
-        if result['Arguments']['result'] == 'success' or result['Arguments']['result'] == 'must reset':
-            break
-        print('Invalid credentials. Try again.')
     
-    if result['Arguments']['result'] == 'must reset':
-        new_password = safe_prompt_for_password("Please choose a new password:")
-        reset_password(clientSocket, username, password, new_password)
-
-    if result['Arguments']['account_type'] == 'students':
-        client.main(clientSocket)
-    elif result['Arguments']['account_type'] == 'professors':
-        professor.main(clientSocket)
+    login = LoginTools(ip, port, cli="True")
+    
+    
+    
         
 
 

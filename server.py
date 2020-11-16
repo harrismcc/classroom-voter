@@ -44,6 +44,7 @@ def authenticate_user(username, password):
     user_object = None
     
     database_lock.acquire_read()
+
     user = database.getUser(username)
     database_lock.release()
     
@@ -167,7 +168,7 @@ def threaded_client(connection):
                 reset_msg = ""
                 account_type = None
                 if isAuthenticated and (user is not None):
-                    salt = user['salt']
+                    salt = user[username]['salt']
                     new_password_hash = sha256((new_password+salt).encode('utf-8')).hexdigest()
                     
                     database_lock.acquire_write()
@@ -235,6 +236,7 @@ def threaded_client(connection):
                 continue
             
             if endpoint == "Get_next_poll":
+                '''
                 # Send out the next unseen poll
                 connection_list_lock.acquire_read()
                 student_connection = connection_list[authenticated_username]
@@ -246,7 +248,36 @@ def threaded_client(connection):
                     "prompt": next_poll['question']
                 }
                 student_connection.send(json.dumps(next_poll_question).encode())
+                connection_list_lock.release()'''
+
+
+                #TODO: Currently this just returns the top of the list of unanswered polls,
+                #      it might be better to send the client the entire list and let them
+                #      sort it out client-side
+                connection_list_lock.acquire_read()
+                student_connection = connection_list[authenticated_username]
+
+
+                username = authenticated_username
+                role = "students"
+                resp = database.getPollsForUser(username, role)
+                out = []
+
+                responded = database.getAnsweredPollIdsForUser(username)
+                for poll in resp:
+                    if poll["pollId"] not in responded:
+                        out.append(poll)
+    
+                try:
+                    out = out[0]
+                except IndexError:
+                    out = {}
+
+                student_connection.send(json.dumps(out).encode())
                 connection_list_lock.release()
+                
+
+
             
             if endpoint == "Poll_response":
                 poll_response = PollResponse.fromDict(data["Arguments"]["poll"])
