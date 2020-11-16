@@ -17,17 +17,18 @@ class VoterClient:
         clientSocket (socket): socket to connect to
 
     """
-    def __init__(self, clientSocket):
+    def __init__(self, clientSocket, cli=True):
         """
         Creates a new VoterClient object
 
         Args:
             clientSocket (socket): socket to connect to
         """
+        self.clientSocket = clientSocket
+        if cli:
+            self.startConnection()
 
-        self.startConnection(clientSocket)
-
-    def startConnection(self, clientSocket):
+    def startConnection(self):
         """ starts up a connection loop to the server, specified by the host ip and host port """
 
         while True:
@@ -54,10 +55,10 @@ class VoterClient:
             poll_question = self.getPollQuestion(data)
             if poll_question is not None:
                 response = self.answerPoll(poll_question)
-                self.sendResponse(response, clientSocket)    
+                self.sendResponse(response)    
             time.sleep(1)
 
-        clientSocket.close()
+        #clientSocket.close()
         
     def toString(self):
         return "Client with host: <" + str(self.host) + "> and port: <" + str(self.port) +">"
@@ -99,7 +100,7 @@ class VoterClient:
         return PollResponse(resp)
         
 
-    def sendResponse(self, response, clientSocket):
+    def sendResponse(self, response, pollId):
         """Sends the user's response to a poll to the server
 
         Args:
@@ -109,17 +110,37 @@ class VoterClient:
         msg = {
             "endpoint": "Poll_response",
             "Arguments": {
-                "poll": response.toDict()
+                "poll": response.toDict(),
+                "pollId": pollId
             }
         }
         
-        clientSocket.send(json.dumps(msg).encode())
-    
+        self.clientSocket.send(json.dumps(msg).encode())
+
+    def sendServerEndpoint(self, endpoint, data):
+        out = {
+            'endpoint': endpoint,
+            'Arguments': data
+        }
+        self.clientSocket.send(json.dumps(out).encode())
+
+        #wait for response
+        resp = None
+        while resp == None:
+            resp = self.clientSocket.recv(4096).decode()
+        print(resp)
+        
+        try:    
+            data = json.loads(resp)
+        except json.JSONDecodeError:
+            print("JSON decode error (No data)")
+        
+        return data
 
 
-def main(clientSocket):
+def main(clientSocket, userId):
 
-    client = VoterClient(clientSocket)
+    client = VoterClient(clientSocket, userId)
     # this initializes a VoterClient object
     # which involves starting the connection to the server
     # in startConnection. from there, everything 
@@ -128,4 +149,5 @@ def main(clientSocket):
     
 
 if __name__ == "__main__":
-    main()
+    #main()
+    pass

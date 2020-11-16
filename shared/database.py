@@ -397,6 +397,21 @@ class DatabaseSQL(object):
         except sqlite3.IntegrityError as e:
             return False
 
+    def addResponse(self, userId, pollId, pollBody):
+        """Adds a poll response to the dict"""
+
+        c = self.conn.cursor()
+
+
+        try:
+            #responseId integer primary key autoincrement, userId text, pollId integer, responseBody text
+            c.execute("INSERT INTO responses VALUES (null, ?, ?, ?)", (userId, pollId, pollBody))
+            self.conn.commit()
+            return True
+        except sqlite3.IntegrityError as e:
+            return False
+
+
 
     def _formatUser(self, studentTuple):
         out = {studentTuple[0] : {
@@ -436,6 +451,7 @@ class DatabaseSQL(object):
 
         out = {
             'question': d,
+            'pollId' : pollTuple[0],
             'startTime' : pollTuple[1],
             'endTime' : pollTuple[2],
             'ownerId' : pollTuple[3],
@@ -454,9 +470,47 @@ class DatabaseSQL(object):
         if result is not None:
             return self._formatPoll(result)
 
+    def getPollsForUser(self, userId, userRole):
+        c = self.conn.cursor()
+
+        polls = []
+
+        #first, get a users class id's
+        c.execute("SELECT classes FROM users WHERE emailAddress=? AND role=?", (userId, userRole))
+        result = c.fetchone()
+
+        if result is not None:
+            classes = json.loads(result[0])
+        else:
+            return None
+        #iterate through class list
+        for classId in classes:
+            #for each class id, grab all associated polls
+            c.execute("SELECT * FROM polls WHERE classId=?", (classId, ))
+            result = c.fetchall()
+
+            for pollTuple in result:
+                polls.append(self._formatPoll(pollTuple))
+        
+        return polls
+
+    def getAnsweredPollIdsForUser(self, userId):
+        """get a list of poll Id's for which the user userId has a response"""
+        c = self.conn.cursor()
+
+        c.execute("SELECT pollId FROM responses WHERE userId=?", (userId, ))
+        result = c.fetchall()
+        out = [r[0] for r in result]
+
+        return out
+
+  
+
+
 
     def _formatClass(self, classTuple):
-        out = {
+        out = { 
+                "classId": classTuple[0],
                 "className": classTuple[1],
                 "courseCode": classTuple[2],
                 "students" : json.loads(classTuple[3]),
@@ -609,6 +663,12 @@ class DatabaseSQL(object):
 
         #Create Responses
         c.execute(''' CREATE TABLE IF NOT EXISTS responses (
-            responseId integer primary key autoincrement, userId text, responseBody text
+            responseId integer primary key autoincrement, userId text, pollId integer, responseBody text
             )''')
 
+if __name__ == "__main__":
+    test = DatabaseSQL("example.db")
+
+    test.getPollsForUser("harrismcc+student@gmail.com", "students")
+
+    test.getAnsweredPollIdsForUser("harrismcc+student@gmail.com")
