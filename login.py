@@ -1,4 +1,4 @@
-#! python3
+#!/usr/bin/env python3
 """
 The `login` module is the main entry point for any client.
 The client enters credentials, and if authenticated, enters they main
@@ -6,6 +6,7 @@ loop for either students or professors, depending on who they authenticated as.
 """
 
 import socket
+import os
 import sys
 import json
 import getpass
@@ -64,7 +65,7 @@ def get_new_password():
     valid = False
     password = ""
     while not valid:
-        password = getpass.getpass(prompt = "please enter your new password: \n(note: Password must have atleast 8 characters including an uppercase and lowercase letter, a symbol, and a digit.\n")
+        password = safe_prompt_for_password("please enter your new password: \n(note: Password must have atleast 8 characters including an uppercase and lowercase letter, a symbol, and a digit.\n Password: ")
         valid = True
         if len(password) < 8:
             valid = False
@@ -83,7 +84,7 @@ def get_new_password():
             valid = False
             print("password must contain at least one symbol (!@#$%^&*()-_+=`~[]{},./<>?|) \n")
         if valid:
-            confirm = getpass.getpass(prompt = "please enter the password again to confirm:")
+            confirm = safe_prompt_for_password("please enter the password again to confirm:")
             if confirm != password:
                 valid = False
                 print("Passwords don't match! Try again")
@@ -102,6 +103,16 @@ def reset_password(clientSocket, username, password, new_password):
     }
     send_msg(clientSocket, msg)
 
+
+def safe_prompt_for_password(prompt='Enter Password: '):
+    if os.isatty(sys.stdin.fileno()):
+        os.system("stty -echo")
+        password = input(prompt)
+        os.system("stty echo")
+        print("")
+    else:
+        password = input(prompt)
+    return password
 
 def main():
     if len(sys.argv)!=1 and len(sys.argv)!= 3: # either need no args or both ip and port
@@ -128,18 +139,20 @@ def main():
         print('Failed Connection: ' + str(e))
         return
 
-
     while True:
         username = input("Enter username: ")
-        password = getpass.getpass()
+        password = safe_prompt_for_password()
         result = attempt_login(clientSocket, username, password)
         if result['Arguments']['result'] == 'success' or result['Arguments']['result'] == 'must reset':
             break
         print('Invalid credentials. Try again.')
     
     if result['Arguments']['result'] == 'must reset':
+<<<<<<< HEAD
         #new_password = getpass.getpass(prompt="Please choose a new password: ")
         new_password = get_new_password()
+=======
+>>>>>>> master
         reset_password(clientSocket, username, password, new_password)
 
 

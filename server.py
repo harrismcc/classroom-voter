@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 The `server` module handles the socket networking with the clients, placing them each into
 their own threaded connection.
@@ -19,7 +20,9 @@ from shared.locks import *
 
 sys.path.append(os.path.dirname(__file__)) #gets pdoc working
 
-database = DatabaseSQL("./shared/example.db")
+dirname = os.path.dirname(__file__)
+db_path = os.path.join(dirname, 'shared/example.db')
+database = DatabaseSQL(db_path)
 database_lock = RWLock()
 
 connection_list = {}
@@ -46,7 +49,8 @@ def authenticate_user(username, password):
     
     if user is not None:
         stored_password_hash = user[username]["password"]
-        given_password_hash = sha256(password.encode('utf-8')).hexdigest()
+        salt = user[username]["salt"]
+        given_password_hash = sha256((password + salt).encode('utf-8')).hexdigest()
 
         if given_password_hash == stored_password_hash:
             isAuthenticated = True
@@ -100,13 +104,13 @@ def threaded_client(connection):
         authenticated = False
         isReedemed = False
         while not authenticated:
-            
-            data = json.loads(connection.recv(2048).decode())
-        
-            print(data)
-        
+            data = connection.recv(2048)
             if not data:
                 break
+
+            data = json.loads(data.decode())
+
+            print(data)
             
             endpoint = data["endpoint"]
             
@@ -162,8 +166,8 @@ def threaded_client(connection):
                 reset_msg = ""
                 account_type = None
                 if isAuthenticated and (user is not None):
-                
-                    new_password_hash = sha256(new_password.encode('utf-8')).hexdigest()
+                    salt = user['salt']
+                    new_password_hash = sha256((new_password+salt).encode('utf-8')).hexdigest()
                     
                     database_lock.acquire_write()
                     database.updateFieldViaId("users", username, "hashedPassword", new_password_hash)
@@ -210,37 +214,37 @@ def threaded_client(connection):
             add_connection(authenticated_username, connection)
                 
         while True:
-            data = json.loads(connection.recv(2048).decode())
-            
-            print(data)
-
+            data = connection.recv(2048)
             if not data:
                 break
+
+            data = json.loads(data.decode())
+
+            print(data)
             
             endpoint = data["endpoint"]
             
             if endpoint == "Announce_poll":
-                            
                 poll = Poll.fromDict(data["Arguments"]["poll"])
-                class_id = poll.classId
                                 
                 database_lock.acquire_write()
                 database.addPoll(poll)
-                class_object = database.getClassFromId(class_id)
                 database_lock.release()
-                                
-                class_name = class_object["className"]
-                student_ids = class_object["students"]
-        
-                # Send poll out to all students in class
-                connection_list_lock.acquire_read()
-                for student_id in student_ids:
-                    if student_id in connection_list:
-                        student_connection = connection_list[student_id]
-                        student_connection.send(json.dumps(poll.question.toDict()).encode())
-                connection_list_lock.release()
-                
                 continue
+            
+            if endpoint == "Get_next_poll":
+                # Send out the next unseen poll
+                connection_list_lock.acquire_read()
+                student_connection = connection_list[authenticated_username]
+                next_poll = database.getNextPollForUser(authenticated_username)
+                if not next_poll:
+                    student_connection.send("No new polls".encode())
+
+                next_poll_question = {
+                    "prompt": next_poll['question']
+                }
+                student_connection.send(json.dumps(next_poll_question).encode())
+                connection_list_lock.release()
             
             if endpoint == "Poll_response":
                 poll_response = PollResponse.fromDict(data["Arguments"]["poll"])

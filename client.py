@@ -31,9 +31,25 @@ class VoterClient:
         """ starts up a connection loop to the server, specified by the host ip and host port """
 
         while True:
-
-            print("Waiting for a poll\n")
-            data = json.loads(clientSocket.recv(1024).decode())
+            prompt = input("To view new polls, enter  'vp'. To quit, enter 'quit': ")
+            if prompt == 'quit':
+                break
+            if prompt != 'vp':
+                print("Unrecognized input")
+                continue
+            try:
+                msg = {
+                    "endpoint": "Get_next_poll"
+                }
+                clientSocket.send(json.dumps(msg))
+                data = clientSocket.recv(1024)
+                data = json.loads(data.decode())
+                if data is None or data == "No new polls":
+                    print("No new polls.")
+                    continue
+            except Exception:
+                print("No new polls.")
+                continue
 
             poll_question = self.getPollQuestion(data)
             if poll_question is not None:
