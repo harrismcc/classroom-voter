@@ -80,11 +80,18 @@ def init_user(users):
         result = myDb.addUser(user)
 
 newUsers = {
-    "douglaswebster98@gmail.com" : {
-        "firstName" : "Douglas",
-        "lastName" : "Webster",
+    "harrismcc+prof@gmail.com" : {
+        "firstName" : "Harris",
+        "lastName" : "McCullers",
         "temporaryPassword" : "123",
-        "classes" : ["cs181"],
+        "classes" : [1, "CS181S"],
+        "type" : "students"
+    },
+    "harrismcc+student@gmail.com" : {
+        "firstName" : "Harris",
+        "lastName" : "McCullers",
+        "temporaryPassword" : "123",
+        "classes" : [1, 'CS181S'],
         "type" : "students"
     }
 }

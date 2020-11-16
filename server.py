@@ -141,7 +141,8 @@ def threaded_client(connection):
                     "endpoint" : "Login_result",
                     "Arguments" : {
                         "result" : authentication_msg,
-                        "account_type" : account_type
+                        "account_type" : account_type, 
+                        "username" : username
                     }
                 }
                 
@@ -182,7 +183,8 @@ def threaded_client(connection):
                     "endpoint" : "Reset_result",
                     "Arguments" : {
                         "result" : reset_msg,
-                        "account_type" : account_type
+                        "account_type" : account_type,
+                        "username" : username
                     }
                 }
                 
@@ -244,6 +246,9 @@ def threaded_client(connection):
             
             if endpoint == "Poll_response":
                 poll_response = PollResponse.fromDict(data["Arguments"]["poll"])
+                print(authenticated_username)
+
+                database.addResponse(authenticated_username, int(data["Arguments"]["pollId"]), json.dumps(poll_response.toDict()))
                 
                 """database_lock.acquire_write()
                 add_response_to_poll(poll_response)
@@ -257,6 +262,38 @@ def threaded_client(connection):
                 # get poll from id
 
                 continue
+            
+            if endpoint == "Get_polls_for_user":
+                """gets all polls for user"""
+                username = data["Arguments"]["username"]
+                role = data["Arguments"]["role"]
+                filterValue = None
+                try:
+                    filterValue = data["Arguments"]["filter"]
+                except KeyError:
+                    pass
+            
+                resp = database.getPollsForUser(username, role)
+                out = []
+
+                if filterValue == "active":
+                    responded = database.getAnsweredPollIdsForUser(username)
+                    for poll in resp:
+                        if poll["pollId"] not in responded:
+                            out.append(poll)
+                elif filterValue == "answered":
+                    responded = database.getAnsweredPollIdsForUser(username)
+                    for poll in resp:
+                        if poll["pollId"] in responded:
+                            out.append(poll)
+                else:
+                    out = resp
+
+                connection.send(json.dumps(out).encode())
+                
+
+
+
                 
     finally:
         print("Closing Connection!")
@@ -274,6 +311,7 @@ def main():
     port = sys.argv[1]
 
     serverSocket = socket.socket()
+    serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     host = 'localhost'
     port = int(port)
     threadCount = 0

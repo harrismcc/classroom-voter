@@ -14,42 +14,89 @@ import professor
 import client
 
 
+
+class LoginTools(object):
+    def __init__(self, ip, port, cli=False):
+        self.ip = ip
+        self.port = port
+        self.cli = cli
+
+        self.clientSocket = socket.socket()
+        self.clientSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        try:
+            self.clientSocket.connect((self.ip, self.port))
+            if self.cli: print('Successful Connection')
+            self.connected = True
+        except socket.error as e:
+            self.connected = False
+            if self.cli: print('Failed Connection: ' + str(e))
+            return
+
+
+        if cli:
+            self.main()
+
+    def send_msg(self, msg):
+        try:
+            self.clientSocket.send(str.encode(json.dumps(msg)))
+        except socket.error as e:
+            if self.cli: print('Failed to send message: ' + str(e))
+
+    def attempt_login(self, username, password):
+        msg = {
+            "endpoint": "Login",
+            "Arguments": {
+                "username": username,
+                "password": password
+            }
+        }
+        self.send_msg(msg)
+        response = json.loads(self.clientSocket.recv(2048).decode())
+        return response
+
+    def reset_password(self, username, password, new_password):
+        msg = {
+            "endpoint": "Reset_password",
+            "Arguments": {
+                "username": username,
+                "old_password": password,
+                "new_password": new_password
+            }
+        }
+        self.send_msg(msg)
+
+
+    def main(self):
+
+
+
+        while True:
+            username = input("Enter username: ")
+            password = getpass.getpass()
+            result = self.attempt_login(username, password)
+            if result['Arguments']['result'] == 'success' or result['Arguments']['result'] == 'must reset':
+                break
+            if self.cli: print('Invalid credentials. Try again.')
+        
+        if result['Arguments']['result'] == 'must reset':
+            new_password = getpass.getpass(prompt="Please choose a new password: ")
+            self.reset_password(username, password, new_password)
+
+        if result['Arguments']['account_type'] == 'students':
+            client.main(self.clientSocket)
+        elif result['Arguments']['account_type'] == 'professors':
+            professor.main(self.clientSocket)
+        
+
+
+
 def prompt_for_ip():
     ip = input("Enter the IP address of the server (eg 192.168.61.1): ")
     port = int(input("Enter the port of the server (eg 1500): "))
     return (ip, port)
 
-def send_msg(clientSocket, msg):
-    try:
-        clientSocket.send(str.encode(json.dumps(msg)))
-    except socket.error as e:
-        print('Failed to send message: ' + str(e))
+if __name__ == "__main__":
 
-def attempt_login(clientSocket, username, password):
-    msg = {
-        "endpoint": "Login",
-        "Arguments": {
-            "username": username,
-            "password": password
-        }
-    }
-    send_msg(clientSocket, msg)
-    response = json.loads(clientSocket.recv(2048).decode())
-    return response
-
-def reset_password(clientSocket, username, password, new_password):
-    msg = {
-        "endpoint": "Reset_password",
-        "Arguments": {
-            "username": username,
-            "old_password": password,
-            "new_password": new_password
-        }
-    }
-    send_msg(clientSocket, msg)
-
-
-def main():
     if len(sys.argv)!=1 and len(sys.argv)!= 3: # either need no args or both ip and port
         print("usage: python3 %s or python3 %s <server-ip> <server-port>" % sys.argv[0])
         quit(1)
@@ -59,40 +106,11 @@ def main():
     print("#"*80)
     print('\t\t\tLog in to classroom voter')
     print("#"*80)
-    
+
     if len(sys.argv) == 3:
-        ip = sys.argv[1]
-        port = int(sys.argv[2])
+            ip = sys.argv[1]
+            port = int(sys.argv[2])
     else:
         ip, port = prompt_for_ip()
 
-    clientSocket = socket.socket()
-    try:
-        clientSocket.connect((ip, port))
-        print('Successful Connection')
-    except socket.error as e:
-        print('Failed Connection: ' + str(e))
-        return
-
-
-    while True:
-        username = input("Enter username: ")
-        password = getpass.getpass()
-        result = attempt_login(clientSocket, username, password)
-        if result['Arguments']['result'] == 'success' or result['Arguments']['result'] == 'must reset':
-            break
-        print('Invalid credentials. Try again.')
-    
-    if result['Arguments']['result'] == 'must reset':
-        new_password = getpass.getpass(prompt="Please choose a new password: ")
-        reset_password(clientSocket, username, password, new_password)
-
-    if result['Arguments']['account_type'] == 'students':
-        client.main(clientSocket)
-    elif result['Arguments']['account_type'] == 'professors':
-        professor.main(clientSocket)
-        
-
-
-if __name__ == "__main__":
-    main()
+    login = LoginTools(ip, port, cli=True)
