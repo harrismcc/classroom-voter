@@ -562,7 +562,7 @@ if __name__ == "__main__":
     password = input("Enter db password: ") #it's 'password'
 
     try:
-        test = DatabaseSQL("pebis.db.enc", password)
+        test = DatabaseSQL("example.db.enc", password)
     except IncorrectPasswordException:
         print("Incorrect DB password")
 
