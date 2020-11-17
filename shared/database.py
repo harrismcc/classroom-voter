@@ -47,7 +47,7 @@ class DatabaseSQL(object):
         if os.path.isfile(fname):
             self.fname = self.decrypt_file(fname) #get decrypted filename
         else:
-            self.fname = "example.db"
+            self.fname = fname[:-4]
 
         try:
             self.conn = sqlite3.connect(self.fname)
@@ -525,12 +525,11 @@ class DatabaseSQL(object):
         
     def __del__(self):
 
-        #re-encrypt db file
-        self.encrypt_file(self.fname)
         #close db connection
         self.conn.close()
         #remove un-encrypted file
         os.remove(self.fname)
+    
 
     def initTables(self):
         """Creates new tables if they don't exist yet"""
@@ -556,12 +555,14 @@ class DatabaseSQL(object):
             responseId integer primary key autoincrement, userId text, pollId integer, responseBody text
             )''')
 
+        self.writeChanges()
+
 if __name__ == "__main__":
 
     password = input("Enter db password: ") #it's 'password'
 
     try:
-        test = DatabaseSQL("example.db.enc", password)
+        test = DatabaseSQL("pebis.db.enc", password)
     except IncorrectPasswordException:
         print("Incorrect DB password")
 
