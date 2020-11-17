@@ -138,7 +138,6 @@ class VoterClient:
 
 
 def main(clientSocket, userId):
-
     client = VoterClient(clientSocket, userId)
     # this initializes a VoterClient object
     # which involves starting the connection to the server

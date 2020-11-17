@@ -6,8 +6,12 @@ their own threaded connection.
 import os
 import sys
 import json
+import string
+import random
 import socket
 import threading
+
+import serverUtils
 
 from _thread import *
 from threading import Thread
@@ -44,14 +48,13 @@ def authenticate_user(username, password):
     user_object = None
     
     database_lock.acquire_read()
-
     user = database.getUser(username)
     database_lock.release()
     
     if user is not None:
         stored_password_hash = user[username]["password"]
         salt = user[username]["salt"]
-        given_password_hash = sha256((password + salt).encode('utf-8')).hexdigest()
+        given_password_hash = sha256((password + salt).encode("utf-8")).hexdigest()
 
         if given_password_hash == stored_password_hash:
             isAuthenticated = True
@@ -168,8 +171,8 @@ def threaded_client(connection):
                 reset_msg = ""
                 account_type = None
                 if isAuthenticated and (user is not None):
-                    salt = user[username]['salt']
-                    new_password_hash = sha256((new_password+salt).encode('utf-8')).hexdigest()
+                    salt = user[username]["salt"]
+                    new_password_hash = sha256((new_password+salt).encode("utf-8")).hexdigest()
                     
                     database_lock.acquire_write()
                     database.updateFieldViaId("users", username, "hashedPassword", new_password_hash)
@@ -195,8 +198,45 @@ def threaded_client(connection):
                 
                 connection.send(json.dumps(reset_response).encode())
                 continue
-        
-        
+                
+            if endpoint == "Recover_password":
+                arguments = data["Arguments"]
+                username = arguments["username"]
+                
+                database_lock.acquire_read()
+                user = database.getUser(username)
+                database_lock.release()
+                                
+                recovery_msg = ""
+                if user is not None:
+                    salt = user[username]["salt"]
+                    temporary_password = "".join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(10))
+                    hashed_temp_pass = sha256((temporary_password + salt).encode("utf-8")).hexdigest()
+                    
+                    database_lock.acquire_write()
+                    database.updateFieldViaId("users", username, "hashedPassword", hashed_temp_pass)
+                    database.updateFieldViaId("users", username, "reedemed", "0")
+                    database_lock.release()
+                    
+                    serverUtils.password_recovery_email(username, user[username], temporary_password)
+                    
+                    recovery_msg = "success"
+                
+                else:
+                    recovery_msg = "failure"
+                    
+                recovery_response = {
+                    "endpoint" : "Recovery_result",
+                    "Arguments" : {
+                        "result" : recovery_msg,
+                        "username" : username,
+                    }
+                }
+                
+                connection.send(json.dumps(recovery_response).encode())
+                continue
+                
+
         # At this point the user is autheticated.
         # User should never be None here but just in case
         if authenticated_username is None:
