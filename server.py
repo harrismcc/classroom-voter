@@ -54,7 +54,10 @@ def authenticate_user(username, password):
     if user is not None:
         stored_password_hash = user[username]["password"]
         salt = user[username]["salt"]
+        
         given_password_hash = sha256((password + salt).encode("utf-8")).hexdigest()
+        for _ in range(10000):
+            given_password_hash = sha256((given_password_hash).encode("utf-8")).hexdigest()
 
         if given_password_hash == stored_password_hash:
             isAuthenticated = True
@@ -172,7 +175,10 @@ def threaded_client(connection):
                 account_type = None
                 if isAuthenticated and (user is not None):
                     salt = user[username]["salt"]
+                    
                     new_password_hash = sha256((new_password+salt).encode("utf-8")).hexdigest()
+                    for _ in range(10000):
+                        new_password_hash = sha256((new_password_hash).encode("utf-8")).hexdigest()
                     
                     database_lock.acquire_write()
                     database.updateFieldViaId("users", username, "hashedPassword", new_password_hash)
@@ -210,8 +216,11 @@ def threaded_client(connection):
                 recovery_msg = ""
                 if user is not None:
                     salt = user[username]["salt"]
+                    
                     temporary_password = "".join(random.SystemRandom().choice(string.ascii_letters + string.digits) for _ in range(10))
                     hashed_temp_pass = sha256((temporary_password + salt).encode("utf-8")).hexdigest()
+                    for _ in range(10000):
+                     hashed_temp_pass = sha256((hashed_temp_pass).encode("utf-8")).hexdigest()
                     
                     database_lock.acquire_write()
                     database.updateFieldViaId("users", username, "hashedPassword", hashed_temp_pass)

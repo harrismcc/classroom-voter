@@ -79,8 +79,11 @@ def init_user(users):
         userType = newUser["type"]
 
         salt = str(random.randint(0, 4096))
+        
         hashed_pass = sha256((newUser["temporaryPassword"] + salt).encode('utf-8')).hexdigest()
-
+        for _ in range(10000):
+            hashed_pass = sha256((hashed_pass).encode('utf-8')).hexdigest()
+        
         user = {
             userId: {
                 "role": userType,
