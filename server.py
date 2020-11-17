@@ -21,8 +21,8 @@ from shared.locks import *
 sys.path.append(os.path.dirname(__file__)) #gets pdoc working
 
 dirname = os.path.dirname(__file__)
-db_path = os.path.join(dirname, 'shared/example.db')
-database = DatabaseSQL(db_path)
+db_path = os.path.join(dirname, 'shared/example.db.enc')
+database = None
 database_lock = RWLock()
 
 connection_list = {}
@@ -344,6 +344,12 @@ def main():
         print("usage: python3 %s <port>" % sys.argv[0])
         quit(1)
     port = sys.argv[1]
+
+    databasePassword = input("Input database password: ")
+    try:
+        database = DatabaseSQL(db_path, databasePassword)
+    except IncorrectPasswordException:
+        return 0
 
     serverSocket = socket.socket()
     serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
