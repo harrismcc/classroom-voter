@@ -38,11 +38,16 @@ class DatabaseSQL(object):
     def __init__(self, fname, password):
         
 
+        #if no file named fname
+        
         self.encfname = fname
         self.key = self.getKey(password)
         self.keySize = 256
-
-        self.fname = self.decrypt_file(fname) #get decrypted filename
+        
+        if os.path.isfile(fname):
+            self.fname = self.decrypt_file(fname) #get decrypted filename
+        else:
+            self.fname = "example.db"
 
         try:
             self.conn = sqlite3.connect(self.fname)
@@ -132,6 +137,7 @@ class DatabaseSQL(object):
         try:
             result = self.cursor.execute("INSERT INTO users VALUES (?, ?, ?, ?, ?, ?, ?, ?)", vals)
             self.conn.commit()
+            self.writeChanges()
             #TODO: Make this return an ID
             return True
         except sqlite3.IntegrityError as e:
@@ -176,6 +182,7 @@ class DatabaseSQL(object):
         try:
             c.execute("UPDATE '"+ table +"' SET "+ field +" = '"+ newValue +"' WHERE "+ ids[table] +" = '"+ str(myId) + "'")
             self.conn.commit()
+            self.writeChanges()
             return True
         except sqlite3.IntegrityError:
             return False
@@ -198,6 +205,7 @@ class DatabaseSQL(object):
         try:
             c.execute("INSERT INTO polls VALUES (NULL, ?, ?, ?, ?, ?)", vals)
             self.conn.commit()
+            self.writeChanges()
             return True
         except sqlite3.IntegrityError as e:
             return False
@@ -233,6 +241,7 @@ class DatabaseSQL(object):
             #classId int primary key, className text, courseCode text, students text, professors text, polls text
             c.execute("INSERT INTO classes VALUES (NULL, ?, ?, ?, ?, ?)", vals)
             self.conn.commit()
+            self.writeChanges()
             return True
         except sqlite3.IntegrityError as e:
             return False
@@ -247,6 +256,7 @@ class DatabaseSQL(object):
             #responseId integer primary key autoincrement, userId text, pollId integer, responseBody text
             c.execute("INSERT INTO responses VALUES (null, ?, ?, ?)", (userId, pollId, pollBody))
             self.conn.commit()
+            self.writeChanges()
             return True
         except sqlite3.IntegrityError as e:
             return False
@@ -509,10 +519,17 @@ class DatabaseSQL(object):
 
 
 
-
+    def writeChanges(self):
+        #re-encrypt db file
+        self.encrypt_file(self.fname)
         
     def __del__(self):
+
+        #re-encrypt db file
+        self.encrypt_file(self.fname)
+        #close db connection
         self.conn.close()
+        #remove un-encrypted file
         os.remove(self.fname)
 
     def initTables(self):
@@ -551,7 +568,6 @@ if __name__ == "__main__":
         #This is important, if the db has an incorrect password then the program needs
         #to quit. further use of the DB object will have undefined behavior (errors)
         test = None 
-        return 0 / break / raise Exception
 
 
 

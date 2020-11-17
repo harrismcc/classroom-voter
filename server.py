@@ -347,6 +347,7 @@ def main():
 
     databasePassword = input("Input database password: ")
     try:
+        global database
         database = DatabaseSQL(db_path, databasePassword)
     except IncorrectPasswordException:
         return 0
