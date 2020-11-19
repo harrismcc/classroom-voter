@@ -264,7 +264,7 @@ def threaded_client(connection):
             # Add the authenticated user to the connection list
             add_connection(authenticated_username, connection)
             
-        if account_type = "students":
+        if account_type == "students":
             while True:
                 data = connection.recv(2048)
                 if not data:
@@ -358,7 +358,7 @@ def threaded_client(connection):
                     connection.send(json.dumps(out).encode())
         
         
-        if account_type = "professors":
+        if account_type == "professors":
                 
             while True:
                 data = connection.recv(2048)
