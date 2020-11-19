@@ -14,8 +14,6 @@ from shared.pollTypes import Poll, FreeResponseQuestion
 import professor
 import client
 
-
-
 class LoginTools(object):
     def __init__(self, ip, port, cli=False):
         self.ip = ip
@@ -65,22 +63,43 @@ class LoginTools(object):
             }
         }
         self.send_msg(msg)
+        
+    def recover_password(self, username):
+        msg = {
+            "endpoint": "Recover_password",
+            "Arguments" : {
+                "username" : username
+            }
+        }
+        self.send_msg(msg)
+        response = json.loads(self.clientSocket.recv(2048).decode())
+        return response
 
 
     def main(self):
-
         while True:
-            username = input("Enter username: ")
-            password = self.safe_prompt_for_password()
-            result = self.attempt_login(username, password)
-            if result['Arguments']['result'] == 'success' or result['Arguments']['result'] == 'must reset':
-                break
-            print('Invalid credentials. Try again.')
-        
+            login_action = input("Login or Forgot Password: ")
+            if login_action == "Login":
+                username = input("Enter username: ")
+                password = self.safe_prompt_for_password()
+                result = self.attempt_login(username, password)
+                if result['Arguments']['result'] == 'success' or result['Arguments']['result'] == 'must reset':
+                    break
+                else:
+                    print('Invalid credentials. Try again.')
+                    
+            if login_action == "Forgot Password":
+                username = input("Enter username: ")
+                result = self.recover_password(username)
+                if result['Arguments']['result'] == 'success':
+                    print('Password Recovery Succeeded')
+                else:
+                    print('Password Recovery Failed. Try again.')
+                
         if result['Arguments']['result'] == 'must reset':
             new_password = self.safe_prompt_for_password("Please choose a new password:")
             self.reset_password(username, password, new_password)
-
+        
         if result['Arguments']['account_type'] == 'students':
             client.main(self.clientSocket, result['Arguments']['username'])
         elif result['Arguments']['account_type'] == 'professors':
