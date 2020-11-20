@@ -14,105 +14,147 @@ from shared.pollTypes import Poll, FreeResponseQuestion
 import professor
 import client
 
+class LoginTools(object):
+    def __init__(self, ip, port, cli=False):
+        self.ip = ip
+        self.port = port
+        self.cli = cli
+
+        self.clientSocket = socket.socket()
+        self.clientSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        try:
+            self.clientSocket.connect((self.ip, self.port))
+            if self.cli: print('Successful Connection')
+            self.connected = True
+        except socket.error as e:
+            self.connected = False
+            if self.cli: print('Failed Connection: ' + str(e))
+            return
+
+
+        if cli:
+            self.main()
+
+    def send_msg(self, msg):
+        try:
+            self.clientSocket.send(str.encode(json.dumps(msg)))
+        except socket.error as e:
+            if self.cli: print('Failed to send message: ' + str(e))
+
+    def attempt_login(self, username, password):
+        msg = {
+            "endpoint": "Login",
+            "Arguments": {
+                "username": username,
+                "password": password
+            }
+        }
+        self.send_msg(msg)
+        response = json.loads(self.clientSocket.recv(2048).decode())
+        return response
+
+    def reset_password(self, username, password, new_password):
+        msg = {
+            "endpoint": "Reset_password",
+            "Arguments": {
+                "username": username,
+                "old_password": password,
+                "new_password": new_password
+            }
+        }
+        self.send_msg(msg)
+        
+    def recover_password(self, username):
+        msg = {
+            "endpoint": "Recover_password",
+            "Arguments" : {
+                "username" : username
+            }
+        }
+        self.send_msg(msg)
+        response = json.loads(self.clientSocket.recv(2048).decode())
+        return response
+
+    def get_new_password():
+        """prompts the user for a new password that satisfies comprehensive8 requirements
+        Returns:
+            password: string password that satisfies comprehensive8"""
+
+        valid = False
+        password = ""
+        while not valid:
+            password = safe_prompt_for_password("please enter your new password: \n(note: Password must have atleast 8 characters including an uppercase and lowercase letter, a symbol, and a digit.\n Password: ")
+            valid = True
+            if len(password) < 8:
+                valid = False
+                print("password must be at least eight characters! \n")
+            if not any(x.isupper() for x in password):
+                valid = False
+                print("password must contain at least one uppercase character! \n")
+            if not any(x.islower() for x in password):
+                valid = False
+                print("password must contain at least one lowercase character! \n")
+            if not any(x.isnumeric() for x in password):
+                valid = False
+                print("password must contain at least one digit! \n")
+            symbols = '!@#$%^&*()-_+=`~[]{},./<>?|'
+            if not any(x in symbols for x in password):
+                valid = False
+                print("password must contain at least one symbol (!@#$%^&*()-_+=`~[]{},./<>?|) \n")
+            if valid:
+                confirm = safe_prompt_for_password("please enter the password again to confirm:")
+                if confirm != password:
+                    valid = False
+                    print("Passwords don't match! Try again")
+
+        return password
+
+
+    def main(self):
+        while True:
+            login_action = input("Login or Forgot Password: ")
+            if login_action == "Login":
+                username = input("Enter username: ")
+                password = self.safe_prompt_for_password()
+                result = self.attempt_login(username, password)
+                if result['Arguments']['result'] == 'success' or result['Arguments']['result'] == 'must reset':
+                    break
+                else:
+                    print('Invalid credentials. Try again.')
+                    
+            if login_action == "Forgot Password":
+                username = input("Enter username: ")
+                result = self.recover_password(username)
+                if result['Arguments']['result'] == 'success':
+                    print('Password Recovery Succeeded')
+                else:
+                    print('Password Recovery Failed. Try again.')
+                
+        if result['Arguments']['result'] == 'must reset':
+            new_password = self.get_new_password("Please choose a new password:")
+            self.reset_password(username, password, new_password)
+        
+        if result['Arguments']['account_type'] == 'students':
+            client.main(self.clientSocket, result['Arguments']['username'])
+        elif result['Arguments']['account_type'] == 'professors':
+            professor.main(self.clientSocket)
+        
+    def safe_prompt_for_password(self, prompt='Enter Password: '):
+        if os.isatty(sys.stdin.fileno()):
+            os.system("stty -echo")
+            password = input(prompt)
+            os.system("stty echo")
+            print("")
+        else:
+            password = input(prompt)
+        return password
+
 
 
 def prompt_for_ip():
-    """prompts the user for IP address and port of server
-
-    Returns:
-         (ip, port)"""
     ip = input("Enter the IP address of the server (eg 192.168.61.1): ")
     port = int(input("Enter the port of the server (eg 1500): "))
     return (ip, port)
-
-def send_msg(clientSocket, msg):
-    """writes a message to the client socket
-
-    Args:
-         clientSocket: a socket to the server
-         msg: the message to send"""
-    try:
-        clientSocket.send(str.encode(json.dumps(msg)))
-    except socket.error as e:
-        print('Failed to send message: ' + str(e))
-
-def attempt_login(clientSocket, username, password):
-    """Attempts to log in to the server with certain credentials
-
-    Args:
-         clientSocket: a socket to the server
-         username: string username
-         password: string password
-    Returns:
-        response: dictionary of the arguments in the response from the server"""
-    msg = {
-        "endpoint": "Login",
-        "Arguments": {
-            "username": username,
-            "password": password
-        }
-    }
-    send_msg(clientSocket, msg)
-    response = json.loads(clientSocket.recv(2048).decode())
-    return response
-
-
-def get_new_password():
-    """prompts the user for a new password that satisfies comprehensive8 requirements
-    Returns:
-        password: string password that satisfies comprehensive8"""
-
-    valid = False
-    password = ""
-    while not valid:
-        password = safe_prompt_for_password("please enter your new password: \n(note: Password must have atleast 8 characters including an uppercase and lowercase letter, a symbol, and a digit.\n Password: ")
-        valid = True
-        if len(password) < 8:
-            valid = False
-            print("password must be at least eight characters! \n")
-        if not any(x.isupper() for x in password):
-            valid = False
-            print("password must contain at least one uppercase character! \n")
-        if not any(x.islower() for x in password):
-            valid = False
-            print("password must contain at least one lowercase character! \n")
-        if not any(x.isnumeric() for x in password):
-            valid = False
-            print("password must contain at least one digit! \n")
-        symbols = '!@#$%^&*()-_+=`~[]{},./<>?|'
-        if not any(x in symbols for x in password):
-            valid = False
-            print("password must contain at least one symbol (!@#$%^&*()-_+=`~[]{},./<>?|) \n")
-        if valid:
-            confirm = safe_prompt_for_password("please enter the password again to confirm:")
-            if confirm != password:
-                valid = False
-                print("Passwords don't match! Try again")
-
-    return password
-
-
-def reset_password(clientSocket, username, password, new_password):
-    msg = {
-        "endpoint": "Reset_password",
-        "Arguments": {
-            "username": username,
-            "old_password": password,
-            "new_password": new_password
-        }
-    }
-    send_msg(clientSocket, msg)
-
-
-def safe_prompt_for_password(prompt='Enter Password: '):
-    if os.isatty(sys.stdin.fileno()):
-        os.system("stty -echo")
-        password = input(prompt)
-        os.system("stty echo")
-        print("")
-    else:
-        password = input(prompt)
-    return password
 
 def main():
     if len(sys.argv)!=1 and len(sys.argv)!= 3: # either need no args or both ip and port
@@ -124,43 +166,17 @@ def main():
     print("#"*80)
     print('\t\t\tLog in to classroom voter')
     print("#"*80)
-    
+
     if len(sys.argv) == 3:
-        ip = sys.argv[1]
-        port = int(sys.argv[2])
+            ip = sys.argv[1]
+            port = int(sys.argv[2])
     else:
         ip, port = prompt_for_ip()
-
-    clientSocket = socket.socket()
-    try:
-        clientSocket.connect((ip, port))
-        print('Successful Connection')
-    except socket.error as e:
-        print('Failed Connection: ' + str(e))
-        return
-
-    while True:
-        username = input("Enter username: ")
-        password = safe_prompt_for_password()
-        result = attempt_login(clientSocket, username, password)
-        if result['Arguments']['result'] == 'success' or result['Arguments']['result'] == 'must reset':
-            break
-        print('Invalid credentials. Try again.')
     
-    if result['Arguments']['result'] == 'must reset':
-<<<<<<< HEAD
-        #new_password = getpass.getpass(prompt="Please choose a new password: ")
-        new_password = get_new_password()
-=======
->>>>>>> master
-        reset_password(clientSocket, username, password, new_password)
-
-
+    login = LoginTools(ip, port, cli="True")
     
-    if result['Arguments']['account_type'] == 'students':
-        client.main(clientSocket)
-    elif result['Arguments']['account_type'] == 'professors':
-        professor.main(clientSocket)
+    
+    
         
 
 

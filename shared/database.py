@@ -2,10 +2,15 @@
 import sys
 import json
 import os
+import io
 import sqlite3
 import datetime
 import random
+import struct
 from hashlib import sha256
+from Crypto.Cipher import AES
+from Crypto.Hash import SHA256
+from Crypto import Random
 
 
 
@@ -25,207 +30,89 @@ def _timeToStr(t):
     else:
         return t
 
-class Database(object):
 
-        
-    def __init__(self, fname='database.json'):
-        """
-        Database constructor, open database file and create new on if none exists
-        
-        Args:
-            fname (string): filename of database file
-        """
-        if not os.path.isfile(fname):
-            print("File doesn't exist")
-            self.createNewDatabase(fname)
-        self.fname = fname
-
-        try:
-            self.myFile = open(fname, 'r+')
-            self.myDict = json.load(self.myFile)
-        except FileNotFoundError:
-            print("Is this pdoc? Setting manual path. If this is being run by a real person - STOP HERE!")
-            self.fname = "/home/siim/Desktop/cs181s/classroom-voter/shared/database.json"
-            os.chdir("/home/siim/Desktop/cs181s/classroom-voter")
-            self.myFile = open(fname, 'r+')
-            self.myDict = json.load(self.myFile)
-
-        
-        self.users = self.getField(["users"])
-        self.students = self.getField(["users", "students"])
-        self.professors = self.getField(["users", "professors"])
-        
-        
-    def __del__(self):
-        """Database destructor, close the open file"""
-        self.myFile.close()
-
-    def updateFile(self):
-        """ Updates the database file to match memory """
-        self.myFile.seek(0) #seek to start of file
-        self.myFile.truncate() #erase contents
-        json.dump(self.myDict, self.myFile) #overwrite
-
-
-    def createNewDatabase(self, fname='database.json'):
-        """
-        Creates a new empty database file
-
-        Args:
-            fname (string): filename of database file
-        """
-        d = {
-            "users" : {
-                "students" : {},
-                "professors" : {}
-            },
-            "polls" : {},
-            "classes" : {},
-        }
-
-        print("writing file to " + fname)
-        print(os.listdir())
-        try:
-            with open(fname, "w+") as f:
-                f.write(json.dumps(d))
-        except FileNotFoundError:
-            print('FileNotFound')
-
-
-    def addStudent(self, userDict):
-        """
-        Add a new student entry to the database
-
-        ```json
-        student-email : {
-            "firstName" : first-name,
-            "lastName" : last-name,
-            "password" : password-hash,
-            "classes" : {
-                            "class-id" : poll-id-of-last-response,
-                            "class-id" : poll-id-of-last-response,
-                            ... 
-                            "class-id" : poll-id-of-last-response,
-                        },
-            "reedemed" : false,
-            }
-        ```
-
-        Args:
-            userDict (dict): A python dictionary representing a student entry
-
-        Returns:
-            boolean: Success of database insertion
-        """
-        studentId = list(userDict.keys())[0]
-
-        if not self.keyExists(studentId, ["users", "students"]):
-            self.myDict["users"]["students"][studentId] = userDict[studentId]
-            self.updateFile()
-            return True
-        else:
-            return False
-
-    
-
-    def addProfessor(self, professorDict):
-        """
-        Add a new professor entry to the database.
-
-        ```json
-        professor-email : {
-                "firstName" : first-name,
-                "lastName" : last-name,
-                "password" : password-hash,
-                "classes" : [class-id, class-id, ..., class-id],
-                "reedemed" : false,
-            }
-        ```
-
-        Args:
-            professorDict (dict): A python dictionary representing a professor entry
-
-        Returns:
-            boolean: Success of database insertion
-        """
-        profId = list(professorDict.keys())[0]
-
-        if not self.keyExists(profId, ["users", "professors"]):
-            self.myDict["users"]["professors"][profId] = professorDict[profId]
-            self.updateFile()
-            return True
-        else:
-            return False
-
-    def addPoll(self, pollDict):
-        pass
-
-    def addClass(self, classDict):
-        pass
-
-    def getStudent(self, studentId):
-        """
-        Gets a student from the db using their student id
-
-        Args:
-            studentId (string): student email
-
-        Returns:
-            dict: student object (None if student doesn't exist)
-        """
-
-        return self.getField(["users", "students", studentId])
-
-
-    def getField(self, fieldList):
-
-        d = self.myDict
-        try:
-            for field in fieldList:
-                d = d[field]
-        except KeyError:
-            #field/key not real
-            return {}
-
-        return d
-
-    def keyExists(self, key, fieldList):
-        """
-        Check if key exists in db
-        """
-
-        d = self.getField(fieldList)
-        keys = list(d.keys())
-
-        return key in keys
-
+class IncorrectPasswordException(Exception):
+    pass
 
 class DatabaseSQL(object):
-    def __init__(self, fname='example.db'):
-        self.fname = fname
+    def __init__(self, fname, password):
+        
+
+        #if no file named fname
+        
+        self.encfname = fname
+        self.key = self.getKey(password)
+        self.keySize = 256
+        
+        if os.path.isfile(fname):
+            self.fname = self.decrypt_file(fname) #get decrypted filename
+        else:
+            self.fname = fname[:-4]
+
         try:
-            self.conn = sqlite3.connect(fname)
+            self.conn = sqlite3.connect(self.fname)
             self.cursor = self.conn.cursor()
         except sqlite3.OperationalError as e:
             print(e)
             self.conn = sqlite3.connect("testingDB.db")
             self.cursor = self.conn.cursor()
-        self.conn = sqlite3.connect(fname, check_same_thread=False)
+        self.conn = sqlite3.connect(self.fname, check_same_thread=False)
         self.cursor = self.conn.cursor()
-        self.initTables()
-
-
-    def addUser(self, userDict):
         
+
+        try:
+            self.initTables()
+        except sqlite3.DatabaseError as e:
+            raise IncorrectPasswordException
+
+
+    def pad(self, s):
+        if type(s) == str:
+            s = s.encode()
+        return s + b"\0" * (AES.block_size - len(s) % AES.block_size)
+
+    def encrypt(self, message):
+        message = self.pad(message)
+        iv = Random.new().read(AES.block_size)
+        cipher = AES.new(self.key, AES.MODE_CBC, iv)
+        return iv + cipher.encrypt(message)
+
+    def decrypt(self, ciphertext):
+        iv = ciphertext[:AES.block_size]
+        cipher = AES.new(self.key, AES.MODE_CBC, iv)
+        plaintext = cipher.decrypt(ciphertext[AES.block_size:])
+        return plaintext.rstrip(b"\0")
+
+    def encrypt_file(self, file_name):
+        with open(file_name, 'rb') as fo:
+            plaintext = fo.read()
+        enc = self.encrypt(plaintext)
+        with open(file_name + ".enc", 'wb') as fo:
+            fo.write(enc)
+
+    def decrypt_file(self, file_name):
+        with open(file_name, 'rb') as fo:
+            ciphertext = fo.read()
+        dec = self.decrypt(ciphertext)
+        with open(file_name[:-4], 'wb') as fo:
+            fo.write(dec)
+        return file_name[:-4]
+    
+    def getKey(self, password):
+        """Gets a sha256 key from a password"""
+        hasher = SHA256.new(password.encode('utf-8'))
+        return hasher.digest()
+
+
+    def addUser(self, userDict):   
         """
         Add a new user entry to the database
-
         ```json
         user-email : {
             "firstName" : first-name,
             "lastName" : last-name,
             "password" : password-hash,
-            "salt"     : salt,
+            "salt": password-salt
             "classes" : {
                             "class-id" : poll-id-of-last-response,
                             "class-id" : poll-id-of-last-response,
@@ -236,29 +123,26 @@ class DatabaseSQL(object):
             "role" : "student"
             }
         ```
-
         Args:
             userDict (dict): A python dictionary representing a student entry
-
         Returns:
             int: id of n
         """
         email = list(userDict.keys())[0]
-        salt = str(random.randint(0, 4096))
-        hashed_pass = sha256(
-            (userDict[email]['password'] + salt).encode('utf-8')).hexdigest()
-        unseen_polls = json.dumps([])
 
-        vals = (email, userDict[email]['role'], userDict[email]['firstName'],
-                userDict[email]['lastName'], hashed_pass, salt,
-                json.dumps(userDict[email]['classes']), userDict[email]['reedemed'], unseen_polls, )
+        vals = (email, userDict[email]['role'], userDict[email]['firstName'], 
+                userDict[email]['lastName'], userDict[email]['password'], 
+                userDict[email]['salt'], json.dumps(userDict[email]['classes']),
+                userDict[email]['reedemed'], )
         try:
-            result = self.cursor.execute("INSERT INTO users VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", vals)
+            result = self.cursor.execute("INSERT INTO users VALUES (?, ?, ?, ?, ?, ?, ?, ?)", vals)
             self.conn.commit()
+            self.writeChanges()
             #TODO: Make this return an ID
             return True
         except sqlite3.IntegrityError as e:
             return False
+
 
     def resetUserPassword(self, userId, newHash):
         """
@@ -298,43 +182,17 @@ class DatabaseSQL(object):
         try:
             c.execute("UPDATE '"+ table +"' SET "+ field +" = '"+ newValue +"' WHERE "+ ids[table] +" = '"+ str(myId) + "'")
             self.conn.commit()
+            self.writeChanges()
             return True
         except sqlite3.IntegrityError:
             return False
 
 
-    def getNextPollForUser(self, student_id):
-        """
-        Get the next poll for the user, or None if none is available.
-        Removes poll from list.
-
-        Args:
-            student_id: student of the next poll to get
-
-        Returns:
-            pollObject (Poll): Poll object for the next poll
-        """
-        student = self.getUser(student_id)
-        student = student[list(student.keys())[0]]
-        unseen_polls = json.loads(student['unseenPolls'])
-        if not unseen_polls:
-            return None
-        next_poll_id = unseen_polls.pop()
-
-        # Put the popped list back in the table
-        updateFieldViaId('users', student_id, 'unseenPolls', jsonn.dumps(unseen_polls))
-
-        return self.getPollFromId(next_poll_id)
-        
-
     def addPoll(self, pollObject):
         """
-        Adds a new poll to the DB. Automatically adds it to the 
-        list of unseen polls for all users.
-
+        Adds a new poll to the DB
         Args:
             pollObject (Poll): Poll object to add to the db
-
         Returns:
             boolean: True if inserted, False otherwise
         """
@@ -347,20 +205,10 @@ class DatabaseSQL(object):
         try:
             c.execute("INSERT INTO polls VALUES (NULL, ?, ?, ?, ?, ?)", vals)
             self.conn.commit()
+            self.writeChanges()
             return True
         except sqlite3.IntegrityError as e:
             return False
-
-        class_object = self.getClassFromId(pollObject.classId)
-        student_ids = class_object["students"]
-        for student_id in student_ids:
-            # Add poll to unseen polls for that student
-            student = self.getUser(student_id)
-            student = student[list(student.keys())[0]]
-            unseen_polls = json.loads(student['unseenPolls'])
-            unseen_polls.append(pollObject.pollId)
-            updateFieldViaId('users', student_id, 'unseenPolls', jsonn.dumps(unseen_polls))
-
 
     def addClass(self, classDict):
         """
@@ -393,11 +241,59 @@ class DatabaseSQL(object):
             #classId int primary key, className text, courseCode text, students text, professors text, polls text
             c.execute("INSERT INTO classes VALUES (NULL, ?, ?, ?, ?, ?)", vals)
             self.conn.commit()
+            self.writeChanges()
             return True
         except sqlite3.IntegrityError as e:
             return False
 
+    def addResponse(self, userId, pollId, pollBody):
+        """Adds a poll response to the dict"""
 
+        c = self.conn.cursor()
+
+
+        try:
+            #responseId integer primary key autoincrement, userId text, pollId integer, responseBody text
+            c.execute("INSERT INTO responses VALUES (null, ?, ?, ?)", (userId, pollId, pollBody))
+            self.conn.commit()
+            self.writeChanges()
+            return True
+        except sqlite3.IntegrityError as e:
+            return False
+
+    def getResponse(self, **kwargs):
+        """
+        Pulls a response/list of responses from the database
+        Args:
+            responseId (int): Id of the response to pull
+            userId (string): Pulls all responses for that user
+            pollId (int): Pulls all responses for that poll
+        """
+
+        #check kwargs
+        if "responseId" in kwargs.keys():
+            pass
+        elif "userId" in kwargs.keys():
+            pass
+        elif "pollId" in kwargs.keys():
+            pass
+        else:
+            raise Exception("Improper Argument passed: must be one of responseId, userId, or pollId")
+            
+    def getResponsesForPoll(self, pollId):
+        """
+            Pulls all reponses for a the given pollId from the database
+            Args:
+                pollId (int): Pulls all responses for that poll
+        """
+    
+        c = self.conn.cursor()
+        
+        c.execute("SELECT responseBody FROM responses WHERE pollId=?", (pollId, ))
+        results = c.fetchall()
+        
+        return results
+            
     def _formatUser(self, studentTuple):
         out = {studentTuple[0] : {
             'role' : studentTuple[1],
@@ -406,8 +302,7 @@ class DatabaseSQL(object):
             'password' : studentTuple[4],
             'salt' : studentTuple[5],
             'classes' : json.loads(studentTuple[6]),
-            'reedemed' : studentTuple[7] != 0,
-            'unseenPolls' : json.loads(studentTuple[8]),
+            'reedemed' : studentTuple[7] != 0
         }}
 
         return out
@@ -436,6 +331,7 @@ class DatabaseSQL(object):
 
         out = {
             'question': d,
+            'pollId' : pollTuple[0],
             'startTime' : pollTuple[1],
             'endTime' : pollTuple[2],
             'ownerId' : pollTuple[3],
@@ -454,9 +350,63 @@ class DatabaseSQL(object):
         if result is not None:
             return self._formatPoll(result)
 
+    def getPollsForUser(self, userId, userRole="professors"):
+        """
+        Gets all polls for user in database
+        Args:
+            userId (string): Id string of user
+            userRole (string): Roll of user (default professors, since students can't typically create polls)
+
+        Returns:
+            list: list of poll dicts, can be converted to Poll objects with Poll.fromDict()
+        """
+        c = self.conn.cursor()
+
+        polls = []
+
+        #first, get a users class id's
+        c.execute("SELECT classes FROM users WHERE emailAddress=? AND role=?", (userId, userRole))
+        result = c.fetchone()
+
+        if result is not None:
+            classes = json.loads(result[0])
+        else:
+            return None
+        #iterate through class list
+        for classId in classes:
+            #for each class id, grab all associated polls
+            c.execute("SELECT * FROM polls WHERE classId=?", (classId, ))
+            result = c.fetchall()
+
+            for pollTuple in result:
+                polls.append(self._formatPoll(pollTuple))
+        
+        return polls
+
+    def getAnsweredPollIdsForUser(self, userId):
+        """
+        get a list of poll Id's for which the user userId has a response
+        Args:
+            userId (string): Id of user to get Answered polls
+        
+        Returns:
+            int[]: list of poll id's to which userId has answered
+        """
+        c = self.conn.cursor()
+
+        c.execute("SELECT pollId FROM responses WHERE userId=?", (userId, ))
+        result = c.fetchall()
+        out = [r[0] for r in result]
+
+        return out
+
+  
+
+
 
     def _formatClass(self, classTuple):
-        out = {
+        out = { 
+                "classId": classTuple[0],
                 "className": classTuple[1],
                 "courseCode": classTuple[2],
                 "students" : json.loads(classTuple[3]),
@@ -582,10 +532,17 @@ class DatabaseSQL(object):
 
 
 
-
+    def writeChanges(self):
+        #re-encrypt db file
+        self.encrypt_file(self.fname)
         
     def __del__(self):
+
+        #close db connection
         self.conn.close()
+        #remove un-encrypted file
+        os.remove(self.fname)
+    
 
     def initTables(self):
         """Creates new tables if they don't exist yet"""
@@ -594,8 +551,7 @@ class DatabaseSQL(object):
         #Create Users
         c.execute('''CREATE TABLE IF NOT EXISTS users(
             emailAddress text, role text, firstName text, lastName text,
-            hashedPassword text, salt text, classes text, reedemed boolean, 
-            unseenPolls text, primary key (emailAddress, role))''')
+            hashedPassword text, salt text, classes text, reedemed boolean)''')
 
         #Create Polls
         c.execute(''' CREATE TABLE IF NOT EXISTS polls (
@@ -609,6 +565,20 @@ class DatabaseSQL(object):
 
         #Create Responses
         c.execute(''' CREATE TABLE IF NOT EXISTS responses (
-            responseId integer primary key autoincrement, userId text, responseBody text
+            responseId integer primary key autoincrement, userId text, pollId integer, responseBody text
             )''')
 
+        self.writeChanges()
+
+if __name__ == "__main__":
+
+    password = input("Enter db password: ") #it's 'password'
+
+    try:
+        test = DatabaseSQL("example.db.enc", password)
+    except IncorrectPasswordException:
+        print("Incorrect DB password")
+
+        #This is important, if the db has an incorrect password then the program needs
+        #to quit. further use of the DB object will have undefined behavior (errors)
+        test = None 

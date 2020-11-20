@@ -4,13 +4,17 @@ import smtplib
 import os
 import ssl
 import json
+import random
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import COMMASPACE, formatdate
 import time
-from shared import database
+from shared import database # pylint: disable=import-error
 from hashlib import sha256
 
+dirname = os.path.dirname(__file__)
+db_path = os.path.join(dirname, 'shared/example.db.enc')
+myDb = None
 
 def welcome_email(recipient_id, recipient):
     """
@@ -68,21 +72,25 @@ def notify_users(recipients):
     smtp.close()
 
 
-def init_user(users):
-    dirname = os.path.dirname(__file__)
-    db_path = os.path.join(dirname, 'shared/example.db')
-    myDb = database.DatabaseSQL(db_path)
+def init_user(users, dbpass):    
 
     for userId in users.keys():
         newUser = users[userId]
         userType = newUser["type"]
 
+        salt = str(random.randint(0, 4096))
+        
+        hashed_pass = sha256((newUser["temporaryPassword"] + salt).encode('utf-8')).hexdigest()
+        for _ in range(10000):
+            hashed_pass = sha256((hashed_pass).encode('utf-8')).hexdigest()
+        
         user = {
             userId: {
                 "role": userType,
                 "firstName": newUser["firstName"],
                 "lastName": newUser["lastName"],
-                "password": newUser["temporaryPassword"],
+                "password": hashed_pass,
+                "salt": salt,
                 "classes": newUser["classes"],
                 "reedemed": False
             }
@@ -93,16 +101,23 @@ def init_user(users):
 
 def main():
     if len(sys.argv) < 8:
-        print("Usage: ./admin.py should-send-email(yes or no) email"
+        print("Usage: ./admin.py db-password should-send-email(yes or no) email"
               " first-name last-name temp-password user-type classes")
         return
-    should_notify = sys.argv[1] == "yes"
-    email = sys.argv[2]
-    firstname = sys.argv[3]
-    lastname = sys.argv[4]
-    temp_password = sys.argv[5]
-    user_type = sys.argv[6]
-    classes = sys.argv[7:]
+    dbpass = sys.argv[1]
+    should_notify = sys.argv[2] == "yes"
+    email = sys.argv[3]
+    firstname = sys.argv[4]
+    lastname = sys.argv[5]
+    temp_password = sys.argv[6]
+    user_type = sys.argv[7]
+    classes = sys.argv[8:]
+
+    try:
+        global myDb
+        myDb = database.DatabaseSQL(db_path, dbpass)
+    except IncorrectPasswordException:
+        return 0
     newUsers = {
         email: {
             "firstName": firstname,
@@ -112,7 +127,7 @@ def main():
             "type": user_type
         }
     }
-    init_user(newUsers)
+    init_user(newUsers, dbpass)
     if should_notify:
         notify_users(newUsers)
 

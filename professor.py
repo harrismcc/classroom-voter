@@ -36,7 +36,7 @@ def send_msg(clientSocket, msg):
     try:
         clientSocket.send(str.encode(json.dumps(msg)))
     except socket.error as e:
-        print('Failed to send message: ' + str(e))
+        print("Failed to send message: " + str(e))
 
 def send_poll(clientSocket, poll):
     msg = {
@@ -47,10 +47,12 @@ def send_poll(clientSocket, poll):
     }
     send_msg(clientSocket, msg)
 
-def collect_responses(clientSocket):
+def collect_responses(clientSocket, pollId):
     msg = {
         "endpoint": "Aggregate_poll",
-        "Arguments": {}
+        "Arguments": {
+            "pollId" : pollId
+        }
     }
     send_msg(clientSocket, msg)
     data = json.loads(clientSocket.recv(2048).decode())
@@ -60,19 +62,20 @@ def main(clientSocket):
 
     while True:
         prompt = input("To create a new poll, enter  'np'. To collect responses, enter 'cr'. To quit, enter 'quit': ")
-        if prompt == 'cr':
-            responses = collect_responses(clientSocket)
+        if prompt == "cr":
+            pollId = input("Collect reponses for pollId: ")
+            responses = collect_responses(clientSocket, pollId)
             print("Results: ", responses)
-        elif prompt == 'np':
+        elif prompt == "np":
             poll = prompt_for_poll()
             send_poll(clientSocket, poll)
-        elif prompt == 'quit':
+        elif prompt == "quit":
             print("#"*80)
-            print('\t\t\tClosing session')
+            print("\t\t\tClosing session")
             print("#"*80)
             return
         else:
-            print('Unrecognized input ' + prompt + ". Expected 'np', 'cr', or 'quit'")
+            print("Unrecognized input " + prompt + ". Expected 'np', 'cr', or 'quit'")
 
 if __name__ == "__main__":
     main()
