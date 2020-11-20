@@ -73,7 +73,6 @@ class VoterClient:
         """
         
         try:
-            
             poll_question = Poll.fromDict(data)
             print("you have recieved a new poll")
             return poll_question

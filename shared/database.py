@@ -278,9 +278,22 @@ class DatabaseSQL(object):
         elif "pollId" in kwargs.keys():
             pass
         else:
-            raise Exception("Improper Argument passed: must be one of responseId, userId, or pollId")    
+            raise Exception("Improper Argument passed: must be one of responseId, userId, or pollId")
+            
+    def getResponsesForPoll(self, pollId):
+        """
+            Pulls all reponses for a the given pollId from the database
+            Args:
+                pollId (int): Pulls all responses for that poll
+        """
+    
+        c = self.conn.cursor()
         
-
+        c.execute("SELECT responseBody FROM responses WHERE pollId=?", (pollId, ))
+        results = c.fetchall()
+        
+        return results
+            
     def _formatUser(self, studentTuple):
         out = {studentTuple[0] : {
             'role' : studentTuple[1],
@@ -569,9 +582,3 @@ if __name__ == "__main__":
         #This is important, if the db has an incorrect password then the program needs
         #to quit. further use of the DB object will have undefined behavior (errors)
         test = None 
-
-
-
-
-    
-    

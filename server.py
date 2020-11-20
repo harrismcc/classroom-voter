@@ -180,7 +180,7 @@ def threaded_client(connection):
                         new_password_hash = sha256((new_password_hash).encode("utf-8")).hexdigest()
                     
                     database_lock.acquire_write()
-                    database.updateFieldViaId("users", username, "hashedPassword", new_password_hash)
+                    database.resetUserPassword(username, new_password_hash)
                     database.updateFieldViaId("users", username, "reedemed", "1")
                     database_lock.release()
                     
@@ -222,7 +222,7 @@ def threaded_client(connection):
                      hashed_temp_pass = sha256((hashed_temp_pass).encode("utf-8")).hexdigest()
                     
                     database_lock.acquire_write()
-                    database.updateFieldViaId("users", username, "hashedPassword", hashed_temp_pass)
+                    database.resetUserPassword(username, hashed_temp_pass)
                     database.updateFieldViaId("users", username, "reedemed", "0")
                     database_lock.release()
                     
@@ -277,15 +277,12 @@ def threaded_client(connection):
                 endpoint = data["endpoint"]
                 
                 if endpoint == "Poll_response":
-                    poll_response = PollResponse.fromDict(data["Arguments"]["poll"])
-                    print(authenticated_username)
+                    arguements = data["Arguments"]
+                    poll_response = PollResponse.fromDict(arguements["poll"])
 
-                    database.addResponse(authenticated_username, int(data["Arguments"]["pollId"]), json.dumps(poll_response.toDict()))
-                    
-                    """database_lock.acquire_write()
-                    add_response_to_poll(poll_response)
-                    database_lock.release()"""
-                    
+                    database_lock.acquire_write()
+                    database.addResponse(authenticated_username, int(arguements["pollId"]), json.dumps(poll_response.toDict()))
+                    database_lock.release()
                     continue
                 
                 if endpoint == "Get_next_poll":
@@ -307,16 +304,15 @@ def threaded_client(connection):
                     #TODO: Currently this just returns the top of the list of unanswered polls,
                     #      it might be better to send the client the entire list and let them
                     #      sort it out client-side
-                    connection_list_lock.acquire_read()
-                    student_connection = connection_list[authenticated_username]
-
-
                     username = authenticated_username
                     role = "students"
+                    
+                    database_lock.acquire_read()
                     resp = database.getPollsForUser(username, role)
-                    out = []
-
                     responded = database.getAnsweredPollIdsForUser(username)
+                    database_lock.release()
+                    
+                    out = []
                     for poll in resp:
                         if poll["pollId"] not in responded:
                             out.append(poll)
@@ -326,29 +322,31 @@ def threaded_client(connection):
                     except IndexError:
                         out = {}
 
-                    student_connection.send(json.dumps(out).encode())
-                    connection_list_lock.release()
+                    connection.send(json.dumps(out).encode())
                 
                 if endpoint == "Get_polls_for_user":
                     """gets all polls for user"""
-                    username = data["Arguments"]["username"]
-                    role = data["Arguments"]["role"]
+                    arguements = data["Arguments"]
+                    username = arguments["username"]
+                    role = arguments["role"]
+                    
                     filterValue = None
                     try:
-                        filterValue = data["Arguments"]["filter"]
+                        filterValue = arguments["filter"]
                     except KeyError:
                         pass
                 
+                    database.acquire_read()
                     resp = database.getPollsForUser(username, role)
+                    responded = database.getAnsweredPollIdsForUser(username)
+                    database.release()
+                    
                     out = []
-
                     if filterValue == "active":
-                        responded = database.getAnsweredPollIdsForUser(username)
                         for poll in resp:
                             if poll["pollId"] not in responded:
                                 out.append(poll)
                     elif filterValue == "answered":
-                        responded = database.getAnsweredPollIdsForUser(username)
                         for poll in resp:
                             if poll["pollId"] in responded:
                                 out.append(poll)
@@ -380,10 +378,21 @@ def threaded_client(connection):
                     continue
                 
                 if endpoint == "Aggregate_poll":
-                    # outgoing_msg = aggregate_poll()
-                    # broadcast(json.dumps(outgoing_msg))
-                    # get poll from id
+                    arguments = data["Arguments"]
+                    pollId = arguments["pollId"]
+                    
+                    database_lock.acquire_read()
+                    results = database.getResponsesForPoll(pollId)
+                    database_lock.release()
 
+                    aggregation_response = {
+                        "endpoint" : "Aggregation_result",
+                        "Arguments" : {
+                            "results" : results
+                        }
+                    }
+                    
+                    connection.send(json.dumps(aggregation_response).encode())
                     continue
                 
     finally:
