@@ -75,6 +75,40 @@ class LoginTools(object):
         response = json.loads(self.clientSocket.recv(2048).decode())
         return response
 
+    def get_new_password():
+        """prompts the user for a new password that satisfies comprehensive8 requirements
+        Returns:
+            password: string password that satisfies comprehensive8"""
+
+        valid = False
+        password = ""
+        while not valid:
+            password = safe_prompt_for_password("please enter your new password: \n(note: Password must have atleast 8 characters including an uppercase and lowercase letter, a symbol, and a digit.\n Password: ")
+            valid = True
+            if len(password) < 8:
+                valid = False
+                print("password must be at least eight characters! \n")
+            if not any(x.isupper() for x in password):
+                valid = False
+                print("password must contain at least one uppercase character! \n")
+            if not any(x.islower() for x in password):
+                valid = False
+                print("password must contain at least one lowercase character! \n")
+            if not any(x.isnumeric() for x in password):
+                valid = False
+                print("password must contain at least one digit! \n")
+            symbols = '!@#$%^&*()-_+=`~[]{},./<>?|'
+            if not any(x in symbols for x in password):
+                valid = False
+                print("password must contain at least one symbol (!@#$%^&*()-_+=`~[]{},./<>?|) \n")
+            if valid:
+                confirm = safe_prompt_for_password("please enter the password again to confirm:")
+                if confirm != password:
+                    valid = False
+                    print("Passwords don't match! Try again")
+
+        return password
+
 
     def main(self):
         while True:
@@ -97,7 +131,7 @@ class LoginTools(object):
                     print('Password Recovery Failed. Try again.')
                 
         if result['Arguments']['result'] == 'must reset':
-            new_password = self.safe_prompt_for_password("Please choose a new password:")
+            new_password = self.get_new_password("Please choose a new password:")
             self.reset_password(username, password, new_password)
         
         if result['Arguments']['account_type'] == 'students':
