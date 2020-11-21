@@ -49,7 +49,6 @@ class VoterClient:
                 print("No new polls.")
                 continue
 
-
             poll_question = self.getPollQuestion(data)
             if poll_question is not None:
                 response = self.answerPoll(poll_question)

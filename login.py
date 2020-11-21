@@ -63,6 +63,8 @@ class LoginTools(object):
             }
         }
         self.send_msg(msg)
+        result = json.loads(self.clientSocket.recv(2048).decode())
+        return result
         
     def recover_password(self, username):
         msg = {
@@ -75,7 +77,7 @@ class LoginTools(object):
         response = json.loads(self.clientSocket.recv(2048).decode())
         return response
 
-    def get_new_password():
+    def get_new_password(self):
         """prompts the user for a new password that satisfies comprehensive8 requirements
         Returns:
             password: string password that satisfies comprehensive8"""
@@ -83,7 +85,7 @@ class LoginTools(object):
         valid = False
         password = ""
         while not valid:
-            password = safe_prompt_for_password("please enter your new password: \n(note: Password must have atleast 8 characters including an uppercase and lowercase letter, a symbol, and a digit.\n Password: ")
+            password = self.safe_prompt_for_password("please enter your new password: \n(note: Password must have atleast 8 characters including an uppercase and lowercase letter, a symbol, and a digit.\n Password: ")
             valid = True
             if len(password) < 8:
                 valid = False
@@ -102,42 +104,12 @@ class LoginTools(object):
                 valid = False
                 print("password must contain at least one symbol (!@#$%^&*()-_+=`~[]{},./<>?|) \n")
             if valid:
-                confirm = safe_prompt_for_password("please enter the password again to confirm:")
+                confirm = self.safe_prompt_for_password("please enter the password again to confirm:")
                 if confirm != password:
                     valid = False
                     print("Passwords don't match! Try again")
 
         return password
-
-
-    def main(self):
-        while True:
-            login_action = input("Login or Forgot Password: ")
-            if login_action == "Login":
-                username = input("Enter username: ")
-                password = self.safe_prompt_for_password()
-                result = self.attempt_login(username, password)
-                if result['Arguments']['result'] == 'success' or result['Arguments']['result'] == 'must reset':
-                    break
-                else:
-                    print('Invalid credentials. Try again.')
-                    
-            if login_action == "Forgot Password":
-                username = input("Enter username: ")
-                result = self.recover_password(username)
-                if result['Arguments']['result'] == 'success':
-                    print('Password Recovery Succeeded')
-                else:
-                    print('Password Recovery Failed. Try again.')
-                
-        if result['Arguments']['result'] == 'must reset':
-            new_password = self.get_new_password("Please choose a new password:")
-            self.reset_password(username, password, new_password)
-        
-        if result['Arguments']['account_type'] == 'students':
-            client.main(self.clientSocket, result['Arguments']['username'])
-        elif result['Arguments']['account_type'] == 'professors':
-            professor.main(self.clientSocket)
         
     def safe_prompt_for_password(self, prompt='Enter Password: '):
         if os.isatty(sys.stdin.fileno()):
@@ -150,7 +122,40 @@ class LoginTools(object):
         return password
 
 
-
+    def main(self):
+        while True:
+            login_action = input("Login or Forgot Password: ")
+            if login_action == "Login":
+                username = input("Enter username: ")
+                password = self.safe_prompt_for_password()
+                login_result = self.attempt_login(username, password)
+                if login_result['Arguments']['result'] == 'success' or login_result['Arguments']['result'] == 'must reset':
+                    break
+                else:
+                    print('Invalid credentials. Try again.')
+                    
+            if login_action == "Forgot Password":
+                username = input("Enter username: ")
+                login_result = self.recover_password(username)
+                if login_result['Arguments']['result'] == 'success':
+                    print('Password Recovery Succeeded')
+                else:
+                    print('Password Recovery Failed. Try again.')
+                
+        if login_result['Arguments']['result'] == 'must reset':
+            new_password = self.get_new_password()
+            reset_result = self.reset_password(username, password, new_password)
+            if reset_result['Arguments']['result'] == 'success':
+                pass
+            else:
+                print("Password Reset Failed")
+                quit()
+            
+        if login_result['Arguments']['account_type'] == 'students':
+            client.main(self.clientSocket, login_result['Arguments']['username'])
+        elif login_result['Arguments']['account_type'] == 'professors':
+            professor.main(self.clientSocket)
+        
 def prompt_for_ip():
     ip = input("Enter the IP address of the server (eg 192.168.61.1): ")
     port = int(input("Enter the port of the server (eg 1500): "))
