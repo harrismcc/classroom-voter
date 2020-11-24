@@ -4,8 +4,8 @@ import json
 import unittest
 import os
 import random
-from shared.database import *
-from shared.pollTypes import *
+from classroom_voter.shared.database import *
+from classroom_voter.shared.pollTypes import *
 
 
 class DatabaseSQLTesting(unittest.TestCase):
@@ -13,13 +13,16 @@ class DatabaseSQLTesting(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
 
+        db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "testingTB.db.enc")
+
         #remove test db
         try:
-            os.remove("./shared/testingDB.db")
-        except FileNotFoundError:
+            os.remove(db_path)
+        except:
             pass
         #load up db
-        cls.db = DatabaseSQL("./shared/testingDB.db")
+        
+        cls.db = DatabaseSQL(db_path, "password")
 
         cls.userTemplate = {
         "test@gmail.com" : {

@@ -20,5 +20,5 @@ jobs:
       - uses: actions/checkout@v2
       - name: Main test
         run: |
-          python -m unittest discover tests
+          python -m unittest discover classroom_voter.tests
           

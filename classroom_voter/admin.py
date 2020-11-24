@@ -9,11 +9,12 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import COMMASPACE, formatdate
 import time
-from shared import database # pylint: disable=import-error
+from classroom_voter.shared import database
 from hashlib import sha256
 
 dirname = os.path.dirname(__file__)
-db_path = os.path.join(dirname, 'shared/example.db.enc')
+#db_path = os.path.join(dirname, 'shared/example.db.enc')
+db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "shared/example.db.enc")
 myDb = None
 
 def welcome_email(recipient_id, recipient):
@@ -97,12 +98,28 @@ def init_user(users, dbpass):
         }
 
         myDb.addUser(user)
+    
+def executeSQL(query):
+    c = myDb.conn.cursor()
+
+    c.execute(query)
+    myDb.conn.commit()
+    myDb.writeChanges()
+    result = c.fetchall()
+    return result
 
 
 def main():
-    if len(sys.argv) < 8:
+    global myDb
+    if len(sys.argv) == 3:
+        if sys.argv[1] == "--sql": 
+            myDb = database.DatabaseSQL(db_path, sys.argv[2])
+            while True:
+                result = executeSQL(input("SQL line: "))
+                print(result)
+    elif len(sys.argv) < 8:
         print("Usage: ./admin.py db-password should-send-email(yes or no) email"
-              " first-name last-name temp-password user-type classes")
+            " first-name last-name temp-password user-type classes")
         return
     dbpass = sys.argv[1]
     should_notify = sys.argv[2] == "yes"
@@ -114,9 +131,8 @@ def main():
     classes = sys.argv[8:]
 
     try:
-        global myDb
         myDb = database.DatabaseSQL(db_path, dbpass)
-    except IncorrectPasswordException:
+    except database.IncorrectPasswordException:
         return 0
     newUsers = {
         email: {
