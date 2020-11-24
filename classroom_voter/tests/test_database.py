@@ -13,13 +13,16 @@ class DatabaseSQLTesting(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
 
+        db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "testingTB.db.enc")
+
         #remove test db
         try:
-            os.remove("./shared/testingDB.db")
+            os.remove(db_path)
         except:
             pass
         #load up db
-        cls.db = DatabaseSQL("./shared/testingDB.db", "password")
+        
+        cls.db = DatabaseSQL(db_path, "password")
 
         cls.userTemplate = {
         "test@gmail.com" : {
