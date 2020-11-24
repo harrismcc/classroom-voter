@@ -1,2 +1,11 @@
-.classroom_voter_harrismcc.egg-info/
-.dist/
+.vscode/
+*.pyc
+classroom_voter_harrismcc.egg-info
+dist/
+
+tests/__pycache__/
+.pylintrc
+__pycache__
+*.db
+*.out
+*.logs
