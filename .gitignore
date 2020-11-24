@@ -1,6 +1,6 @@
 .vscode/
 *.pyc
-classroom_voter_harrismcc.egg-info
+classroom_voter_harrismcc.egg-info/
 dist/
 shared/__pycache__/
 tests/__pycache__/
