@@ -1,11 +1,18 @@
-import setuptools
+import setuptools, os
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+
+def getVersionNumber():
+    stream = os.popen('git log master --pretty=oneline | wc -l')
+    out = stream.read().rstrip()
+    return out
+
+
 setuptools.setup(
-    name="classroom-voter-harrismcc", # Replace with your own username
-    version="0.0.3-beta",
+    name="classroom-voter", # Replace with your own username
+    version="0.0.3-beta." + getVersionNumber(),
     author="Harris McCullers, Jay Rodolitz, Douglas Webster, Ishaan Gandhi",
     author_email="harrismcc+classroom-voter@gmail.com",
     description="A secure CLI classroom polling system",
