@@ -8,7 +8,7 @@ responses from existing ones.
 import socket
 import sys
 import json
-from shared.pollTypes import Poll, FreeResponseQuestion
+from classroom_voter.shared.pollTypes import Poll, FreeResponseQuestion
 import datetime
 
 
@@ -103,5 +103,3 @@ def main(clientSocket):
         else:
             print("Unrecognized input " + prompt + ". Expected 'np', 'cr', or 'quit'")
 
-if __name__ == "__main__":
-    main()

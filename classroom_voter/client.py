@@ -6,7 +6,7 @@ import socket
 import os
 import sys
 import time
-from shared.pollTypes import PollResponse, PollQuestion, Poll # pylint: disable=import-error
+from classroom_voter.shared.pollTypes import PollResponse, PollQuestion, Poll # pylint: disable=import-error
 import json
 
 class VoterClient:
@@ -76,9 +76,7 @@ class VoterClient:
                 continue
 
         #clientSocket.close()
-        
-    def toString(self):
-        return "Client with host: <" + str(self.host) + "> and port: <" + str(self.port) +">"
+
 
     def getPollQuestion(self, data):
         """

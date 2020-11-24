@@ -11,21 +11,22 @@ import random
 import socket
 import threading
 
-import serverUtils
+import classroom_voter.serverUtils as serverUtils
 
 from _thread import *
 from threading import Thread
 
 from hashlib import sha256
 
-from shared.pollTypes import *
-from shared.database import *
-from shared.locks import *
+from classroom_voter.shared.pollTypes import *
+from classroom_voter.shared.database import *
+from classroom_voter.shared.locks import *
 
 sys.path.append(os.path.dirname(__file__)) #gets pdoc working
 
 dirname = os.path.dirname(__file__)
-db_path = os.path.join(dirname, 'shared/example.db.enc')
+#db_path = os.path.join(dirname, 'shared/example.db.enc')
+db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "shared/example.db.enc")
 database = None
 database_lock = RWLock()
 
@@ -348,10 +349,10 @@ def threaded_client(connection):
                 except KeyError:
                     pass
             
-                database.acquire_read()
+
                 resp = database.getPollsForUser(username, role)
                 responded = database.getAnsweredPollIdsForUser(username)
-                database.release()
+
                 
                 out = []
                 if filterValue == "active":

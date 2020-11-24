@@ -9,11 +9,12 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import COMMASPACE, formatdate
 import time
-from shared import database # pylint: disable=import-error
+from classroom_voter.shared import database
 from hashlib import sha256
 
 dirname = os.path.dirname(__file__)
-db_path = os.path.join(dirname, 'shared/example.db.enc')
+#db_path = os.path.join(dirname, 'shared/example.db.enc')
+db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "shared/example.db.enc")
 myDb = None
 
 def welcome_email(recipient_id, recipient):
@@ -131,7 +132,7 @@ def main():
 
     try:
         myDb = database.DatabaseSQL(db_path, dbpass)
-    except IncorrectPasswordException:
+    except database.IncorrectPasswordException:
         return 0
     newUsers = {
         email: {

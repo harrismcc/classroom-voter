@@ -10,9 +10,9 @@ import os
 import sys
 import json
 import getpass
-from shared.pollTypes import Poll, FreeResponseQuestion
-import professor
-import client
+from classroom_voter.shared.pollTypes import Poll, FreeResponseQuestion
+import classroom_voter.professor as professor
+import classroom_voter.client as client
 
 class LoginTools(object):
     def __init__(self, ip, port, cli=False):
