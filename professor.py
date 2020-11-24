@@ -59,8 +59,9 @@ def collect_responses(clientSocket, pollId):
     return data
 
 def main(clientSocket):
-
+    print("we are in maine now")
     while True:
+        print("looping")
         prompt = input("To create a new poll, enter  'np'. To collect responses, enter 'cr'. To quit, enter 'quit': ")
         if prompt == "cr":
             pollId = input("Collect reponses for pollId: ")

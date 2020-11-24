@@ -13,6 +13,7 @@ import getpass
 from shared.pollTypes import Poll, FreeResponseQuestion
 import professor
 import client
+import ssl
 
 class LoginTools(object):
     def __init__(self, ip, port, cli=False):
@@ -20,10 +21,10 @@ class LoginTools(object):
         self.port = port
         self.cli = cli
 
-        self.clientSocket = socket.socket()
-        self.clientSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.sock = socket.socket()
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
-            self.clientSocket.connect((self.ip, self.port))
+            self.sock.connect((self.ip, self.port))
             if self.cli: print('Successful Connection')
             self.connected = True
         except socket.error as e:
@@ -31,6 +32,12 @@ class LoginTools(object):
             if self.cli: print('Failed Connection: ' + str(e))
             return
 
+        self.hostname = 'localhost'
+        self.context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2,)
+        self.context.load_verify_locations('./certificate.pem')
+
+        self.clientSocket = self.context.wrap_socket(self.sock, server_hostname=self.hostname)
+        
 
         if cli:
             self.main()
@@ -151,11 +158,15 @@ class LoginTools(object):
                 print("Password Reset Failed")
                 quit()
             
-        if login_result['Arguments']['account_type'] == 'students':
+        print("logging in: " + login_result['Arguments']['account_type'])    
+        if login_result['Arguments']['account_type'] == 'student':
             client.main(self.clientSocket, login_result['Arguments']['username'])
-        elif login_result['Arguments']['account_type'] == 'professors':
+        elif login_result['Arguments']['account_type'] == 'professor':
             professor.main(self.clientSocket)
         
+        print("logging out")
+
+
 def prompt_for_ip():
     ip = input("Enter the IP address of the server (eg 192.168.61.1): ")
     port = int(input("Enter the port of the server (eg 1500): "))

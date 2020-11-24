@@ -10,6 +10,7 @@ import string
 import random
 import socket
 import threading
+import ssl
 
 import serverUtils
 
@@ -264,7 +265,7 @@ def threaded_client(connection):
             # Add the authenticated user to the connection list
             add_connection(authenticated_username, connection)
             
-        if account_type == "students":
+        if account_type == "student":
             while True:
                 data = connection.recv(2048)
                 if not data:
@@ -356,7 +357,7 @@ def threaded_client(connection):
                     connection.send(json.dumps(out).encode())
         
         
-        if account_type == "professors":
+        if account_type == "professor":
                 
             while True:
                 data = connection.recv(2048)
@@ -417,6 +418,10 @@ def main():
     except IncorrectPasswordException:
         return 0
 
+
+    context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2, ssl.Purpose.CLIENT_AUTH)
+    context.load_cert_chain(certfile="./certificate-loc.pem", keyfile="./privkey.pem")
+
     serverSocket = socket.socket()
     serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     host = 'localhost'
@@ -434,13 +439,15 @@ def main():
     #continuiously accept new connections
     while True:
         client, address = serverSocket.accept()
-                
+        ssl_client = context.wrap_socket(client, server_side=True)
         print('Connected to: ' + address[0] + ':' + str(address[1]))
 
         #each individual connection is threaded
-        start_new_thread(threaded_client, (client, ))
+        start_new_thread(threaded_client, (ssl_client, ))
         threadCount += 1
         print('Thread Number: ' + str(threadCount))
+    ssl_client.shutdown(socket.SHUT_RDWR)
+    ssl_client.close()
     serverSocket.close()
 
 
