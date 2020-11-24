@@ -111,16 +111,16 @@ def executeSQL(query):
 
 def main():
     global myDb
-    if len(sys.argv) < 8:
+    if len(sys.argv) == 3:
         if sys.argv[1] == "--sql": 
             myDb = database.DatabaseSQL(db_path, sys.argv[2])
             while True:
                 result = executeSQL(input("SQL line: "))
                 print(result)
-        else:
-            print("Usage: ./admin.py db-password should-send-email(yes or no) email"
-                " first-name last-name temp-password user-type classes")
-            return
+    elif len(sys.argv) < 8:
+        print("Usage: ./admin.py db-password should-send-email(yes or no) email"
+            " first-name last-name temp-password user-type classes")
+        return
     dbpass = sys.argv[1]
     should_notify = sys.argv[2] == "yes"
     email = sys.argv[3]

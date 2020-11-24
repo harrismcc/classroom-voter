@@ -33,47 +33,51 @@ class VoterClient:
     def setCurrentCourseId(self):
         self.currentCourseId = None
         enrolled = self.sendServerEndpoint("Get_enrolled", None)
-        out = [str(course["classId"])+" : "+str(course["courseCode"]) for course in enrolled["courses"]]
+        if enrolled != None and enrolled["courses"] != [None]:
+            out = [str(course["classId"])+" : "+str(course["courseCode"]) for course in enrolled["courses"]]
 
-        print("Enrolled Courses:")
-        for line in out: print(line)
+            print("Enrolled Courses:")
+            for line in out: print(line)
 
-        while self.currentCourseId not in [course["classId"] for course in enrolled["courses"]]:
-            self.currentCourseId = int(input("Select a course id: "))
+            while self.currentCourseId not in [course["classId"] for course in enrolled["courses"]]:
+                self.currentCourseId = int(input("Select a course id: "))
 
     def startConnection(self):
         """ starts up a connection loop to the server, specified by the host ip and host port """
 
         self.setCurrentCourseId()
-        while True:
-            prompt = input("To view new polls, enter  'vp'. To change course, enter 'cc'. To quit, enter 'quit': ")
-            if prompt == 'quit':
-                break
-            elif prompt == 'cc':
-                self.setCurrentCourseId()
-            elif prompt == "vp":
-                
-                msg = {
-                    "endpoint": "Get_next_poll",
-                    "Arguments" : {
-                        "classId" : self.currentCourseId
+        if self.currentCourseId != None:
+            while True:
+                prompt = input("To view new polls, enter  'vp'. To change course, enter 'cc'. To quit, enter 'quit': ")
+                if prompt == 'quit':
+                    break
+                elif prompt == 'cc':
+                    self.setCurrentCourseId()
+                elif prompt == "vp":
+                    
+                    msg = {
+                        "endpoint": "Get_next_poll",
+                        "Arguments" : {
+                            "classId" : self.currentCourseId
+                        }
                     }
-                }
-                self.clientSocket.send(json.dumps(msg).encode())
-                data = self.clientSocket.recv(1024)
-                data = json.loads(data.decode())
-                if data is None or data == {}:
-                    print("No new polls.")
-                    continue
+                    self.clientSocket.send(json.dumps(msg).encode())
+                    data = self.clientSocket.recv(1024)
+                    data = json.loads(data.decode())
+                    if data is None or data == {}:
+                        print("No new polls.")
+                        continue
 
-                poll_question = self.getPollQuestion(data)
-                if poll_question is not None:
-                    response = self.answerPoll(poll_question)
-                    self.sendResponse(response, data["pollId"])    
-                time.sleep(1)
-            else:
-                print("Unrecognized input")
-                continue
+                    poll_question = self.getPollQuestion(data)
+                    if poll_question is not None:
+                        response = self.answerPoll(poll_question)
+                        self.sendResponse(response, data["pollId"])    
+                    time.sleep(1)
+                else:
+                    print("Unrecognized input")
+                    continue
+        else:
+            print("You are not enrolled in any courses!")
 
         #clientSocket.close()
 
@@ -143,11 +147,11 @@ class VoterClient:
         resp = None
         while resp == None:
             resp = self.clientSocket.recv(4096).decode()
-        
+        print(resp)
         try:    
             data = json.loads(resp)
         except json.JSONDecodeError:
-            print("JSON decode error (No data)")
+            print("JSON decode error (No data) for endpoint ", endpoint)
         
         return data
 

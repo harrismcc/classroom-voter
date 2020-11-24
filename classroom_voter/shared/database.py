@@ -409,6 +409,7 @@ class DatabaseSQL(object):
 
 
     def _formatClass(self, classTuple):
+        print(classTuple)
         out = { 
                 "classId": classTuple[0],
                 "className": classTuple[1],
@@ -579,10 +580,13 @@ if __name__ == "__main__":
     password = input("Enter db password: ") #it's 'password'
 
     try:
-        test = DatabaseSQL("example.db.enc", password)
+        db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "example.db.enc")
+        test = DatabaseSQL(db_path, password)
     except IncorrectPasswordException:
         print("Incorrect DB password")
 
         #This is important, if the db has an incorrect password then the program needs
         #to quit. further use of the DB object will have undefined behavior (errors)
         test = None 
+
+    print(test.getClassFromId(1))
