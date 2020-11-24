@@ -7,6 +7,6 @@ tests/__pycache__/
 .pylintrc
 __pycache__
 *.db
-*.db.enc
+example.db.enc
 *.out
 *.logs
