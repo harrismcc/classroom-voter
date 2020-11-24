@@ -9,6 +9,7 @@ import json
 import string
 import random
 import socket
+import datetime
 import threading
 
 import serverUtils
@@ -279,10 +280,22 @@ def threaded_client(connection):
                 if endpoint == "Poll_response":
                     arguements = data["Arguments"]
                     poll_response = PollResponse.fromDict(arguements["poll"])
-
-                    database_lock.acquire_write()
-                    database.addResponse(authenticated_username, int(arguements["pollId"]), json.dumps(poll_response.toDict()))
+                    poll_id = int(arguements["pollId"])
+                    time_submitted = datetime.datetime.strptime(arguements["time-submitted"], "%Y-%m-%d %H:%M:%S")
+                    
+                    database_lock.acquire_read()
+                    poll = database.getPollFromId(poll_id)
                     database_lock.release()
+                    
+                    time_due = datetime.datetime.strptime(poll["endTime"], "%Y-%m-%d %H:%M:%S")
+                    print("Submitted: ", time_submitted)
+                    print("Due: ", time_due)
+                    
+                    if time_submitted <= time_due:
+                        database_lock.acquire_write()
+                        database.addResponse(authenticated_username, poll_id, json.dumps(poll_response.toDict()))
+                        database_lock.release()
+                        
                     continue
                 
                 if endpoint == "Get_next_poll":
@@ -314,7 +327,9 @@ def threaded_client(connection):
                     
                     out = []
                     for poll in resp:
-                        if poll["pollId"] not in responded:
+                        time_due = datetime.datetime.strptime(poll["endTime"], "%Y-%m-%d %H:%M:%S")
+                        current_time = datetime.datetime.now()
+                        if ((poll["pollId"] not in responded) and (current_time < time_due)):
                             out.append(poll)
         
                     try:

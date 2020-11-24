@@ -8,6 +8,7 @@ import sys
 import time
 from shared.pollTypes import PollResponse, PollQuestion, Poll # pylint: disable=import-error
 import json
+import datetime
 
 class VoterClient:
     """
@@ -103,12 +104,15 @@ class VoterClient:
         Args:
             ans: a Response object, the answer to be sent
             clientSocket: the socket with the destination server"""
+        
+        time_submitted = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
         msg = {
             "endpoint": "Poll_response",
             "Arguments": {
                 "poll": response.toDict(),
-                "pollId": pollId
+                "pollId": pollId,
+                "time-submitted": time_submitted
             }
         }
         

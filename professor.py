@@ -17,9 +17,25 @@ def prompt_for_poll():
     answer_str = input("[Optional] Enter your poll answer: ")
     question = FreeResponseQuestion(question_str, answer_str)
     
+    startTime = datetime.datetime.now()
+    endTime = None
+    valid_end_time = False
+    while not valid_end_time:
+        strEndTime = input("[Required] Enter the due date (24-hour clock: %H:%M %m-%d-%Y): ")
+        
+        try:
+            endTime = datetime.datetime.strptime(strEndTime, "%H:%M %m-%d-%Y")
+            
+            if endTime < startTime:
+                print("Invalid end time! Poll ends before start time.")
+            else:
+                valid_end_time = True
+        except:
+            print("Invalid time format! Try again.")
+    
     args = {
-        "startTime" : datetime.date.today(),
-        "endTime" : datetime.date.today(),
+        "startTime" : startTime,
+        "endTime" : endTime,
         "ownerId" : "12345",
         "classId" : "1"
     }
