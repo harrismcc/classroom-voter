@@ -20,5 +20,6 @@ jobs:
       - name: Main test
         run: |
           python -m unittest discover classroom_voter.tests
+          ./classroom_voter/tests/e2e.sh
 
           
