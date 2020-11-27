@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 The `login` module is the main entry point for any client.
 The client enters credentials, and if authenticated, enters they main
@@ -104,7 +103,7 @@ class LoginTools(object):
                 valid = False
                 print("password must contain at least one symbol (!@#$%^&*()-_+=`~[]{},./<>?|) \n")
             if valid:
-                confirm = self.safe_prompt_for_password("please enter the password again to confirm:")
+                confirm = self.safe_prompt_for_password("Please enter the password again to confirm: ")
                 if confirm != password:
                     valid = False
                     print("Passwords don't match! Try again")

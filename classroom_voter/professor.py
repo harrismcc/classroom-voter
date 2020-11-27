@@ -74,10 +74,15 @@ def getCourses(clientSocket):
 def main(clientSocket):
     #Get class to interact with
     enrolled = getCourses(clientSocket)
-    out = [str(course["classId"])+" : "+str(course["courseCode"]) for course in enrolled["courses"]]
-
-    print("Enrolled Courses:")
-    for line in out: print(line)
+    try:
+        out = [str(course["classId"])+" : "+str(course["courseCode"]) for course in enrolled["courses"]]
+        print("Enrolled Courses:")
+        for line in out:
+            print(line)
+    except Exception:
+        print("You have invalid courses to use this REPL. These are your courses:")
+        print(enrolled)
+        return
 
     global currentCourseId
     while currentCourseId not in [course["classId"] for course in enrolled["courses"]]:

@@ -50,7 +50,7 @@ class VoterClient:
             while True:
                 prompt = input("To view new polls, enter  'vp'. To change course, enter 'cc'. To quit, enter 'quit': ")
                 if prompt == 'quit':
-                    break
+                    return
                 elif prompt == 'cc':
                     self.setCurrentCourseId()
                 elif prompt == "vp":

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import sys
 import smtplib
 import os
@@ -115,7 +114,12 @@ def main():
         if sys.argv[1] == "--sql": 
             myDb = database.DatabaseSQL(db_path, sys.argv[2])
             while True:
-                result = executeSQL(input("SQL line: "))
+                try:
+                    query = input("SQL line: ")
+                except EOFError:
+                    print("Completed")
+                    return
+                result = executeSQL(query)
                 print(result)
     elif len(sys.argv) < 8:
         print("Usage: ./admin.py db-password should-send-email(yes or no) email"

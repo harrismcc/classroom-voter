@@ -1,0 +1,26 @@
+################################################################################
+			Log in to classroom voter
+################################################################################
+Enter the IP address of the server (eg 192.168.61.1): localhost
+Enter the port of the server (eg 1500): 1500
+Successful Connection
+Login or Forgot Password: Login
+Enter username: prof@gmail.com
+Enter Password: temp_pswd
+please enter your new password: 
+(note: Password must have atleast 8 characters including an uppercase and lowercase letter, a symbol, and a digit.
+ Password: lowercaseUPERCASE1!
+Please enter the password again to confirm: lowercaseUPERCASE1!
+Enrolled Courses:
+0 : cs181
+Select a course id: 0
+To create a new poll, enter  'np'. To collect responses, enter 'cr'. To quit, enter 'quit': np
+[Required] Enter your poll question: What is the answer?
+[Optional] Enter your poll answer: This is the answer.
+To create a new poll, enter  'np'. To collect responses, enter 'cr'. To quit, enter 'quit': cr
+Collect reponses for pollId: 1
+Results:  {'endpoint': 'Aggregation_result', 'Arguments': {'results': [['{"responseBody": "This is my answer as a student.", "anonLevel": 0}']]}}
+To create a new poll, enter  'np'. To collect responses, enter 'cr'. To quit, enter 'quit': quit
+################################################################################
+			Closing session
+################################################################################

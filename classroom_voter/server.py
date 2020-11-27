@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 The `server` module handles the socket networking with the clients, placing them each into
 their own threaded connection.
@@ -289,6 +288,7 @@ def threaded_client(connection):
 
                 courseList = []
                 for courseId in classes:
+                    print("getting class with course id: ", str(courseId))
                     courseList.append(database.getClassFromId(courseId))
 
                 ret = {
