@@ -55,7 +55,7 @@ class VoterClient:
                 self.sendResponse(response, data["pollId"])    
             time.sleep(1)
 
-        #clientSocket.close()
+        clientSocket.close()
         
     def toString(self):
         return "Client with host: <" + str(self.host) + "> and port: <" + str(self.port) +">"
@@ -135,7 +135,6 @@ class VoterClient:
 
 
 def main(clientSocket, userId):
-    print("initializing")
     client = VoterClient(clientSocket, userId)
     # this initializes a VoterClient object
     # which involves starting the connection to the server

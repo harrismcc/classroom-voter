@@ -420,7 +420,7 @@ def main():
 
 
     context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2, ssl.Purpose.CLIENT_AUTH)
-    context.load_cert_chain(certfile="./certificate-loc.pem", keyfile="./privkey.pem")
+    context.load_cert_chain(certfile="./newCert.crt", keyfile="./newkey.key")
 
     serverSocket = socket.socket()
     serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -432,6 +432,7 @@ def main():
         serverSocket.bind((host, port))
     except socket.error as e:
         print(str(e))
+    
 
     print('Waiting for a Connection To Client..')
     serverSocket.listen(5)
@@ -440,6 +441,7 @@ def main():
     while True:
         client, address = serverSocket.accept()
         ssl_client = context.wrap_socket(client, server_side=True)
+
         print('Connected to: ' + address[0] + ':' + str(address[1]))
 
         #each individual connection is threaded

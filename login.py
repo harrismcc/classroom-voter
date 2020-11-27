@@ -14,6 +14,7 @@ from shared.pollTypes import Poll, FreeResponseQuestion
 import professor
 import client
 import ssl
+import pprint
 
 class LoginTools(object):
     def __init__(self, ip, port, cli=False):
@@ -32,13 +33,17 @@ class LoginTools(object):
             if self.cli: print('Failed Connection: ' + str(e))
             return
 
-        self.hostname = 'localhost'
-        self.context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2,)
-        self.context.load_verify_locations('./certificate.pem')
-
-        self.clientSocket = self.context.wrap_socket(self.sock, server_hostname=self.hostname)
-        
-
+        self.hostname = "classroom.voter"
+        self.client_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        self.client_context.options |= ssl.OP_NO_TLSv1
+        self.client_context.options |= ssl.OP_NO_TLSv1_1
+        self.client_context.verify_mode |= ssl.CERT_REQUIRED
+        self.client_context.load_verify_locations('./newCert.crt')
+        self.clientSocket = self.client_context.wrap_socket(self.sock, server_hostname=self.hostname)
+        self.clientSocket.getpeercert()
+        pprint.pprint(self.clientSocket.getpeercert())
+        print(self.clientSocket.getpeername())
+        print(self.clientSocket.cipher())
         if cli:
             self.main()
 
