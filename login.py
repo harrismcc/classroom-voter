@@ -17,7 +17,22 @@ import ssl
 import pprint
 
 class LoginTools(object):
+    '''an object to securely connect a client to the server
+        and authenticate them.
+
+        Parameters:
+            ip: string ip for server
+            port: port number of server
+            cli: boolean for CLI responses
+        
+        Variables:
+            ip: same
+            port: same
+            cli: same
+            sock: the socket to the server
+            clientSock: ssl secured socket to server'''
     def __init__(self, ip, port, cli=False):
+        
         self.ip = ip
         self.port = port
         self.cli = cli
@@ -40,10 +55,10 @@ class LoginTools(object):
         self.client_context.verify_mode |= ssl.CERT_REQUIRED
         self.client_context.load_verify_locations('./newCert.crt')
         self.clientSocket = self.client_context.wrap_socket(self.sock, server_hostname=self.hostname)
-        self.clientSocket.getpeercert()
         pprint.pprint(self.clientSocket.getpeercert())
-        print(self.clientSocket.getpeername())
-        print(self.clientSocket.cipher())
+        # print(self.clientSocket.getpeername())
+        # print(self.clientSocket.cipher())
+        self.clientSocket.getpeercert()
         if cli:
             self.main()
 
@@ -193,9 +208,10 @@ def main():
             port = int(sys.argv[2])
     else:
         ip, port = prompt_for_ip()
-    
-    login = LoginTools(ip, port, cli="True")
-    
+    try:
+        login = LoginTools(ip, port, cli="True")
+    except ssl.SSLError as e:
+        print(str(e))
     
     
         

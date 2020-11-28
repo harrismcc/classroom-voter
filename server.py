@@ -439,15 +439,19 @@ def main():
     
     #continuiously accept new connections
     while True:
-        client, address = serverSocket.accept()
-        ssl_client = context.wrap_socket(client, server_side=True)
+        try:
+            client, address = serverSocket.accept()
+        
+            ssl_client = context.wrap_socket(client, server_side=True)
+            
+            print('Connected to: ' + address[0] + ':' + str(address[1]))
 
-        print('Connected to: ' + address[0] + ':' + str(address[1]))
-
-        #each individual connection is threaded
-        start_new_thread(threaded_client, (ssl_client, ))
-        threadCount += 1
-        print('Thread Number: ' + str(threadCount))
+            #each individual connection is threaded
+            start_new_thread(threaded_client, (ssl_client, ))
+            threadCount += 1
+            print('Thread Number: ' + str(threadCount))
+        except ssl.SSLError as e:
+            print(str(e))
     ssl_client.shutdown(socket.SHUT_RDWR)
     ssl_client.close()
     serverSocket.close()
