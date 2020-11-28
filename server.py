@@ -420,7 +420,7 @@ def main():
 
 
     context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2, ssl.Purpose.CLIENT_AUTH)
-    context.load_cert_chain(certfile="./newCert.crt", keyfile="./newkey.key")
+    context.load_cert_chain(certfile="shared/newCert.crt", keyfile="shared/privkey.pem")
 
     serverSocket = socket.socket()
     serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

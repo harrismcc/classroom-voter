@@ -53,9 +53,9 @@ class LoginTools(object):
         self.client_context.options |= ssl.OP_NO_TLSv1
         self.client_context.options |= ssl.OP_NO_TLSv1_1
         self.client_context.verify_mode |= ssl.CERT_REQUIRED
-        self.client_context.load_verify_locations('./newCert.crt')
+        self.client_context.load_verify_locations('shared/newCert.crt')
         self.clientSocket = self.client_context.wrap_socket(self.sock, server_hostname=self.hostname)
-        pprint.pprint(self.clientSocket.getpeercert())
+        # pprint.pprint(self.clientSocket.getpeercert())
         # print(self.clientSocket.getpeername())
         # print(self.clientSocket.cipher())
         self.clientSocket.getpeercert()
