@@ -33,28 +33,79 @@ class VoterClient:
         """ starts up a connection loop to the server, specified by the host ip and host port """
 
         while True:
-            prompt = input("To view new polls, enter  'vp'. To quit, enter 'quit': ")
+            prompt = input("To view new polls, enter  'vp'. To edit a poll response, enter 'ep'. To quit, enter 'quit': ")
             if prompt == 'quit':
                 break
-            if prompt != 'vp':
+            if ((prompt != 'vp') and (prompt != 'ep')):
                 print("Unrecognized input")
                 continue
             
-            msg = {
-                "endpoint": "Get_next_poll"
-            }
-            self.clientSocket.send(json.dumps(msg).encode())
-            data = self.clientSocket.recv(1024)
-            data = json.loads(data.decode())
-            if data is None or data == {}:
-                print("No new polls.")
-                continue
+            if prompt == "vp":
+                msg = {
+                    "endpoint": "Get_next_poll"
+                }
+                self.clientSocket.send(json.dumps(msg).encode())
+                data = self.clientSocket.recv(1024)
+                data = json.loads(data.decode())
+                if data is None or data == {}:
+                    print("No new polls.")
+                    continue
 
-            poll_question = self.getPollQuestion(data)
-            if poll_question is not None:
-                response = self.answerPoll(poll_question)
-                self.sendResponse(response, data["pollId"])    
-            time.sleep(1)
+                poll_question = self.getPollQuestion(data)
+                if poll_question is not None:
+                    response = self.answerPoll(poll_question)
+                    self.sendResponse(response, data["pollId"])
+                    
+                continue
+            
+            if prompt == "ep":
+                poll_id = input("Enter pollId: ")
+                
+                msg = {
+                    "endpoint": "Edit_poll_request",
+                    "Arguments": {
+                        "pollId": poll_id
+                    }
+                }
+                self.clientSocket.send(json.dumps(msg).encode())
+                
+                data = json.loads(self.clientSocket.recv(1024))
+                print(data)
+                
+                arguments = data["Arguments"]
+                result = arguments["result"]
+                poll = arguments["poll"]
+                previous_response = arguments["previousResponse"]
+                                                
+                if result == "failed":
+                    print("Edit request failed!")
+                    continue
+                if result == "expired":
+                    print("Poll has expired, cannot edit!")
+                    continue
+                
+                if result == "success":
+                    poll_question = self.getPollQuestion(poll)
+                    print("Prompt: ", poll_question.getPrompt())
+                    print("Previous Response: ", previous_response["responseBody"])
+                    
+                    updated_str_response = input("Update your response: ")
+                    
+                    time_submitted = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    
+                    msg = {
+                        "endpoint": "Update_response",
+                        "Arguments": {
+                            "pollId": poll_id,
+                            "updated_response": PollResponse(updated_str_response).toDict(),
+                            "time_submitted": time_submitted
+                        }
+                    }
+                    self.clientSocket.send(json.dumps(msg).encode())
+                
+                    data = json.loads(self.clientSocket.recv(1024))
+                    print(data)
+                
 
         #clientSocket.close()
         
@@ -78,10 +129,8 @@ class VoterClient:
             return poll_question
         except RecursionError:
             print("malformed response: ", data)
-            return None    
+            return None
             
-
-
     def answerPoll(self, question):
         """
         Prompts the user to answer a poll
