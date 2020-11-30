@@ -121,7 +121,6 @@ class VoterClient:
                         data = json.loads(self.clientSocket.recv(1024))
                         print(data)
                 else:
-                    print("Unrecognized input")
                     continue
         else:
             print("You are not enrolled in any courses!")
