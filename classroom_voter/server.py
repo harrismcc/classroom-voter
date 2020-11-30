@@ -9,6 +9,7 @@ import string
 import random
 import socket
 import threading
+import ssl
 
 import classroom_voter.serverUtils as serverUtils
 
@@ -417,7 +418,14 @@ def main():
         global database
         database = DatabaseSQL(db_path, databasePassword)
     except IncorrectPasswordException:
+        print("Incorrect Password - closing")
         return 0
+
+
+    context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2, ssl.Purpose.CLIENT_AUTH)
+    certPath = os.path.join(os.path.dirname(__file__) , "shared/newCert.crt")
+    keyPath = os.path.join(os.path.dirname(__file__) , "shared/privkey.pem")
+    context.load_cert_chain(certfile=certPath, keyfile=keyPath)
 
     serverSocket = socket.socket()
     serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -429,20 +437,28 @@ def main():
         serverSocket.bind((host, port))
     except socket.error as e:
         print(str(e))
+    
 
     print('Waiting for a Connection To Client..')
     serverSocket.listen(5)
     
     #continuiously accept new connections
     while True:
-        client, address = serverSocket.accept()
-                
-        print('Connected to: ' + address[0] + ':' + str(address[1]))
+        try:
+            client, address = serverSocket.accept()
+        
+            ssl_client = context.wrap_socket(client, server_side=True)
+            
+            print('Connected to: ' + address[0] + ':' + str(address[1]))
 
-        #each individual connection is threaded
-        start_new_thread(threaded_client, (client, ))
-        threadCount += 1
-        print('Thread Number: ' + str(threadCount))
+            #each individual connection is threaded
+            start_new_thread(threaded_client, (ssl_client, ))
+            threadCount += 1
+            print('Thread Number: ' + str(threadCount))
+        except ssl.SSLError as e:
+            print(str(e))
+    ssl_client.shutdown(socket.SHUT_RDWR)
+    ssl_client.close()
     serverSocket.close()
 
 
