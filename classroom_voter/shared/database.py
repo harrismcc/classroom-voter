@@ -350,12 +350,11 @@ class DatabaseSQL(object):
         if result is not None:
             return self._formatPoll(result)
 
-    def getPollsForUser(self, userId, userRole="professors"):
+    def getPollsForUser(self, userId, classId=None):
         """
         Gets all polls for user in database
         Args:
-            userId (string): Id string of user
-            userRole (string): Roll of user (default professors, since students can't typically create polls)
+            userId (string): Id string of use
 
         Returns:
             list: list of poll dicts, can be converted to Poll objects with Poll.fromDict()
@@ -365,17 +364,22 @@ class DatabaseSQL(object):
         polls = []
 
         #first, get a users class id's
-        c.execute("SELECT classes FROM users WHERE emailAddress=? AND role=?", (userId, userRole))
+        c.execute("SELECT classes FROM users WHERE emailAddress=?", (userId, ))
         result = c.fetchone()
 
         if result is not None:
             classes = json.loads(result[0])
         else:
             return None
+        
+        #if class filter was set, only look at polls from that class id
+        if classId in classes:
+            classes = [classId]
+        
         #iterate through class list
-        for classId in classes:
+        for currentClassId in classes:
             #for each class id, grab all associated polls
-            c.execute("SELECT * FROM polls WHERE classId=?", (classId, ))
+            c.execute("SELECT * FROM polls WHERE classId=?", (currentClassId, ))
             result = c.fetchall()
 
             for pollTuple in result:
@@ -405,6 +409,7 @@ class DatabaseSQL(object):
 
 
     def _formatClass(self, classTuple):
+        print(classTuple)
         out = { 
                 "classId": classTuple[0],
                 "className": classTuple[1],
@@ -575,10 +580,13 @@ if __name__ == "__main__":
     password = input("Enter db password: ") #it's 'password'
 
     try:
-        test = DatabaseSQL("example.db.enc", password)
+        db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "example.db.enc")
+        test = DatabaseSQL(db_path, password)
     except IncorrectPasswordException:
         print("Incorrect DB password")
 
         #This is important, if the db has an incorrect password then the program needs
         #to quit. further use of the DB object will have undefined behavior (errors)
         test = None 
+
+    print(test.getClassFromId(1))

@@ -1,0 +1,22 @@
+localhost
+################################################################################
+			Log in to classroom voter
+################################################################################
+Enter the IP address of the server (eg 192.168.61.1): Enter the port of the server (eg 1500): 1500
+Successful Connection
+Login or Forgot Password: Login
+Enter username: student@gmail.com
+Enter Password: temp_pswd
+please enter your new password: 
+(note: Password must have atleast 8 characters including an uppercase and lowercase letter, a symbol, and a digit.
+ Password: lowercaseUPERCASE1!
+Please enter the password again to confirm: lowercaseUPERCASE1!
+{"classIds": ["0"], "courses": [{"classId": 0, "className": "Security", "courseCode": "cs181", "students": ["student@gmail.com"], "professors": ["prof@gmail.com"], "polls": []}]}
+Enrolled Courses:
+0 : cs181
+Select a course id: 0
+To view new polls, enter  'vp'. To change course, enter 'cc'. To quit, enter 'quit': vp
+you have recieved a new poll
+What is the answer?
+Answer: This is my answer as a student.
+To view new polls, enter  'vp'. To change course, enter 'cc'. To quit, enter 'quit': quit

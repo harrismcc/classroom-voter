@@ -8,9 +8,11 @@ responses from existing ones.
 import socket
 import sys
 import json
-from shared.pollTypes import Poll, FreeResponseQuestion
+from classroom_voter.shared.pollTypes import Poll, FreeResponseQuestion
 import datetime
 
+
+currentCourseId = None
 
 def prompt_for_poll():
     question_str = input("[Required] Enter your poll question: ")
@@ -21,7 +23,7 @@ def prompt_for_poll():
         "startTime" : datetime.date.today(),
         "endTime" : datetime.date.today(),
         "ownerId" : "12345",
-        "classId" : "1"
+        "classId" : currentCourseId
     }
     
     poll = Poll(question, **args)
@@ -58,8 +60,34 @@ def collect_responses(clientSocket, pollId):
     data = json.loads(clientSocket.recv(2048).decode())
     return data
 
+def getCourses(clientSocket):
+    msg = {
+        "endpoint" : "Get_enrolled"
+    }
+
+    send_msg(clientSocket, msg)
+    data = json.loads(clientSocket.recv(2048).decode())
+    return data
+
+
+
 def main(clientSocket):
-    print("we are in maine now")
+    #Get class to interact with
+    enrolled = getCourses(clientSocket)
+    try:
+        out = [str(course["classId"])+" : "+str(course["courseCode"]) for course in enrolled["courses"]]
+        print("Enrolled Courses:")
+        for line in out:
+            print(line)
+    except Exception:
+        print("You have invalid courses to use this REPL. These are your courses:")
+        print(enrolled)
+        return
+
+    global currentCourseId
+    while currentCourseId not in [course["classId"] for course in enrolled["courses"]]:
+        currentCourseId = int(input("Select a course id: "))
+
     while True:
         print("looping")
         prompt = input("To create a new poll, enter  'np'. To collect responses, enter 'cr'. To quit, enter 'quit': ")
@@ -70,6 +98,9 @@ def main(clientSocket):
         elif prompt == "np":
             poll = prompt_for_poll()
             send_poll(clientSocket, poll)
+        elif prompt == "gc":
+            test = getCourses(clientSocket)
+            print("Classes: ", test)
         elif prompt == "quit":
             print("#"*80)
             print("\t\t\tClosing session")
@@ -78,5 +109,3 @@ def main(clientSocket):
         else:
             print("Unrecognized input " + prompt + ". Expected 'np', 'cr', or 'quit'")
 
-if __name__ == "__main__":
-    main()

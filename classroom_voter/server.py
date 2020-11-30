@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 The `server` module handles the socket networking with the clients, placing them each into
 their own threaded connection.
@@ -12,21 +11,22 @@ import socket
 import threading
 import ssl
 
-import serverUtils
+import classroom_voter.serverUtils as serverUtils
 
 from _thread import *
 from threading import Thread
 
 from hashlib import sha256
 
-from shared.pollTypes import *
-from shared.database import *
-from shared.locks import *
+from classroom_voter.shared.pollTypes import *
+from classroom_voter.shared.database import *
+from classroom_voter.shared.locks import *
 
 sys.path.append(os.path.dirname(__file__)) #gets pdoc working
 
 dirname = os.path.dirname(__file__)
-db_path = os.path.join(dirname, 'shared/example.db.enc')
+#db_path = os.path.join(dirname, 'shared/example.db.enc')
+db_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "shared/example.db.enc")
 database = None
 database_lock = RWLock()
 
@@ -264,137 +264,139 @@ def threaded_client(connection):
         else:
             # Add the authenticated user to the connection list
             add_connection(authenticated_username, connection)
+        
+
             
-        if account_type == "student":
-            while True:
-                data = connection.recv(2048)
-                if not data:
+        while True:
+            data = connection.recv(2048)
+            if not data:
+                break
+
+            data = json.loads(data.decode())
+
+            print(data)
+            
+            endpoint = data["endpoint"]
+            
+            if endpoint == "Get_enrolled":
+                #Returns a list of all classes the user is enrolled in
+                user = database.getUser(authenticated_username)
+                try:
+                    classes = user[authenticated_username]["classes"] #Get list of classes for user
+                except KeyError:
+                    classes = None
                     break
 
-                data = json.loads(data.decode())
+                courseList = []
+                for courseId in classes:
+                    print("getting class with course id: ", str(courseId))
+                    courseList.append(database.getClassFromId(courseId))
 
-                print(data)
+                ret = {
+                    "classIds" : classes,
+                    "courses" : courseList
+                }
+
+                connection.send(json.dumps(ret).encode())
+
+            if endpoint == "Poll_response" and account_type == "students":
+                arguments = data["Arguments"]
+                poll_response = PollResponse.fromDict(arguments["poll"])
+
+                database_lock.acquire_write()
+                database.addResponse(authenticated_username, int(arguments["pollId"]), json.dumps(poll_response.toDict()))
+                database_lock.release()
+                continue
+            
+            if endpoint == "Get_next_poll" and account_type == "students":
+                #TODO: Currently this just returns the top of the list of unanswered polls,
+                #      it might be better to send the client the entire list and let them
+                #      sort it out client-side
+                username = authenticated_username
                 
-                endpoint = data["endpoint"]
+
+                try:
+                    arguments = data["Arguments"]
+                    classId = arguments["classId"]
+                except KeyError:
+                    classId = None
+
+                database_lock.acquire_read()
+                resp = database.getPollsForUser(username, classId=classId)
+                responded = database.getAnsweredPollIdsForUser(username)
+                database_lock.release()
                 
-                if endpoint == "Poll_response":
-                    arguements = data["Arguments"]
-                    poll_response = PollResponse.fromDict(arguements["poll"])
+                out = []
+                for poll in resp:
+                    if poll["pollId"] not in responded:
+                        out.append(poll)
+    
+                try:
+                    out = out[0]
+                except IndexError:
+                    out = {}
 
-                    database_lock.acquire_write()
-                    database.addResponse(authenticated_username, int(arguements["pollId"]), json.dumps(poll_response.toDict()))
-                    database_lock.release()
-                    continue
+                connection.send(json.dumps(out).encode())
+            
+            if endpoint == "Get_polls_for_user" and account_type == "students":
+                """gets all polls for user"""
+                arguments = data["Arguments"]
+                username = arguments["username"]
+                role = arguments["role"]
                 
-                if endpoint == "Get_next_poll":
-                    '''
-                    # Send out the next unseen poll
-                    connection_list_lock.acquire_read()
-                    student_connection = connection_list[authenticated_username]
-                    next_poll = database.getNextPollForUser(authenticated_username)
-                    if not next_poll:
-                        student_connection.send("No new polls".encode())
+                filterValue = None
+                try:
+                    filterValue = arguments["filter"]
+                except KeyError:
+                    pass
+            
 
-                    next_poll_question = {
-                        "prompt": next_poll['question']
-                    }
-                    student_connection.send(json.dumps(next_poll_question).encode())
-                    connection_list_lock.release()'''
+                resp = database.getPollsForUser(username, role)
+                responded = database.getAnsweredPollIdsForUser(username)
 
-
-                    #TODO: Currently this just returns the top of the list of unanswered polls,
-                    #      it might be better to send the client the entire list and let them
-                    #      sort it out client-side
-                    username = authenticated_username
-                    role = "students"
-                    
-                    database_lock.acquire_read()
-                    resp = database.getPollsForUser(username, role)
-                    responded = database.getAnsweredPollIdsForUser(username)
-                    database_lock.release()
-                    
-                    out = []
+                
+                out = []
+                if filterValue == "active":
                     for poll in resp:
                         if poll["pollId"] not in responded:
                             out.append(poll)
+                elif filterValue == "answered":
+                    for poll in resp:
+                        if poll["pollId"] in responded:
+                            out.append(poll)
+                else:
+                    out = resp
+
+                connection.send(json.dumps(out).encode())
         
-                    try:
-                        out = out[0]
-                    except IndexError:
-                        out = {}
+            
+            if endpoint == "Announce_poll" and account_type == "professors":
+                poll = Poll.fromDict(data["Arguments"]["poll"])
+                                
+                database_lock.acquire_write()
+                database.addPoll(poll)
+                database_lock.release()
+                continue
+            
+            if endpoint == "Aggregate_poll" and account_type == "professors":
+                arguments = data["Arguments"]
+                pollId = arguments["pollId"]
+                
+                database_lock.acquire_read()
+                results = database.getResponsesForPoll(pollId)
+                database_lock.release()
 
-                    connection.send(json.dumps(out).encode())
-                
-                if endpoint == "Get_polls_for_user":
-                    """gets all polls for user"""
-                    arguements = data["Arguments"]
-                    username = arguments["username"]
-                    role = arguments["role"]
-                    
-                    filterValue = None
-                    try:
-                        filterValue = arguments["filter"]
-                    except KeyError:
-                        pass
-                
-                    database.acquire_read()
-                    resp = database.getPollsForUser(username, role)
-                    responded = database.getAnsweredPollIdsForUser(username)
-                    database.release()
-                    
-                    out = []
-                    if filterValue == "active":
-                        for poll in resp:
-                            if poll["pollId"] not in responded:
-                                out.append(poll)
-                    elif filterValue == "answered":
-                        for poll in resp:
-                            if poll["pollId"] in responded:
-                                out.append(poll)
-                    else:
-                        out = resp
-
-                    connection.send(json.dumps(out).encode())
-        
-        
-        if account_type == "professor":
-                
-            while True:
-                data = connection.recv(2048)
-                if not data:
-                    break
-
-                data = json.loads(data.decode())
-
-                print(data)
-                
-                endpoint = data["endpoint"]
-                
-                if endpoint == "Announce_poll":
-                    poll = Poll.fromDict(data["Arguments"]["poll"])
-                                    
-                    database_lock.acquire_write()
-                    database.addPoll(poll)
-                    database_lock.release()
-                    continue
-                
-                if endpoint == "Aggregate_poll":
-                    arguments = data["Arguments"]
-                    pollId = arguments["pollId"]
-                    
-                    database_lock.acquire_read()
-                    results = database.getResponsesForPoll(pollId)
-                    database_lock.release()
-
-                    aggregation_response = {
-                        "endpoint" : "Aggregation_result",
-                        "Arguments" : {
-                            "results" : results
-                        }
+                aggregation_response = {
+                    "endpoint" : "Aggregation_result",
+                    "Arguments" : {
+                        "results" : results
                     }
+                }
+                
+                connection.send(json.dumps(aggregation_response).encode())
+                continue
                     
-                    connection.send(json.dumps(aggregation_response).encode())
-                    continue
+
                 
     finally:
         print("Closing Connection!")

@@ -6,7 +6,7 @@ import socket
 import os
 import sys
 import time
-from shared.pollTypes import PollResponse, PollQuestion, Poll # pylint: disable=import-error
+from classroom_voter.shared.pollTypes import PollResponse, PollQuestion, Poll # pylint: disable=import-error
 import json
 
 class VoterClient:
@@ -25,40 +25,62 @@ class VoterClient:
             clientSocket (socket): socket to connect to
         """
         self.clientSocket = clientSocket
+        self.currentCourseId = None
         if cli:
             self.startConnection()
+
+
+    def setCurrentCourseId(self):
+        self.currentCourseId = None
+        enrolled = self.sendServerEndpoint("Get_enrolled", None)
+        if enrolled != None and enrolled["courses"] != [None]:
+            out = [str(course["classId"])+" : "+str(course["courseCode"]) for course in enrolled["courses"]]
+
+            print("Enrolled Courses:")
+            for line in out: print(line)
+
+            while self.currentCourseId not in [course["classId"] for course in enrolled["courses"]]:
+                self.currentCourseId = int(input("Select a course id: "))
 
     def startConnection(self):
         """ starts up a connection loop to the server, specified by the host ip and host port """
 
-        while True:
-            prompt = input("To view new polls, enter  'vp'. To quit, enter 'quit': ")
-            if prompt == 'quit':
-                break
-            if prompt != 'vp':
-                print("Unrecognized input")
-                continue
-            
-            msg = {
-                "endpoint": "Get_next_poll"
-            }
-            self.clientSocket.send(json.dumps(msg).encode())
-            data = self.clientSocket.recv(1024)
-            data = json.loads(data.decode())
-            if data is None or data == {}:
-                print("No new polls.")
-                continue
+        self.setCurrentCourseId()
+        if self.currentCourseId != None:
+            while True:
+                prompt = input("To view new polls, enter  'vp'. To change course, enter 'cc'. To quit, enter 'quit': ")
+                if prompt == 'quit':
+                    return
+                elif prompt == 'cc':
+                    self.setCurrentCourseId()
+                elif prompt == "vp":
+                    
+                    msg = {
+                        "endpoint": "Get_next_poll",
+                        "Arguments" : {
+                            "classId" : self.currentCourseId
+                        }
+                    }
+                    self.clientSocket.send(json.dumps(msg).encode())
+                    data = self.clientSocket.recv(1024)
+                    data = json.loads(data.decode())
+                    if data is None or data == {}:
+                        print("No new polls.")
+                        continue
 
-            poll_question = self.getPollQuestion(data)
-            if poll_question is not None:
-                response = self.answerPoll(poll_question)
-                self.sendResponse(response, data["pollId"])    
-            time.sleep(1)
+                    poll_question = self.getPollQuestion(data)
+                    if poll_question is not None:
+                        response = self.answerPoll(poll_question)
+                        self.sendResponse(response, data["pollId"])    
+                    time.sleep(1)
+                else:
+                    print("Unrecognized input")
+                    continue
+        else:
+            print("You are not enrolled in any courses!")
 
-        clientSocket.close()
-        
-    def toString(self):
-        return "Client with host: <" + str(self.host) + "> and port: <" + str(self.port) +">"
+        #clientSocket.close()
+
 
     def getPollQuestion(self, data):
         """
@@ -125,11 +147,11 @@ class VoterClient:
         resp = None
         while resp == None:
             resp = self.clientSocket.recv(4096).decode()
-        
+        print(resp)
         try:    
             data = json.loads(resp)
         except json.JSONDecodeError:
-            print("JSON decode error (No data)")
+            print("JSON decode error (No data) for endpoint ", endpoint)
         
         return data
 
