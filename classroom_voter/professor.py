@@ -89,7 +89,6 @@ def main(clientSocket):
         currentCourseId = int(input("Select a course id: "))
 
     while True:
-        print("looping")
         prompt = input("To create a new poll, enter  'np'. To collect responses, enter 'cr'. To quit, enter 'quit': ")
         if prompt == "cr":
             pollId = input("Collect reponses for pollId: ")

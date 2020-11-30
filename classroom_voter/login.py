@@ -179,13 +179,10 @@ class LoginTools(object):
                 print("Password Reset Failed")
                 quit()
             
-        print("logging in: " + login_result['Arguments']['account_type'])    
         if login_result['Arguments']['account_type'] == 'students':
             client.main(self.clientSocket, login_result['Arguments']['username'])
         elif login_result['Arguments']['account_type'] == 'professors':
             professor.main(self.clientSocket)
-        
-        print("logging out")
 
 
 def prompt_for_ip():
