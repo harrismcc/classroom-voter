@@ -8,6 +8,7 @@ import sys
 import time
 from classroom_voter.shared.pollTypes import PollResponse, PollQuestion, Poll # pylint: disable=import-error
 import json
+import datetime
 
 class VoterClient:
     """
@@ -73,6 +74,52 @@ class VoterClient:
                         response = self.answerPoll(poll_question)
                         self.sendResponse(response, data["pollId"])    
                     time.sleep(1)
+                if prompt == "ep":
+                    poll_id = input("Enter pollId: ")
+                    msg = {
+                        "endpoint": "Edit_poll_request",
+                        "Arguments": {
+                            "pollId": poll_id
+                        }
+                    }
+                    self.clientSocket.send(json.dumps(msg).encode())
+                    
+                    data = json.loads(self.clientSocket.recv(1024))
+                    print(data)
+                    
+                    arguments = data["Arguments"]
+                    result = arguments["result"]
+                    poll = arguments["poll"]
+                    previous_response = arguments["previousResponse"]
+                                                    
+                    if result == "failed":
+                        print("Edit request failed!")
+                        continue
+                    if result == "expired":
+                        print("Poll has expired, cannot edit!")
+                        continue
+                    
+                    if result == "success":
+                        poll_question = self.getPollQuestion(poll)
+                        print("Prompt: ", poll_question.getPrompt())
+                        print("Previous Response: ", previous_response["responseBody"])
+                        
+                        updated_str_response = input("Update your response: ")
+                        
+                        time_submitted = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                        
+                        msg = {
+                            "endpoint": "Update_response",
+                            "Arguments": {
+                                "pollId": poll_id,
+                                "updated_response": PollResponse(updated_str_response).toDict(),
+                                "time_submitted": time_submitted
+                            }
+                        }
+                        self.clientSocket.send(json.dumps(msg).encode())
+                    
+                        data = json.loads(self.clientSocket.recv(1024))
+                        print(data)
                 else:
                     print("Unrecognized input")
                     continue
@@ -99,10 +146,8 @@ class VoterClient:
             return poll_question
         except RecursionError:
             print("malformed response: ", data)
-            return None    
+            return None
             
-
-
     def answerPoll(self, question):
         """
         Prompts the user to answer a poll
@@ -125,12 +170,15 @@ class VoterClient:
         Args:
             ans: a Response object, the answer to be sent
             clientSocket: the socket with the destination server"""
+        
+        time_submitted = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             
         msg = {
             "endpoint": "Poll_response",
             "Arguments": {
                 "poll": response.toDict(),
-                "pollId": pollId
+                "pollId": pollId,
+                "time-submitted": time_submitted
             }
         }
         

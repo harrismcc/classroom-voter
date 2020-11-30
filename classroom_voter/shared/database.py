@@ -293,6 +293,14 @@ class DatabaseSQL(object):
         results = c.fetchall()
         
         return results
+        
+    def getStudentResponseForPoll(self, userId, pollId):
+        c = self.conn.cursor()
+        
+        c.execute("SELECT responseBody FROM responses where userId=? AND pollId=?", (userId, pollId, ))
+        result = c.fetchone()
+        
+        return result[0]
             
     def _formatUser(self, studentTuple):
         out = {studentTuple[0] : {
