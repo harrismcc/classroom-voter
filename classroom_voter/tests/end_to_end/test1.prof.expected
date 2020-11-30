@@ -17,6 +17,7 @@ Select a course id: 0
 To create a new poll, enter  'np'. To collect responses, enter 'cr'. To quit, enter 'quit': np
 [Required] Enter your poll question: What is the answer?
 [Optional] Enter your poll answer: This is the answer.
+[Required] Enter the due date (24-hour clock: %H:%M %m-%d-%Y): 10:15 01-15-2040
 To create a new poll, enter  'np'. To collect responses, enter 'cr'. To quit, enter 'quit': cr
 Collect reponses for pollId: 1
 Results:  {'endpoint': 'Aggregation_result', 'Arguments': {'results': [['{"responseBody": "This is my answer as a student.", "anonLevel": 0}']]}}
