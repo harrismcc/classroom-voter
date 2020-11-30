@@ -418,11 +418,14 @@ def main():
         global database
         database = DatabaseSQL(db_path, databasePassword)
     except IncorrectPasswordException:
+        print("Incorrect Password - closing")
         return 0
 
 
     context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2, ssl.Purpose.CLIENT_AUTH)
-    context.load_cert_chain(certfile="shared/newCert.crt", keyfile="shared/privkey.pem")
+    certPath = os.path.join(os.path.dirname(__file__) , "shared/newCert.crt")
+    keyPath = os.path.join(os.path.dirname(__file__) , "shared/privkey.pem")
+    context.load_cert_chain(certfile=certPath, keyfile=keyPath)
 
     serverSocket = socket.socket()
     serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

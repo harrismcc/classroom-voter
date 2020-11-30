@@ -52,7 +52,9 @@ class LoginTools(object):
         self.client_context.options |= ssl.OP_NO_TLSv1
         self.client_context.options |= ssl.OP_NO_TLSv1_1
         self.client_context.verify_mode |= ssl.CERT_REQUIRED
-        self.client_context.load_verify_locations('shared/newCert.crt')
+
+        certPath = os.path.join(os.path.dirname(__file__) , "shared/newCert.crt")
+        self.client_context.load_verify_locations(certPath)
         self.clientSocket = self.client_context.wrap_socket(self.sock, server_hostname=self.hostname)
         # pprint.pprint(self.clientSocket.getpeercert())
         # print(self.clientSocket.getpeername())
@@ -178,9 +180,9 @@ class LoginTools(object):
                 quit()
             
         print("logging in: " + login_result['Arguments']['account_type'])    
-        if login_result['Arguments']['account_type'] == 'student':
+        if login_result['Arguments']['account_type'] == 'students':
             client.main(self.clientSocket, login_result['Arguments']['username'])
-        elif login_result['Arguments']['account_type'] == 'professor':
+        elif login_result['Arguments']['account_type'] == 'professors':
             professor.main(self.clientSocket)
         
         print("logging out")
