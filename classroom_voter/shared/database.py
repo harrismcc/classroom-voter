@@ -157,6 +157,19 @@ class DatabaseSQL(object):
 
         return self.updateFieldViaId("users", userId, "hashedPassword", newHash)
 
+    def updateResponse(self, pollId, userId, newResponse):
+        c = self.conn.cursor()
+
+        try:
+            #responseId integer primary key autoincrement, userId text, pollId integer, responseBody text
+            c.execute("UPDATE responses SET responseBody=? WHERE pollId=? AND userId=?", (newResponse, pollId, userId, ))
+            self.conn.commit()
+            self.writeChanges()
+            return True
+        except sqlite3.IntegrityError as e:
+            return False
+        
+
     def updateFieldViaId(self, table, myId, field, newValue):
         """
         Updates a specific value for a specific entry. For example, to set a user's name:

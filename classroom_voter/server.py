@@ -337,7 +337,12 @@ def threaded_client(connection):
                     
                     if time_submitted <= time:
                         database_lock.acquire_write()
-                        database.updateFieldViaId("responses", poll_id, "responseBody", json.dumps(updated_response.toDict()))
+                        print("POLL ID: ", poll_id)
+                        try:
+                            database.updateResponse(poll_id, authenticated_username, json.dumps(updated_response.toDict()))
+                        except sqlite3.OperationalError as e:
+                            print("responses", poll_id, "responseBody", json.dumps(updated_response.toDict()))
+                            print(e)
                         database_lock.release()
                         update_result = "success"
                     else:
