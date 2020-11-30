@@ -7,8 +7,8 @@ import os
 
 
 #from .. import server
-import server
-from shared.pollTypes import *
+import classroom_voter.server as server
+from classroom_voter.shared.pollTypes import *
 
 class ServerTests(unittest.TestCase):
     def setUp(self):

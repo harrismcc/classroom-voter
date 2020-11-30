@@ -1,5 +1,4 @@
 name: CI
-
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the master branch
 on:
@@ -18,7 +17,14 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-      - name: Main test
+      - name: Install dependencies
         run: |
-          python -m unittest discover tests
-          
+          python3 -m pip install --upgrade pip
+          pip3 install flake8 pytest
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Unit test
+        run: |
+          python3 -m unittest discover classroom_voter.tests
+      - name: End to end test
+        run: |
+          ./classroom_voter/tests/e2e.sh

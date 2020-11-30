@@ -1,9 +1,13 @@
 .vscode/
 *.pyc
+classroom_voter.egg-info/
+dist/
 shared/__pycache__/
 tests/__pycache__/
 .pylintrc
 __pycache__
 *.db
+example.db.enc
 *.out
 *.logs
+build/

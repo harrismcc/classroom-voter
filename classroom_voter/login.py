@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 The `login` module is the main entry point for any client.
 The client enters credentials, and if authenticated, enters they main
@@ -10,20 +9,37 @@ import os
 import sys
 import json
 import getpass
-from shared.pollTypes import Poll, FreeResponseQuestion
-import professor
-import client
+import ssl
+import pprint
+from classroom_voter.shared.pollTypes import Poll, FreeResponseQuestion
+import classroom_voter.professor as professor
+import classroom_voter.client as client
 
 class LoginTools(object):
+    '''an object to securely connect a client to the server
+        and authenticate them.
+
+        Parameters:
+            ip: string ip for server
+            port: port number of server
+            cli: boolean for CLI responses
+        
+        Variables:
+            ip: same
+            port: same
+            cli: same
+            sock: the socket to the server
+            clientSock: ssl secured socket to server'''
     def __init__(self, ip, port, cli=False):
+        
         self.ip = ip
         self.port = port
         self.cli = cli
 
-        self.clientSocket = socket.socket()
-        self.clientSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.sock = socket.socket()
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
-            self.clientSocket.connect((self.ip, self.port))
+            self.sock.connect((self.ip, self.port))
             if self.cli: print('Successful Connection')
             self.connected = True
         except socket.error as e:
@@ -31,7 +47,19 @@ class LoginTools(object):
             if self.cli: print('Failed Connection: ' + str(e))
             return
 
+        self.hostname = "classroom.voter"
+        self.client_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        self.client_context.options |= ssl.OP_NO_TLSv1
+        self.client_context.options |= ssl.OP_NO_TLSv1_1
+        self.client_context.verify_mode |= ssl.CERT_REQUIRED
 
+        certPath = os.path.join(os.path.dirname(__file__) , "shared/newCert.crt")
+        self.client_context.load_verify_locations(certPath)
+        self.clientSocket = self.client_context.wrap_socket(self.sock, server_hostname=self.hostname)
+        # pprint.pprint(self.clientSocket.getpeercert())
+        # print(self.clientSocket.getpeername())
+        # print(self.clientSocket.cipher())
+        self.clientSocket.getpeercert()
         if cli:
             self.main()
 
@@ -104,7 +132,7 @@ class LoginTools(object):
                 valid = False
                 print("password must contain at least one symbol (!@#$%^&*()-_+=`~[]{},./<>?|) \n")
             if valid:
-                confirm = self.safe_prompt_for_password("please enter the password again to confirm:")
+                confirm = self.safe_prompt_for_password("Please enter the password again to confirm: ")
                 if confirm != password:
                     valid = False
                     print("Passwords don't match! Try again")
@@ -155,7 +183,8 @@ class LoginTools(object):
             client.main(self.clientSocket, login_result['Arguments']['username'])
         elif login_result['Arguments']['account_type'] == 'professors':
             professor.main(self.clientSocket)
-        
+
+
 def prompt_for_ip():
     ip = input("Enter the IP address of the server (eg 192.168.61.1): ")
     port = int(input("Enter the port of the server (eg 1500): "))
@@ -177,9 +206,10 @@ def main():
             port = int(sys.argv[2])
     else:
         ip, port = prompt_for_ip()
-    
-    login = LoginTools(ip, port, cli="True")
-    
+    try:
+        login = LoginTools(ip, port, cli="True")
+    except ssl.SSLError as e:
+        print(str(e))
     
     
         

@@ -7,7 +7,7 @@ import random
 
 sys.path.append(os.path.dirname(__file__)) #gets pdoc working
 
-from shared.pollTypes import *
+from classroom_voter.shared.pollTypes import *
 
 
 

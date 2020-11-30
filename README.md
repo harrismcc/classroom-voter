@@ -1,212 +1,36 @@
 # Classroom Voter
+Classroom Voter is a secure LAN based polling system, similar to iClicker, which allows teachers to administer live polls. To start a poll, the teacher simply has to run the host program on their local machine. To join, students run the client program and enter the teachers IP address. Students can respond to questions via clients on their machines. 
 
+Traffic is sent over HTTP on the local network. The system provides instructors with the ability to take polls while providing controllable levels of anonymity for students. For example, a teacher might make one question anonymized so that their view of the poll results just shows the number of students who voted for each option. Another poll might be transparent, and the instructor can see which participant voted for which option.
 
-## Objects
+# Installation
 
-### Poll Object
-The poll object is created by the server, and represents the entire poll. This means that it holds information about the poll questions and config options, as well as the responses.
-
-### Poll Response Object
-The poll Response object holds the response to a poll question. It can be configured to operate in the appropriate anonymitiy mode, and can self-check answer types. Additionally, it has functions that allow it to be encoded and transmitted over the internet so that it can be re-constructed by the server.
-
-## Communication Structure
-Professor makes a Poll which is then encapsulates in an AnnouncePoll request.  The message is encrypted with a symmetric key shared by the professor and server and sent to the server.
-
-`AnnouncePoll Request`
-```json
-{
-    "endpoint" : "Announce-poll", 
-    "arguments" : {
-        "start-time" : start-time,
-        "end-time" : end-time,
-        "poll-id" : poll-id,
-        "professor-id" : professor-id,
-        "class-id" : class-id,
-        "poll" : {
-            "question": {
-                "prompt": "What is your name?", 
-                "answer": None,
-                "options": None, 
-                "type": "FreeResponseQuestion"
-            }, 
-            "responses": []
-        }
-    }
-}
+## Automatic
+This package is distributed via TestPyPI (Test, since the project is still in beta). The [latest version](https://test.pypi.org/project/classroom-voter-harrismcc/) can be installed via pip:
+```
+pip3 install --index-url https://test.pypi.org/simple classroom-voter-harrismcc
+```
+## Manual
+### Linux/OSX
+From the [latest release](https://github.com/harrismcc/classroom-voter/releases/), download the file that looks like `classroom_voter_harrismcc-VERSION.tar.gz`. Next, use pip to install with the following command (making sure that the directory with the .tar.gz file is the active directoy):
+```
+pip install classroom_voter_harrismcc-VERSION.tar.gz`
+```
+### Windows
+From the [latest release](https://github.com/harrismcc/classroom-voter/releases/), download the file that looks like `classroom_voter_harrismcc-VERSION.whl`. Next, use pip to install with the following command (making sure that the directory with the .tar.gz file is the active directoy):
+```
+pip install classroom_voter_harrismcc-VERSION.whl`
+```
+or
+```
+python -m pip install classroom_voter_harrismcc-VERSION.whl
 ```
 
-The server receives a message from a professor and decrypts the message using the shared key.  Once the message is decrypted the server matches against the endpoint which tells it what to do with the message.  
 
-If the message endpoint is AnnouncePoll the server will do the following:
-(1) Save the poll in the database
-(2) Query the database to find all of the students in the class
-(3) Encrypt the message using the shared key between server and the student
-(4) Send encrypted poll to each student
+# Usage
 
-`Send Poll To Student`
-```json
-{
-    "endpoint" : "Student-poll", 
-    "arguments" : {
-        "start-time" : start-time,
-        "end-time" : end-time,
-        "poll-id" : poll-id,
-        "professor-name" : professor-name,
-        "class-name" : class-name,
-        "poll" : {
-            "question": {
-                "prompt": "What is your name?", 
-                "answer": None,
-                "options": None, 
-                "type": "FreeResponseQuestion"
-            }, 
-            "responses": []
-        }
-    }
-}
+After classroom voter is install, it can be run via the command line. To login as a student or professor, run 
 ```
-
-The student receive a message from the server and decrypt the message using the shared key between server and student.  The student notices they have received a poll and generates a PollResponse.  The response is then encrypted with the shared key and sent back to the server.
-
-`Poll Response`
-```json
-{
-    "endpoint" : "Poll-response", 
-    "arguments" : {
-        "poll-id" : poll-id,
-        "student-id" : student-id,
-        "response-time" : response-time,
-        "poll-response" : {
-            "response-body" : response-body,
-            "annoninimty-level" : annononimity-level
-        }
-    }
-    
-}
-``` 
-
-The server receives a message from a student and decrypts the message using the shared key between student and server.  The server uses the students id and the poll id to make sure that the student is enrolled in the class.  Then checks to see if the response was recorded between the poll start and end time.  If the poll is anonymous the students id is stripped from the response.  Then the students response is added to the responses for the respective poll id.
-
-The professor can request an aggregate of the responses for a given poll.  The PollAggregate request is encrypted using the shared key between the professor and server and sent to the server
-
-`Aggregate Poll`
-```json
-{
-    "endpoint" : "Aggregate-poll", 
-    "arguments" : {
-        "professor-id" : professor-id,
-        "poll-id" : poll-id,
-    }
-    
-}
+python -m classroom_voter.login
 ```
-
-The server receives a message from a professor and decrypts the message using the shared key.  Once the message is decrypted the server matches against the endpoint which tells it what to do with the message. 
-
-If the message endpoint is AggregatePoll the server will do the following:
-(1) Query the poll id
-(2) Retrieve the responses
-(3) Encrypt the message using the shared key between server and the student
-(4) Send encrypted results to the professor
-
-`Poll Results`
-```json
-{
-    "endpoint" : "Poll-results", 
-    "arguments" : {
-        "poll-results" : poll-results,
-    }
-    
-}
-```
-
-Lastly, the professor receives a message from the server.  The message is decrypted using the shared key between the server and professor.  Once decrypted the results are displayed to the professor.
-
-
-
-
-## Database Structure
-```json
-
-{
-    "users" : {
-        "students" : {
-            student-email : {
-                "firstName" : first-name,
-                "lastName" : last-name,
-                "password" : password-hash,
-                "classes" : {
-                                "class-id" : poll-id-of-last-response,
-                                "class-id" : poll-id-of-last-response,
-                                ... 
-                                "class-id" : poll-id-of-last-response,
-                            },
-                "reedemed" : false,
-            },
-            student-email : {
-                "firstName" : first-name,
-                "lastName" : last-name,
-                "password" : password-hash,
-                "classes" : {
-                                "class-id" : poll-id-of-last-response,
-                                "class-id" : poll-id-of-last-response,
-                                ... 
-                                "class-id" : poll-id-of-last-response,
-                            },
-                "reedemed" : false,
-            },
-        },
-
-        "professors" : {
-            professor-email : {
-                "firstName" : first-name,
-                "lastName" : last-name,
-                "password" : password-hash,
-                "classes" : [class-id, class-id, ..., class-id],
-                "reedemed" : false,
-            },
-            professor-email : {
-                "firstName" : first-name,
-                "lastName" : last-name,
-                "password" : password-hash,
-                "classes" : [class-id, class-id, ..., class-id],
-                "reedemed" : false,
-            },
-        }
-    },
-
-    "polls" : {
-        poll-id : {
-            "start" : time-stamp,
-            "end" : time-stamp,
-            "professor-email" : professor-id,
-            "class-id" : class-id,
-            "poll" : PollObject
-        },
-        poll-id : {
-            "start" : time-stamp,
-            "end" : time-stamp,
-            "professor-email" : professor-id,
-            "class-id" : class-id,
-            "poll" : PollObject
-        },
-    },
-
-    "classes" : {
-        class-id : {
-            "className" : class-name,
-            "students" : [student-email, student-email, ..., student-email],
-            "professor" : [professor-email, professor-email, ..., professor-email],
-            "polls" : [poll-id, poll-id, ..., poll-id]
-        }, 
-        class-id : {
-            "className" : class-name,
-            "students" : [student-email, student-email, ..., student-email],
-            "professor" : [professor-email, professor-email, ..., professor-email],
-            "polls" : [poll-id, poll-id, ..., poll-id]
-        },
-    }
-}
-
-```
-
+This will prompt you first for the ip address and port of the server (given to you by the professor/ system admin), and then for your username and password (check your email)
