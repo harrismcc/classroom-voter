@@ -1,10 +1,9 @@
 import setuptools, os
 
+#https://packaging.python.org/tutorials/packaging-projects/#packaging-your-project
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
-
-
 
 def saveVersion(version):
     with open("version.txt", "w") as f:
@@ -28,6 +27,8 @@ def getNewVersion():
     if len(split) == 4:
         #Then there is a build number
         split[3] = getBuildNumber()
+    else:
+        split.append(getBuildNumber())
     
     out = ".".join(split)
     saveVersion(out)
