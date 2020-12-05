@@ -33,6 +33,8 @@ database_lock = RWLock()
 
 connection_list = {}
 connection_list_lock = RWLock()
+#print logs for debugging: do not use for production
+cli = True
 
 def authenticate_user(username, password):
     """
@@ -119,8 +121,7 @@ def threaded_client(connection):
                 break
 
             data = json.loads(data.decode())
-
-            print(data)
+            #[debugging] print(data)
             
             endpoint = data["endpoint"]
             
@@ -275,7 +276,7 @@ def threaded_client(connection):
 
             data = json.loads(data.decode())
 
-            print(data)
+            #[debugging] print(data)
             
             endpoint = data["endpoint"]
             
@@ -290,7 +291,7 @@ def threaded_client(connection):
 
                 courseList = []
                 for courseId in classes:
-                    print("getting class with course id: ", str(courseId))
+                    #[debugging] print("getting class with course id: ", str(courseId))
                     courseList.append(database.getClassFromId(courseId))
 
                 ret = {
@@ -311,8 +312,8 @@ def threaded_client(connection):
                 database_lock.release()
                 
                 time_due = datetime.datetime.strptime(poll["endTime"], "%Y-%m-%d %H:%M:%S")
-                print("Submitted: ", time_submitted)
-                print("Due: ", time_due)
+                #[debugging] print("Submitted: ", time_submitted)
+                #[debugging] print("Due: ", time_due)
                 
                 if time_submitted <= time_due:
                     database_lock.acquire_write()
@@ -337,7 +338,7 @@ def threaded_client(connection):
                     
                     if time_submitted <= time:
                         database_lock.acquire_write()
-                        print("POLL ID: ", poll_id)
+                        #[debugging] print("POLL ID: ", poll_id)
                         try:
                             database.updateResponse(poll_id, authenticated_username, json.dumps(updated_response.toDict()))
                         except sqlite3.OperationalError as e:
@@ -358,9 +359,9 @@ def threaded_client(connection):
                     }
                 }
                 
-                print()
-                print(update_response)
-                print()
+                #[debugging] print()
+                #[debugging] print(update_response)
+                #[debugging] print()
                 
                 connection.send(json.dumps(update_response).encode())
                 continue
@@ -382,8 +383,8 @@ def threaded_client(connection):
                     response = json.loads(database.getStudentResponseForPoll(authenticated_username, poll_id))
                     database_lock.release()
                     
-                    print(poll)
-                    print(response)
+                    #[debugging] print(poll)
+                    #[debugging] print(response)
                     
                     end_time = datetime.datetime.strptime(poll["endTime"], "%Y-%m-%d %H:%M:%S")
                     time = datetime.datetime.now()
@@ -505,10 +506,10 @@ def threaded_client(connection):
 
                 
     finally:
-        print("Closing Connection!")
+        #[debugging] print("Closing Connection!")
         remove_connection(authenticated_username)
         connection.close()
-        print(connection_list)
+        #[debugging] print(connection_list)
     
 
 def main():
@@ -518,7 +519,6 @@ def main():
         print("usage: python3 %s <port>" % sys.argv[0])
         quit(1)
     port = sys.argv[1]
-
     databasePassword = input("Input database password: ")
     try:
         global database
