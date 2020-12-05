@@ -53,6 +53,13 @@ python -m classroom_voter.admin --sql path-to-database
 ```
 lets you run sql commands directly on the database and perform minor edits
 
+This will let you insert arbitrary sql into the database, such as creating a
+class initialized with a few users:
+```
+admin="python3 -m classroom_voter.admin"
+printf "INSERT OR REPLACE into classes VALUES (0, 'Security', 'cs181', '[\"student@gmail.com\"]', '[\"prof@gmail.com\"]', '[]')\n" | eval $admin --sql db_pswd
+```
+
 
 When all users are created, the server can be run:
 ```
