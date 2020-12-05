@@ -113,6 +113,13 @@ def main(clientSocket):
         elif prompt == "np":
             poll = prompt_for_poll()
             send_poll(clientSocket, poll)
+            
+            data = json.loads(clientSocket.recv(2048).decode())
+            endpoint = data["endpoint"]
+            if endpoint == "Announce_result":
+                arguments = data["Arguments"]
+                print("PollID: ", arguments["pollId"])
+            
         elif prompt == "gc":
             test = getCourses(clientSocket)
             print("Classes: ", test)

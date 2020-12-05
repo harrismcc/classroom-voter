@@ -219,9 +219,10 @@ class DatabaseSQL(object):
             c.execute("INSERT INTO polls VALUES (NULL, ?, ?, ?, ?, ?)", vals)
             self.conn.commit()
             self.writeChanges()
-            return True
+            returnId = c.lastrowid
+            return returnId
         except sqlite3.IntegrityError as e:
-            return False
+            return None
 
     def addClass(self, classDict):
         """

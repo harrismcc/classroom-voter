@@ -50,7 +50,7 @@ class VoterClient:
         self.setCurrentCourseId()
         if self.currentCourseId != None:
             while True:
-                prompt = input("To view new polls, enter  'vp'. To change course, enter 'cc'. To quit, enter 'quit': ")
+                prompt = input("To view new polls, enter  'vp'. To edit poll, enter 'ep'. To change course, enter 'cc'. To quit, enter 'quit': ")
                 if prompt == 'quit':
                     return
                 elif prompt == 'cc':
@@ -66,11 +66,12 @@ class VoterClient:
                     self.clientSocket.send(json.dumps(msg).encode())
                     data = self.clientSocket.recv(1024)
                     data = json.loads(data.decode())
-                    print("PollID: ", data["pollId"])
                     
                     if data is None or data == {}:
                         print("No new polls.")
                         continue
+                    else:
+                        print("PollID: ", data["pollId"])
 
                     poll_question = self.getPollQuestion(data)
                     if poll_question is not None:

@@ -471,8 +471,17 @@ def threaded_client(connection):
                 poll = Poll.fromDict(data["Arguments"]["poll"])
                                 
                 database_lock.acquire_write()
-                database.addPoll(poll)
+                poll_id = database.addPoll(poll)
                 database_lock.release()
+                
+                announce_response = {
+                    "endpoint" : "Announce_result",
+                    "Arguments" : {
+                        "pollId": poll_id
+                    }
+                }
+                connection.send(json.dumps(announce_response).encode())
+
                 continue
             
             if endpoint == "Aggregate_poll" and account_type == "professors":
