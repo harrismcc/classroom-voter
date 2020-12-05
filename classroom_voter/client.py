@@ -3,6 +3,7 @@ The `client` module is what runs on each individual students machine. It handles
 networking that allows students to connect to server polls.
 """
 import socket
+import ssl
 import os
 import sys
 import time
@@ -55,7 +56,7 @@ class VoterClient:
                 elif prompt == 'cc':
                     self.setCurrentCourseId()
                 elif prompt == "vp":
-                    
+                    """view the next poll and answer it"""
                     msg = {
                         "endpoint": "Get_next_poll",
                         "Arguments" : {
@@ -76,7 +77,9 @@ class VoterClient:
                         response = self.answerPoll(poll_question)
                         self.sendResponse(response, data["pollId"])    
                     time.sleep(1)
+
                 if prompt == "ep":
+                    """edit a response for a currently valid poll"""
                     poll_id = input("Enter pollId: ")
                     msg = {
                         "endpoint": "Edit_poll_request",

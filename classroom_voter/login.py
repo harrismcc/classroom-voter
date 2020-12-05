@@ -1,7 +1,10 @@
 """
 The `login` module is the main entry point for any client.
-The client enters credentials, and if authenticated, enters they main
-loop for either students or professors, depending on who they authenticated as.
+The client forms a secure connection with the server, then enters their credentials.
+If authenticated, they enterthe main loop for either students or professors, 
+depending on who they authenticated as.
+
+This module also allows the client to reset or recover their password.
 """
 
 import socket
@@ -64,12 +67,20 @@ class LoginTools(object):
             self.main()
 
     def send_msg(self, msg):
+        """Attempts to send a message msg over the socketed connection"""
         try:
             self.clientSocket.send(str.encode(json.dumps(msg)))
         except socket.error as e:
             if self.cli: print('Failed to send message: ' + str(e))
+        except ssl.SSLError as e:
+            if self.cli: print('Connection insecure'+ str(e))
 
     def attempt_login(self, username, password):
+        """
+        Attempts to log in to the server with the provided username and password
+            return:
+            repsonse, the server's response in dictionary form
+        """
         msg = {
             "endpoint": "Login",
             "Arguments": {
@@ -82,6 +93,10 @@ class LoginTools(object):
         return response
 
     def reset_password(self, username, password, new_password):
+        """attempts to reset old password to new_password
+            returns:
+                results: dict of server's response
+        """
         msg = {
             "endpoint": "Reset_password",
             "Arguments": {
@@ -95,6 +110,9 @@ class LoginTools(object):
         return result
         
     def recover_password(self, username):
+        """Prompts the server to send a password recovery email
+            returns:
+                response: dict of server's response"""
         msg = {
             "endpoint": "Recover_password",
             "Arguments" : {
@@ -106,9 +124,9 @@ class LoginTools(object):
         return response
 
     def get_new_password(self):
-        """prompts the user for a new password that satisfies comprehensive8 requirements
+        """Prompts the user for a new password that satisfies security requirements
         Returns:
-            password: string password that satisfies comprehensive8"""
+            password: string password"""
 
         valid = False
         password = ""
