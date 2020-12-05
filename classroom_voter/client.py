@@ -65,6 +65,8 @@ class VoterClient:
                     self.clientSocket.send(json.dumps(msg).encode())
                     data = self.clientSocket.recv(1024)
                     data = json.loads(data.decode())
+                    print("PollID: ", data["pollId"])
+                    
                     if data is None or data == {}:
                         print("No new polls.")
                         continue
