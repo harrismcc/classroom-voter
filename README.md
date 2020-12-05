@@ -1,7 +1,7 @@
 # Classroom Voter
 Classroom Voter is a secure LAN based polling system, similar to iClicker, which allows teachers to administer live polls. To start a poll, the teacher simply has to run the host program on their local machine. To join, students run the client program and enter the teachers IP address. Students can respond to questions via clients on their machines. 
 
-Traffic is sent over HTTP on the local network. The system provides instructors with the ability to take polls while providing controllable levels of anonymity for students. For example, a teacher might make one question anonymized so that their view of the poll results just shows the number of students who voted for each option. Another poll might be transparent, and the instructor can see which participant voted for which option.
+Traffic is sent over HTTP on the local network. The system provides instructors with the ability to take polls and see how the students answer.
 
 # Installation
 
@@ -26,10 +26,48 @@ or
 python -m pip install classroom_voter_harrismcc-VERSION.whl
 ```
 
+# Setup and Administration
 
-# Usage
+The first thing the sysadmin should do when setting up Classroom Voter is to create a new certificate and private key for the server.
+Using OpenSSL in the "shared" directory, run
 
-After classroom voter is install, it can be run via the command line. To login as a student or professor, run 
+```
+openssl req -x509 -newkey rsa:4096 -keyout privkey.pem -out newcert.pem -days 365 -subj "/C=US/ST=California/L=Claremont/O=Classroom Voter/CN=classroom.voter"
+
+```
+It will prompt for a password for the key - remember this, because without it the private key cannot be decrypted and the server cannot be used.
+
+Then, they will need to initialize the users database by running the admin script in one of two configurations:
+
+```
+python -m classroom_voter.admin db-password should-send-email(yes or no) email first-name last-name temp-password user-type classes```
+
+ex:
+
+python -m classroom_voter.admin password yes example@gmail.com Example Student abc123 student 1
+```
+
+lets you create a user, in the example 'Example student', whose account is tied to an email address. The first time you run this code will initialize
+```
+python -m classroom_voter.admin --sql path-to-database
+```
+lets you run sql commands directly on the database and perform minor edits
+
+
+When all users are created, the server can be run:
+```
+python -m classroom_voter.server <port>
+```
+it will prompt for your database password and private key passwords, then run indefinitely. Supply the ip and port it is running on to your professors, who can pass it to the students.
+
+N.B. if you need to run the administrator script, you must first stop the server, and restart it when you're done, as otherwise they compete for database access.
+
+Note 2: if you need to debug the server, there are print statments commented out with "#[debug]", simply find and replace that. However, this displays plaintext passwords, and should not be used for logging. 
+
+
+# Client Usage
+
+After classroom voter is installed, it can be run via the command line. To login as a student or professor, run 
 ```
 python -m classroom_voter.login
 ```
